@@ -1,0 +1,16 @@
+A2A service URL: https://a2a-nov25-699113512731.us-central1.run.app
+
+curl -X POST \
+-H "Authorization: Bearer $(gcloud auth print-access-token)" \
+-H "Content-Type: application/json" \
+https://global-discoveryengine.googleapis.com/v1alpha/projects/699113512731/locations/global/collections/default_collection/engines/gemini-enterprise-17623074_1762307482499/assistants/default_assistant/agents \
+-d '
+{
+  "name": "AA2A Nov25",
+  "displayName": "A2A Nov25",
+  "description": "Testing A2A",
+  "a2aAgentDefinition": {
+    "jsonAgentCard": "{\"protocolVersion\":\"0.3.0\",\"name\":\"A2A Weather Agent\",\"description\":\"Just an agent that can check the weather\",\"url\":\"https://a2a-nov25-699113512731.us-central1.run.app\",\"version\":\"1.0.0\",\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"text/plain\"],\"capabilities\":{},\"skills\":[]}"
+  }
+}
+'
