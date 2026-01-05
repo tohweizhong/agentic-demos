@@ -2,6 +2,7 @@
 
 Folders
 * a2a_adk_sample: from an internal guide
+* a2a_from_scratch
 * adk_101: to run in Vertex AI Workbench
 * adk_cloud_run: cannot publish into Gemini Enterprise
 * adk_multiagent_: another complete ADK example
