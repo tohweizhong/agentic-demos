@@ -4,18 +4,17 @@ from google import genai
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
 client = genai.Client()
 
-# Generate_content works
-
+## Generate_content works
 response = client.models.generate_content(
     model="gemini-2.5-flash", contents="Explain how AI works in a few words"
 )
 print(response.text)
 
+## client.interactions.create - 404
 # interaction =  client.interactions.create(
 #     model="gemini-3-flash-preview",
 #     input="Tell me a short joke about programming."
 # )
-
 # print(interaction.outputs[-1].text)
 
 # interaction = client.interactions.create(
