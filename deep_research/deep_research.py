@@ -1,5 +1,6 @@
 import time
-from google import genai
+from google import genai # make genai is updated to at least google-genai-1.56.0
+# !pip install google-genai -U
 
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
 client = genai.Client()
@@ -10,27 +11,27 @@ response = client.models.generate_content(
 )
 print(response.text)
 
-## client.interactions.create - 404
-# interaction =  client.interactions.create(
-#     model="gemini-3-flash-preview",
-#     input="Tell me a short joke about programming."
-# )
-# print(interaction.outputs[-1].text)
+# client.interactions.create
+interaction =  client.interactions.create(
+    model="gemini-3-flash-preview",
+    input="Tell me a short joke about programming."
+)
+print(interaction.outputs[-1].text)
 
-# interaction = client.interactions.create(
-#     input="Research the history of Google TPUs.",
-#     agent='deep-research-pro-preview-12-2025',
-#     background=True
-# )
+interaction = client.interactions.create(
+    input="Research the history of Google TPUs.",
+    agent='deep-research-pro-preview-12-2025',
+    background=True
+)
 
-# print(f"Research started: {interaction.id}")
+print(f"Research started: {interaction.id}")
 
-# while True:
-#     interaction = client.interactions.get(interaction.id)
-#     if interaction.status == "completed":
-#         print(interaction.outputs[-1].text)
-#         break
-#     elif interaction.status == "failed":
-#         print(f"Research failed: {interaction.error}")
-#         break
-#     time.sleep(10)
+while True:
+    interaction = client.interactions.get(interaction.id)
+    if interaction.status == "completed":
+        print(interaction.outputs[-1].text)
+        break
+    elif interaction.status == "failed":
+        print(f"Research failed: {interaction.error}")
+        break
+    time.sleep(10)
