@@ -1,5 +1,6 @@
 Collection of Codelabs
 - [Getting Started with MCP, ADK and A2A](https://codelabs.developers.google.com/codelabs/currency-agent#0)
+- [Build a Travel Agent using MCP Toolbox for Databases and Agent Development Kit (ADK)](https://codelabs.developers.google.com/travel-agent-mcp-toolbox-adk?hl=en#0)
 - [ADK, A2A, MCP on Google Cloud](https://codelabs.developers.google.com/instavibe-adk-multi-agents/instructions#0)
 - [Hands-on with Gemini CLI](https://codelabs.developers.google.com/gemini-cli-hands-on#0)
 - [Getting Started with Agent2Agent (A2A) Protocol](https://codelabs.developers.google.com/intro-a2a-purchasing-concierge#1) - good base set of code for working with A2A
