@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Set your Google Cloud Project ID, Location, and Policy ID
-PROJECT_ID="your-project-id"
+PROJECT_ID="weizhong-project03"
 LOCATION="global"
 # Example policy ID: "test_policy1"
-POLICY_ID="your_policy_id"
+POLICY_ID="test_policy1"
 
 # Get your access token
 ACCESS_TOKEN=$(gcloud auth print-access-token)
