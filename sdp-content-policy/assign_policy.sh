@@ -3,7 +3,7 @@
 # Set your Google Cloud Project ID, Location, Collection ID, and SDP Policy full resource name
 PROJECT_ID="weizhong-project03"
 LOCATION="global" # or 'us', 'eu'
-COLLECTION_ID="ojk-jan26_1769072301913"
+COLLECTION_ID="jira-mar26-3_1772607027254"
 
 # Example full policy resource name: "projects/${PROJECT_ID}/locations/${LOCATION}/contentPolicies/${POLICY_ID}"
 SDP_POLICY="projects/weizhong-project03/locations/global/contentPolicies/test_policy1"
