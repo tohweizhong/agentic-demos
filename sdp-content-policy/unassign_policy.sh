@@ -11,7 +11,7 @@ SDP_POLICY="projects/${PROJECT_ID}/locations/${LOCATION}/contentPolicies/sdp-pol
 # Get your access token
 ACCESS_TOKEN=$(gcloud auth print-access-token)
 
-echo "Assigning SDP Content Policy to Data Connector..."
+echo "Un-assigning SDP Content Policy to Data Connector..."
 
 # The PATCH request
 curl -X PATCH \
