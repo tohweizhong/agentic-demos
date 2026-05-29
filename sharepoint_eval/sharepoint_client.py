@@ -311,9 +311,117 @@ def read_sharepoint_file_api(item_id: str, drive_id: str = None) -> str:
     ext = name.split(".")[-1].lower() if "." in name else ""
     if ext == "docx":
         return extract_text_from_docx(file_bytes)
+    elif ext == "pdf":
+        return extract_text_from_pdf(file_bytes)
+    elif ext == "pptx":
+        return extract_text_from_pptx(file_bytes)
+    elif ext == "xlsx":
+        return extract_text_from_xlsx(file_bytes)
     elif ext in ["txt", "md", "json", "csv", "xml", "html", "sh", "py", "js", "css"]:
         return file_bytes.decode("utf-8", errors="replace")
     else:
         return f"[File type .{ext} is not directly readable as text. File Name: {name}, Size: {len(file_bytes)} bytes.]"
+
+def extract_text_from_pdf(file_bytes: bytes) -> str:
+    """Extracts clean text pages from a PDF binary stream using pypdf."""
+    import pypdf
+    from io import BytesIO
+    try:
+        reader = pypdf.PdfReader(BytesIO(file_bytes))
+        text_pages = []
+        for i, page in enumerate(reader.pages):
+            page_text = page.extract_text()
+            if page_text:
+                text_pages.append(f"--- Page {i+1} ---\n{page_text}")
+        return "\n\n".join(text_pages)
+    except Exception as e:
+        return f"[Error parsing PDF file: {str(e)}]"
+
+def extract_text_from_pptx(file_bytes: bytes) -> str:
+    """Extracts clean text from a PPTX binary stream slide-by-slide using standard libraries."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+    from io import BytesIO
+    try:
+        with zipfile.ZipFile(BytesIO(file_bytes)) as pptx:
+            slide_files = [name for name in pptx.namelist() if name.startswith('ppt/slides/slide') and name.endswith('.xml')]
+            slide_files.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
+            
+            ns = {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main'}
+            slides_text = []
+            
+            for i, slide_file in enumerate(slide_files):
+                xml_content = pptx.read(slide_file)
+                root = ET.fromstring(xml_content)
+                
+                slide_runs = []
+                for p in root.findall('.//a:p', ns):
+                    texts = [t.text for t in p.findall('.//a:t', ns) if t.text]
+                    if texts:
+                        slide_runs.append("".join(texts))
+                        
+                if slide_runs:
+                    slides_text.append(f"--- Slide {i+1} ---\n" + "\n".join(slide_runs))
+                    
+            return "\n\n".join(slides_text)
+    except Exception as e:
+        return f"[Error parsing PPTX file: {str(e)}]"
+
+def extract_text_from_xlsx(file_bytes: bytes) -> str:
+    """Extracts clean text from a XLSX spreadsheet sheet-by-sheet using standard libraries."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+    from io import BytesIO
+    try:
+        with zipfile.ZipFile(BytesIO(file_bytes)) as xlsx:
+            # 1. Load Shared Strings table
+            shared_strings = []
+            if 'xl/sharedStrings.xml' in xlsx.namelist():
+                ss_content = xlsx.read('xl/sharedStrings.xml')
+                ss_root = ET.fromstring(ss_content)
+                ns_ss = {'ns': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+                for si in ss_root.findall('.//ns:si', ns_ss):
+                    t_el = si.find('ns:t', ns_ss)
+                    shared_strings.append(t_el.text if t_el is not None and t_el.text else "")
+            
+            # 2. Find sheet XMLs
+            sheet_files = [name for name in xlsx.namelist() if name.startswith('xl/worksheets/sheet') and name.endswith('.xml')]
+            sheet_files.sort()
+            
+            sheets_text = []
+            ns_s = {'ns': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+            
+            for i, sheet_file in enumerate(sheet_files):
+                sheet_content = xlsx.read(sheet_file)
+                root = ET.fromstring(sheet_content)
+                
+                rows = []
+                for r in root.findall('.//ns:row', ns_s):
+                    row_cells = []
+                    for c in r.findall('ns:c', ns_s):
+                        t = c.get('t')
+                        v_el = c.find('ns:v', ns_s)
+                        val = ""
+                        if v_el is not None and v_el.text:
+                            val = v_el.text
+                            if t == 's':
+                                try:
+                                    idx = int(val)
+                                    val = shared_strings[idx]
+                                except Exception:
+                                    pass
+                        row_cells.append(val)
+                    if any(row_cells):
+                        rows.append(" | ".join(row_cells))
+                
+                if rows:
+                    sheets_text.append(f"--- Sheet {i+1} ---\n" + "\n".join(rows))
+            
+            return "\n\n".join(sheets_text)
+    except Exception as e:
+        return f"[Error parsing XLSX file: {str(e)}]"
+
+
+
 
 

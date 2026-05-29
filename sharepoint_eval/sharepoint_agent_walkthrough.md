@@ -26,7 +26,8 @@ graph TD
 2. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline.
 3. **`agent.py`**: Main ADK Agent configuration registering all three tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
 4. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
-5. **`test_agent.py`**: Programmatic persistent session simulator executing multi-turn conversational scripts.
+5. **`test_agent.py`**: Programmatic persistent session simulator.
+6. **`test_docx.py` / `test_pdf.py` / `test_pptx.py` / `test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
 
 ---
 
@@ -93,10 +94,24 @@ python runner.py
 ```
 
 ### Option B: Automated Conversational Verification
-To test search disambiguation, unencrypted file content reading, and automatic summarization in a single command, execute the automated test script:
-```bash
-python test_agent.py
-```
+You can execute the automated persistent session test scripts to verify specific file type search, extraction, and reasoning capabilities:
+
+*   **Test Word (`.docx`)**: Resolves names, reads text, and answers target questions:
+    ```bash
+    python test_docx.py
+    ```
+*   **Test PDF (`.pdf`)**: Downloads, extracts page-by-page text, and summarizes:
+    ```bash
+    python test_pdf.py
+    ```
+*   **Test PowerPoint (`.pptx`)**: Reads slide-by-slide layout and extracts contents:
+    ```bash
+    python test_pptx.py
+    ```
+*   **Test Excel (`.xlsx`)**: Downloads cell grids and performs complex analytical data reasoning (e.g., comparing weekend vs. weekday infection trends):
+    ```bash
+    python test_xlsx.py
+    ```
 
 ---
 
@@ -115,5 +130,5 @@ The agent identifies Purview Sensitivity classifications from file properties an
 *   🔴 `Highly Confidential \ All Employees`
 
 ### 3. RMS Encryption Constraints
-*   **RMS-Protected Files (`test1.docx`)**: Files labeled as *Confidential* or *Highly Confidential* are encrypted using Microsoft Rights Management Services (RMS/MIP). When downloaded via the API, the binary payload is an encrypted compound envelope. Parsing it via standard zip packages will fail with a `File is not a zip file` exception.
-*   **Unrestricted Files (`test2.docx`)**: Files with standard labels are not encrypted. The agent extracts their clean text paragraphs instantly and outputs them for summarization without requiring any extra python library dependencies.
+*   **RMS-Protected Files (e.g. `test1.docx`, `test3.pptx`, `some_protected_file.xlsx`)**: Files labeled as *Confidential* or *Highly Confidential* are encrypted using Microsoft Rights Management Services (RMS/MIP). When downloaded via the API, the binary payload is an encrypted compound envelope. Parsing it via standard zip packages will fail with a `File is not a zip file` exception.
+*   **Unrestricted Files (e.g. `test2.docx`, `Corporate transactions.pptx`, `7-day Moving Average Daily Estimated Numbers of COVID-19 Infections.xlsx`)**: Files with standard labels are not encrypted. The agent extracts their clean text paragraphs (for `.docx`), slides (for `.pptx`), or cell data grids (for `.xlsx`) instantly and outputs them for summarization without requiring any extra python library dependencies.
