@@ -37,7 +37,11 @@ Outputs beautiful, responsive Markdown tables with clickable Web URLs, specific 
 
 ## 🚀 Setup & Usage
 
-Please follow the step-by-step instructions inside [sharepoint_agent_walkthrough.md](sharepoint_agent_walkthrough.md) to register your app in Azure AD and acquire your credentials.
+Please follow the step-by-step instructions inside the walkthrough guides:
+*   **[sharepoint_agent_walkthrough.md](sharepoint_agent_walkthrough.md)**: Covers setting up Azure AD App registrations, permissions, credentials, and running the CLI agent.
+*   **[harness/README.md](harness/README.md)**: Covers generating the benchmark CSV and executing the automated Evaluation Harness.
+*   **[stats/README.md](stats/README.md)**: Covers calculating SharePoint metrics and plotting Matplotlib size/sensitivity/extension distribution charts.
+*   **[analyse_conflict/README.md](analyse_conflict/README.md)**: Covers building the factual statement index and executing the semantic contradictions/conflicts audit.
 
 ### 1. Install Dependencies
 Ensure you have Python 3.11+ and your virtual environment activated, then install the packages:
@@ -73,3 +77,17 @@ python test_pptx.py
 # Test Excel (.xlsx) spreadsheet analytical insights (weekends vs weekdays)
 python test_xlsx.py
 ```
+
+### 5. Run SharePoint Content & Cleanliness Audit
+To recursively analyze your SharePoint Document Library and generate a high-level report on file sizing, Purview sensitivity labels, file suffixes, and data cleanliness:
+```bash
+python stats/collate_stats.py
+```
+Detailed output is saved to `stats/sharepoint_contents_report.md` and raw JSON metrics to `stats/sharepoint_contents_stats.json`.
+
+### 6. Run Semantic Contradiction & Conflict Audit
+To recursively traverse SharePoint, build a factual statement index from all unencrypted documents, and perform a semantic auditing run to identify file clusters and policy contradictions:
+```bash
+python analyse_conflict/detect_conflicts.py
+```
+Detailed report is saved to `analyse_conflict/semantic_conflicts_report.md` and raw JSON statements to `analyse_conflict/semantic_conflicts.json`.
