@@ -1,0 +1,17 @@
+{
+  "textPayload": "Apply content policy for url: https://weizhongt.sharepoint.com/sites/sharepoint-site-demo1/Shared%20Documents/SDP%20tests/SDP%20content%20policy%20test%20-%20confi.docx?web=1 failed with exception: /DlpServiceV2.ApplyContentPolicy to [2002:a05:660a:a48c:b0:37c:7bf:5ead]:4004 : APP_ERROR(7) com.google.cloud.privacy.dlp.common.exceptions.ForbiddenException: Not allowed, access denied for permission serviceusage.services.use.",
+  "insertId": "1rkv92jd66zi",
+  "resource": {
+    "type": "discoveryengine.googleapis.com/DataConnector",
+    "labels": {
+      "location": "us",
+      "data_source": "",
+      "resource_container": "projects/699113512731",
+      "connector_id": "sharepoint-us-apr26_1776086514433"
+    }
+  },
+  "timestamp": "2026-04-20T07:57:55.359579346Z",
+  "severity": "ERROR",
+  "logName": "projects/weizhong-project03/logs/discoveryengine.googleapis.com%2Fdata_connectors",
+  "receiveTimestamp": "2026-04-20T07:57:56.354637083Z"
+}
