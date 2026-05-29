@@ -14,3 +14,14 @@ config.json
 
 # macOS Specific
 .DS_Store
+
+# Generated Reports & Evaluation Artifacts
+harness/evaluation_dataset.csv
+harness/evaluation_results.json
+harness/evaluation_report.md
+stats/sharepoint_contents_report.md
+stats/sharepoint_contents_stats.json
+stats/*.png
+analyse_conflict/semantic_conflicts_report.md
+analyse_conflict/semantic_conflicts.json
+
