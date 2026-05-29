@@ -28,6 +28,8 @@ graph TD
 4. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
 5. **`test_agent.py`**: Programmatic persistent session simulator.
 6. **`test_docx.py` / `test_pdf.py` / `test_pptx.py` / `test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
+7. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
+8. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
 
 ---
 

@@ -5,6 +5,9 @@ from google.adk.models import Gemini
 from google.genai import Client
 from sharepoint_client import list_sharepoint_files_api, search_sharepoint_files_api, read_sharepoint_file_api, load_config
 
+# Global list to log tool calls (used for evaluation harnesses)
+_tool_calls_log = []
+
 # Define the tool function that the ADK agent will use
 def list_sharepoint_files(folder_path: str = "", recursive: bool = False) -> str:
     """Lists files and folders in the configured SharePoint site document library.
@@ -17,6 +20,7 @@ def list_sharepoint_files(folder_path: str = "", recursive: bool = False) -> str
         A JSON formatted string list of files/folders, containing name, type, size, last modified time, path, and web URL.
     """
     try:
+        _tool_calls_log.append({"tool": "list_sharepoint_files", "args": {"folder_path": folder_path, "recursive": recursive}})
         files = list_sharepoint_files_api(folder_path=folder_path, recursive=recursive)
         if not files:
             return "No files or folders found."
@@ -36,6 +40,7 @@ def search_sharepoint_files(query: str) -> str:
         A JSON formatted string list of matching files/folders, containing name, type, size, last modified time, path, web URL, and sensitivity label.
     """
     try:
+        _tool_calls_log.append({"tool": "search_sharepoint_files", "args": {"query": query}})
         files = search_sharepoint_files_api(query=query)
         if not files:
             return f"No files or folders found matching '{query}'."
@@ -56,6 +61,7 @@ def read_sharepoint_file(item_id: str, drive_id: str = None) -> str:
         The extracted text contents of the file.
     """
     try:
+        _tool_calls_log.append({"tool": "read_sharepoint_file", "args": {"item_id": item_id, "drive_id": drive_id}})
         return read_sharepoint_file_api(item_id=item_id, drive_id=drive_id)
     except ValueError as ve:
         return f"Configuration error: {str(ve)}"

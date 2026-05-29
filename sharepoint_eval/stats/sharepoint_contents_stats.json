@@ -1,0 +1,34 @@
+{
+  "total_items": 221,
+  "folders_count": 14,
+  "files_count": 207,
+  "total_size_bytes": 207740400,
+  "avg_file_size_bytes": 1003576.8115942029,
+  "median_file_size_bytes": 206848,
+  "max_folder_depth": 3,
+  "empty_files_count": 0,
+  "long_paths_count_gt_260": 0,
+  "duplicate_files_count": 0,
+  "encrypted_files_count": 18,
+  "encrypted_percentage": 8.695652173913043,
+  "oldest_modified": "2026-04-13T07:29:27Z",
+  "newest_modified": "2026-04-24T07:37:21Z",
+  "file_type_distribution": {
+    "pdf": 67,
+    "xlsx": 30,
+    "pptx": 25,
+    "docx": 19,
+    "doc": 11,
+    "xls": 15,
+    "ppt": 13,
+    "csv": 16,
+    "txt": 11
+  },
+  "sensitivity_label_distribution": {
+    "Unclassified (None)": 189,
+    "General \\ All Employees (unrestricted)": 15,
+    "Confidential \\ All Employees": 1,
+    "Highly Confidential \\ All Employees": 1,
+    "Confidential \\ Anyone (unrestricted)": 1
+  }
+}
