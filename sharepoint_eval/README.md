@@ -24,8 +24,8 @@ Avoids slow recursive folder scanning. The agent uses the modern Microsoft Graph
 ### 🛡️ Purview Sensitivity Labels
 Automatically retrieves and displays Microsoft Purview information protection sensitivity levels (e.g., `General`, `Confidential`, `Highly Confidential`) next to each file, categorized with intuitive status emojis (🟢, 🟡, 🔴).
 
-### 📖 Dependency-Free File Reader & DOCX Parser
-Extracts clean text paragraphs from Word documents (`.docx`) and text files (`.txt`, `.md`, `.json`, `.csv`, etc.) on the fly using Python’s standard library (`zipfile` and `xml.etree.ElementTree`), avoiding any extra pip dependencies.
+### 📖 Dependency-Free File Reader & Document Parsers
+Extracts clean text paragraphs from Word documents (`.docx`), slide contents from PowerPoint presentations (`.pptx`), cell grids from Excel spreadsheets (`.xlsx`), and text files (`.txt`, `.md`, `.json`, `.csv`, etc.) on the fly using Python’s standard library (`zipfile` and `xml.etree.ElementTree`), avoiding any extra pip dependencies.
 
 ### 🔐 RMS Encryption Awareness
 Correctly identifies and handles files encrypted with Microsoft Information Protection (MIP) / Rights Management Services (RMS), safely reporting encryption constraints if a protected file cannot be opened.
@@ -37,7 +37,7 @@ Outputs beautiful, responsive Markdown tables with clickable Web URLs, specific 
 
 ## 🚀 Setup & Usage
 
-Please follow the step-by-step instructions inside [sharepoint_lister_walkthrough.md](sharepoint_lister_walkthrough.md) to register your app in Azure AD and acquire your credentials.
+Please follow the step-by-step instructions inside [sharepoint_agent_walkthrough.md](sharepoint_agent_walkthrough.md) to register your app in Azure AD and acquire your credentials.
 
 ### 1. Install Dependencies
 Ensure you have Python 3.11+ and your virtual environment activated, then install the packages:
@@ -59,7 +59,17 @@ python runner.py
 ```
 
 ### 4. Run Automated Conversational Tests
-To verify search disambiguation, Purview label extraction, and direct file content reading in a single command:
+To execute targeted, multi-turn conversational scripts with persistent memory on specific file types, run:
 ```bash
-python test_agent.py
+# Test Word (.docx) parsing and context
+python test_docx.py
+
+# Test PDF (.pdf) page-by-page extraction
+python test_pdf.py
+
+# Test PowerPoint (.pptx) slide-by-slide parsing
+python test_pptx.py
+
+# Test Excel (.xlsx) spreadsheet analytical insights (weekends vs weekdays)
+python test_xlsx.py
 ```
