@@ -7,6 +7,7 @@ This project implements an enterprise-ready Agent Development Kit (ADK) assistan
 ## 📁 File Structure
 
 - **`config.json`**: Configuration file for Microsoft Azure AD, SharePoint site details, Gemini model name, and GCP project specs (excluded from Git).
+- **`deploy_ge_ae/.env`**: Environment configuration file storing SharePoint tenant/client credentials for cloud deployment (excluded from Git).
 - **`sharepoint_client.py`**: Core helper library containing Graph API interactions, regional search query execution, file content downloading, and Word document parsing.
 - **`agent.py`**: The main ADK agent instruction set, custom tool registration (`list_sharepoint_files`, `search_sharepoint_files`, `read_sharepoint_file`), and advanced Markdown visual formatting rules.
 - **`runner.py`**: Interactive and command-line CLI agent chat runner.
@@ -15,8 +16,9 @@ This project implements an enterprise-ready Agent Development Kit (ADK) assistan
 - **`harness/`**: At-scale automated evaluation harness including dataset generator (`generate_dataset.py`) and Gemini-graded regression runner (`run_eval.py`).
 - **`stats/`**: SharePointDocument library recursively walks sizing, Purview classifications, file extensions compilation, and Matplotlib graph plotters.
 - **`analyse_conflict/`**: Semantic contradiction auditing utility that builds a factual statement index and groups policy conflict statements using Vertex AI Gemini.
+- **`deploy_ge_ae/`**: Self-contained deployment package containing environment configuration, build ignores, and automated shell scripts for deploying the ADK Agent to Gemini Enterprise Agent Engine.
 - **`mock_data/`**: Unique banking dataset generation scripts and MSAL token-refresh SharePoint file uploaders.
-- **`.gitignore`**: Pre-configured git ignore rules to protect credentials (`config.json`) and python artifacts.
+- **`.gitignore`**: Pre-configured git ignore rules to protect credentials (`config.json`, `.env`) and python artifacts.
 
 ---
 
@@ -102,3 +104,12 @@ To recursively traverse SharePoint, build a factual statement index from all une
 python analyse_conflict/detect_conflicts.py
 ```
 Detailed report is saved to `analyse_conflict/semantic_conflicts_report.md` and raw JSON statements to `analyse_conflict/semantic_conflicts.json`.
+
+### 7. Deploy to Gemini Enterprise Agent Engine
+To package and deploy this ADK Agent to Google Cloud's Gemini Enterprise Agent Engine (Reasoning Engine), follow the self-contained instructions inside the deployment folder:
+*   **[deploy_ge_ae/README.md](deploy_ge_ae/README.md)**: Comprehensive walkthrough on configuring your environment variables and triggering the automated one-click deployment script.
+
+> [!NOTE]
+> **Dual-Environment Aware Configuration Architecture**: The agent helper `sharepoint_client.py` automatically checks for environment variables (`TENANT_ID`, `CLIENT_ID`, etc.) set dynamically by Agent Engine in the cloud, and seamlessly falls back to the local `config.json` file only when running locally. This prevents packaging hardcoded credentials into your staged build uploads.
+
+

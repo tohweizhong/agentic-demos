@@ -7,8 +7,28 @@ import msal
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
 
 def load_config():
+    # 1. Try reading from environment variables (for Agent Engine cloud deployment)
+    env_keys = ["TENANT_ID", "CLIENT_ID", "CLIENT_SECRET", "SHAREPOINT_HOST", "SHAREPOINT_SITE_PATH"]
+    if all(key in os.environ for key in env_keys):
+        return {
+            "TENANT_ID": os.environ["TENANT_ID"],
+            "CLIENT_ID": os.environ["CLIENT_ID"],
+            "CLIENT_SECRET": os.environ["CLIENT_SECRET"],
+            "SHAREPOINT_SITE_HOST": os.environ["SHAREPOINT_HOST"],
+            "SHAREPOINT_HOST": os.environ["SHAREPOINT_HOST"],
+            "SHAREPOINT_SITE_PATH": os.environ["SHAREPOINT_SITE_PATH"],
+            "SHAREPOINT_FOLDER_PATH": os.environ.get("SHAREPOINT_FOLDER_PATH", ""),
+            "MODEL_NAME": os.environ.get("MODEL_NAME", "gemini-2.5-flash"),
+            "GCP_PROJECT_ID": os.environ.get("GCP_PROJECT_ID"),
+            "GCP_LOCATION": os.environ.get("GCP_LOCATION")
+        }
+        
+    # 2. Fallback to config.json (for local runner)
     if not os.path.exists(CONFIG_PATH):
-        raise FileNotFoundError(f"Config file not found at {CONFIG_PATH}. Please create one from the template.")
+        raise FileNotFoundError(
+            f"Config file not found at {CONFIG_PATH} and environment variables are incomplete. "
+            "Please create a config.json or set the required environment variables."
+        )
     with open(CONFIG_PATH, "r") as f:
         return json.load(f)
 

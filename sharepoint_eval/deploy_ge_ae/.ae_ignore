@@ -1,0 +1,9 @@
+.venv
+.git
+.gitignore
+config.json
+.env
+.DS_Store
+__pycache__
+*.log
+*.pyc
