@@ -33,6 +33,9 @@ graph TD
 7. **`test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
 8. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
 9. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
+10. **`harness/generate_dataset.py`**: Dataset builder script that crawls your active SharePoint document library recursively to compile a clean evaluation spreadsheet benchmark of documents, target queries, and ground-truth references.
+11. **`harness/run_eval.py`**: At-scale regression evaluation runner that executes persistent agent search/read query pipelines across the target dataset and uses a Gemini LLM judge to score accuracy, context efficiency, and token cost performance.
+
 
 ---
 
@@ -117,6 +120,21 @@ You can execute the automated persistent session test scripts to verify specific
     ```bash
     python test_xlsx.py
     ```
+
+### Option C: At-Scale Evaluation Harness
+For robust regression testing across a large volume of documents, you can run the automated evaluation harness:
+
+1.  **Generate Evaluation Dataset**: Crawls your active SharePoint site recursively and automatically compiles a benchmark spreadsheet containing target search queries, target documents, and ground-truth answers:
+    ```bash
+    python harness/generate_dataset.py
+    ```
+    *Output Dataset*: `harness/evaluation_dataset.csv`
+2.  **Run Regression Evaluation**: Runs persistent multi-turn conversational agents across the entire dataset, score-judging accuracy, latency, context cost, and trajectory correctness via Vertex AI Gemini:
+    ```bash
+    python harness/run_eval.py
+    ```
+    *Detailed Markdown Report*: `harness/evaluation_report.md`
+    *High-Level Analytical Insights*: `harness/evaluation_insights.md`
 
 ---
 
