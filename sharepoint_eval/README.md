@@ -11,7 +11,11 @@ This project implements an enterprise-ready Agent Development Kit (ADK) assistan
 - **`agent.py`**: The main ADK agent instruction set, custom tool registration (`list_sharepoint_files`, `search_sharepoint_files`, `read_sharepoint_file`), and advanced Markdown visual formatting rules.
 - **`runner.py`**: Interactive and command-line CLI agent chat runner.
 - **`test_agent.py`**: Automated evaluation script to execute multi-step conversational scenarios inside persistent sessions.
-- **`sharepoint_lister_walkthrough.md`**: Comprehensive walkthrough of SharePoint OAuth registration, Graph API permission setup, and configuration steps.
+- **`sharepoint_agent_walkthrough.md`**: Comprehensive walkthrough of SharePoint OAuth registration, Graph API permission setup, and configuration steps.
+- **`harness/`**: At-scale automated evaluation harness including dataset generator (`generate_dataset.py`) and Gemini-graded regression runner (`run_eval.py`).
+- **`stats/`**: SharePointDocument library recursively walks sizing, Purview classifications, file extensions compilation, and Matplotlib graph plotters.
+- **`analyse_conflict/`**: Semantic contradiction auditing utility that builds a factual statement index and groups policy conflict statements using Vertex AI Gemini.
+- **`mock_data/`**: Unique banking dataset generation scripts and MSAL token-refresh SharePoint file uploaders.
 - **`.gitignore`**: Pre-configured git ignore rules to protect credentials (`config.json`) and python artifacts.
 
 ---
