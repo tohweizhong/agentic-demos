@@ -1,6 +1,6 @@
 # 🚨 SharePoint Semantic Conflict Auditor
 
-The conflict analysis module performs a deep semantic audit across your entire unencrypted document corpus to group files by topic and discover logical contradictions or clashing guidelines (such as discrepancies in HR guidelines, cybersecurity procedures, or LLM playbook drafts).
+This tool scans all your unencrypted files, groups them by topic, and finds conflicting rules or instructions (like clashing HR policies or security guidelines).
 
 ---
 
@@ -23,33 +23,33 @@ graph TD
 ## 📁 Components
 
 ### 1. Conflict Auditor (`detect_conflicts.py`)
-Executes the following pipeline:
-1.  **Traverse and Parse**: Identifies and reads the text content of all unencrypted, readable documents.
-2.  **Fact Indexing**: Invokes a Gemini prompt for each file to extract a concise bulleted list of the core actionable rules, guidelines, operating procedures, or factual commitments, compiling them into `/analyse_conflict/semantic_conflicts.json`.
-3.  **Clustering and Semantic Audit**: Passes the consolidated factual statements index to Gemini to:
-    *   Group the files into logical **semantic content clusters** (topics).
-    *   Auditing: Compare the statements across files within each cluster to detect **direct contradictions or semantic conflicts** (e.g. inconsistent mobile accessibility policies, or clashing LLM playbook draft statuses).
-    *   Compile a detailed executive report in **`analyse_conflict/semantic_conflicts_report.md`** highlighting conflict titles, conflicting files, the contradiction details, and recommended actions.
+Runs these steps:
+1.  **Scan and Parse**: Reads text from all unencrypted, readable files.
+2.  **Fact Indexing**: Uses Gemini to extract a simple list of rules, guidelines, and procedures from each file. Saves them in `analyse_conflict/semantic_conflicts.json`.
+3.  **Conflict Audit**: Sends the full facts index to Gemini to:
+    *   Group files by topic.
+    *   Compare statements within each topic to find conflicting rules (e.g. clashing telecommuting rules or different security guidelines).
+    *   Write a clear report in **`analyse_conflict/semantic_conflicts_report.md`** showing conflict names, files, details, and recommended fixes.
 
 ---
 
 ## 🤖 ADK Agent Integration
 
-*   **`detect_conflicts.py`**: **Does NOT** use the ADK Agent. It is a batch-auditing pipeline that runs independently of conversational interfaces. It queries the raw SharePoint client to parse documents and uses the baseline Gemini API (`google.genai.Client`) directly to build the fact index, cluster topics, and group contradiction clusters.
+*   **`detect_conflicts.py`**: **Does NOT** use the ADK Agent. It is a standalone batch tool that runs offline. It scans files via the SharePoint API and calls Gemini (`google.genai.Client`) directly to index facts and group conflicts.
 
 ---
 
 ## 🚀 Execution Guide
 
-Ensure your virtual environment is active:
+Make sure your virtual environment is active:
 ```bash
 source .venv/bin/activate
 ```
 
-### Running the Semantic Conflict Audit
-To extract factual statements, cluster files, and audit semantic policy conflicts:
+### Run the Semantic Conflict Audit
+To scan files, group them, and find policy conflicts:
 ```bash
 python analyse_conflict/detect_conflicts.py
 ```
-*   *Output Report*: `analyse_conflict/semantic_conflicts_report.md`
+*   *Output Report*: [analyse_conflict/semantic_conflicts_report.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/analyse_conflict/semantic_conflicts_report.md)
 *   *Factual Statements Index*: `analyse_conflict/semantic_conflicts.json`

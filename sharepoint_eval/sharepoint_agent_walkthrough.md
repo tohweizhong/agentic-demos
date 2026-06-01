@@ -1,12 +1,12 @@
 # SharePoint File Agent Walkthrough
 
-This guide provides a comprehensive walkthrough for setting up, running, and understanding the Google Agent Development Kit (ADK) SharePoint File Agent. This agent is capable of listing files, performing region-routed searches, displaying Purview sensitivity labels, and extracting document contents.
+This guide shows you how to set up, run, and understand the Google Agent Development Kit (ADK) SharePoint File Agent. This agent lets you list files, search them across regions, see Purview sensitivity labels, and read document contents.
 
 ---
 
 ## 🏗️ Architecture Overview
 
-The system consists of the following components:
+Here is how the system components work together:
 
 ```mermaid
 graph TD
@@ -24,48 +24,47 @@ graph TD
     Client --> GraphAPI[Microsoft Graph API]
 ```
 
-1. **`config.json`**: Centralized configuration storing SharePoint credentials, site path, Vertex AI model name, and region specs.
-2. **`deploy_ge_ae/.env`**: Environment configuration file storing SharePoint tenant/client credentials for cloud deployment.
-3. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline, along with permissions audits.
-4. **`agent.py`**: Main ADK Agent configuration registering all four tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
-5. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
-6. **`agent_tests/test_docx.py` / `agent_tests/test_pdf.py` / `agent_tests/test_pptx.py` / `agent_tests/test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
-7. **`agent_tests/test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
-8. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
-9. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
-10. **`harness/generate_dataset.py`**: Dataset builder script that crawls your active SharePoint document library recursively to compile a clean evaluation spreadsheet benchmark of documents, target queries, and ground-truth references.
-11. **`harness/run_eval.py`**: At-scale regression evaluation runner that executes persistent agent search/read query pipelines across the target dataset and uses a Gemini LLM judge to score accuracy, context efficiency, and token cost performance.
-
+1. **`config.json`**: Settings file to store SharePoint credentials, site path, model name, and region.
+2. **`deploy_ge_ae/.env`**: Environment file to store credentials for cloud deployment.
+3. **`sharepoint_client.py`**: Core helper to run Graph API calls, parse files, and run search and permission audits.
+4. **`agent.py`**: Main agent setup that registers the four tools and sets formatting rules (tables, emojis, Markdown).
+5. **`runner.py`**: Interactive chat client.
+6. **`agent_tests/`**: Scripts to test Word, PDF, PowerPoint, and Excel file search and content extraction.
+7. **`agent_tests/test_permissions_agent.py`**: Test script to check direct file permissions.
+8. **`stats/collate_stats.py`**: Script to scan SharePoint and write file size and label statistics to a markdown report.
+9. **`analyse_conflict/detect_conflicts.py`**: Script to find facts in documents and use Gemini to check for policy conflicts.
+10. **`harness/generate_dataset.py`**: Script to scan SharePoint and generate a test Q&A dataset spreadsheet.
+11. **`harness/run_eval.py`**: Runner to execute agent tests and grade them using Gemini.
 
 ---
 
 ## 🔐 Step 1: Azure AD App Registration & Permissions
 
-To interact with SharePoint, the agent authenticates using the **Microsoft Graph API** under an Application Identity.
+The agent needs to authenticate with **Microsoft Graph API** to read SharePoint files.
 
-1. **Log in to Azure Portal**: Sign in to the [Azure Portal](https://portal.azure.com/).
-2. **App Registrations**: Search for **Microsoft Entra ID**, go to **App registrations** > **New registration**.
+1. **Log in to Azure**: Open the [Azure Portal](https://portal.azure.com/).
+2. **Register App**: Search for **Microsoft Entra ID**, go to **App registrations** > **New registration**.
    - **Name**: E.g., `SharePoint File Agent`
    - **Supported account types**: Choose *Accounts in this organizational directory only* (Single Tenant).
    - Click **Register**.
-3. **Collect IDs**: Copy the **Application (client) ID** and **Directory (tenant) ID** from the Overview tab.
+3. **Save IDs**: Copy the **Application (client) ID** and **Directory (tenant) ID** from the Overview tab.
 4. **Create a Client Secret**:
    - Go to **Certificates & secrets** > **Client secrets** > **New client secret**.
-   - Add a description and expiration, then click **Add**.
-   - **CRITICAL**: Copy the secret **Value** immediately. It will be hidden forever once you navigate away.
-5. **Configure API Permissions**:
+   - Add a description, choose when it expires, and click **Add**.
+   - **IMPORTANT**: Copy the secret **Value** right away. It will be hidden forever once you leave the page.
+5. **Set API Permissions**:
    - Go to **API permissions** > **Add a permission** > **Microsoft Graph** > **Application permissions**.
-   - Search for and add:
-     - `Sites.Read.All` (to find SharePoint site IDs)
-     - `Files.Read.All` (to list/search files and download contents across drives)
+   - Search for and add these permissions:
+     - `Sites.Read.All` (to find site IDs)
+     - `Files.Read.All` (to search files and download contents)
 6. **Grant Admin Consent**:
-   - Click **Grant admin consent for [Your Tenant]** and confirm with **Yes**.
+   - Click **Grant admin consent for [Your Tenant]** and click **Yes** to confirm.
 
 ---
 
 ## ⚙️ Step 2: Configuration
 
-Copy the `config.json.example` file to create your `config.json` file in the project root directory, and populate it with your credentials:
+Copy the `config.json.example` file to create a new file named `config.json` in your project root. Add your credentials:
 
 ```json
 {
@@ -84,95 +83,94 @@ Copy the `config.json.example` file to create your `config.json` file in the pro
 
 ## 🚀 Step 3: Running and Testing the Agent
 
-Activate the pre-configured Python virtual environment:
+Activate your Python virtual environment:
 ```bash
 source .venv/bin/activate
 ```
 
-### Authenticate with Google Cloud Vertex AI
-If the agent uses Google Cloud Vertex AI for Gemini LLM processing, authenticate using Application Default Credentials:
+### Log In to Google Cloud Vertex AI
+If the agent uses Vertex AI for Gemini LLM, log in with Application Default Credentials:
 ```bash
 gcloud auth application-default login
 ```
 
 ### Option A: Interactive CLI Mode
-Start an interactive CLI chat session:
+Start an interactive chat session:
 ```bash
 python runner.py
 ```
 
-### Option B: Automated Conversational Verification
-You can execute the automated persistent session test scripts inside the `agent_tests/` folder to verify specific file type search, extraction, and reasoning capabilities:
+### Option B: Run Automated Tests
+You can run automated tests in the `agent_tests/` folder to check file search and read tools:
 
-*   **Test Word (`.docx`)**: Resolves names, reads text, and answers target questions:
+*   **Test Word (`.docx`)**: Find files, read text, and answer questions:
     ```bash
     python agent_tests/test_docx.py
     ```
-*   **Test PDF (`.pdf`)**: Downloads, extracts page-by-page text, and summarizes:
+*   **Test PDF (`.pdf`)**: Download files, extract page text, and summarize:
     ```bash
     python agent_tests/test_pdf.py
     ```
-*   **Test PowerPoint (`.pptx`)**: Reads slide-by-slide layout and extracts contents:
+*   **Test PowerPoint (`.pptx`)**: Read slides and extract text:
     ```bash
     python agent_tests/test_pptx.py
     ```
-*   **Test Excel (`.xlsx`)**: Downloads cell grids and performs complex analytical data reasoning:
+*   **Test Excel (`.xlsx`)**: Download spreadsheets and perform calculations:
     ```bash
     python agent_tests/test_xlsx.py
     ```
 
-### Option C: At-Scale Evaluation Harness
-For robust regression testing across a large volume of documents, you can run the automated evaluation harness:
+### Option C: Run the Test Harness
+To run regression tests across a large set of documents:
 
-1.  **Generate Evaluation Dataset**: Crawls your active SharePoint site recursively and automatically compiles a benchmark spreadsheet containing target search queries, target documents, and ground-truth answers:
+1.  **Generate Test Dataset**: Scan SharePoint and create a Q&A spreadsheet:
     ```bash
     python harness/generate_dataset.py
     ```
     *Output Dataset*: `harness/evaluation_dataset.csv`
-2.  **Run Regression Evaluation**: Runs persistent multi-turn conversational agents across the entire dataset, score-judging accuracy, latency, context cost, and trajectory correctness via Vertex AI Gemini:
+2.  **Run Evaluation**: Run tests and grade agent accuracy, speed, and token cost using Gemini:
     ```bash
     python harness/run_eval.py
     ```
-    *Detailed Markdown Report*: `harness/evaluation_report.md`
-    *High-Level Analytical Insights*: `harness/evaluation_insights.md`
+    *Markdown Report*: `harness/evaluation_report.md`
+    *Insights Report*: `harness/evaluation_insights.md`
 
 ---
 
-## 💡 Technical Under the Hood: How It Works
+## 💡 Technical Details: How It Works
 
-### 1. Two-Step Search & Fetch Pipeline
-*   **The Problem**: Standard Microsoft Graph `search(q='...')` calls on application drives fail with `403 Access Denied` in many tenant configurations. Furthermore, search endpoints do not return Purview sensitivity labels.
-*   **The Solution**: The agent performs search in two steps:
-    1.  **Step 1 (Find)**: Queries the modern `POST /v1.0/search/query` endpoint specifying `"region": "APC"` to fetch the matching item ID and parent drive ID instantly.
-    2.  **Step 2 (Fetch)**: Executes a direct, high-speed `GET /beta/drives/{drive_id}/items/{item_id}` query containing `$select=...,sensitivityLabel` to fetch complete metadata including sensitivity labels.
+### 1. Two-Step Search Pipeline
+*   **The Problem**: Standard Microsoft Graph search calls often fail with `403 Access Denied` under single-app configs. Plus, search APIs do not return Purview sensitivity labels.
+*   **The Solution**: The agent searches in two steps:
+    1.  **Step 1 (Find)**: Queries the Microsoft Graph search endpoint specifying `"region": "APC"` to find the matching file ID and drive ID.
+    2.  **Step 2 (Fetch)**: Makes a direct call to `/beta/drives/{drive_id}/items/{item_id}` to get sensitivity labels.
 
-### 2. Purview Sensitivity & Emojis
-The agent identifies Purview Sensitivity classifications from file properties and presents them with color-coded indicators:
+### 2. Purview Sensitivity Emojis
+The agent reads sensitivity labels and shows them with status emojis:
 *   🟢 `General \ All Employees (unrestricted)`
 *   🟡 `Confidential \ All Employees`
 *   🔴 `Highly Confidential \ All Employees`
 
-### 3. RMS Encryption Constraints
-*   **RMS-Protected Files (e.g., `test1.docx`, `test3.pptx`, `some_protected_file.xlsx`)**: Files labeled as *Confidential* or *Highly Confidential* are encrypted using Microsoft Rights Management Services (RMS/MIP). When downloaded via the API, the binary payload is an encrypted compound envelope. Parsing it via standard zip packages will fail with a `File is not a zip file` exception.
-*   **Unrestricted Files**: Files with standard labels are not encrypted and can be read seamlessly.
+### 3. RMS Encryption Checks
+*   **Encrypted Files**: Files labeled *Confidential* or *Highly Confidential* are locked with Microsoft Rights Management Services (RMS). The downloaded file is an encrypted envelope. Reading it as a standard ZIP package will crash with a `File is not a zip file` error.
+*   **Unrestricted Files**: Standard files are not encrypted and can be read easily.
 
-### 4. Bash-Native Subprocess Parsing & Smart Relevance Chunking (Upgrades A & B)
-To bridge technical scalability gaps, the file reading pipeline implements two powerful under-the-hood architectural upgrades:
-*   **Upgrade A: Subprocess OS Parsing**:
-    When `read_sharepoint_file_api` downloads a binary document, it first inspects the host environment path for native command-line parsers. If found, it spawns a clean, lightweight OS subprocess to stream file extractions directly:
-    *   **PDFs**: Spawns `pdftotext <temp_file> -` (extremely fast, low memory).
+### 4. Fast Subprocess Parsing & Smart Chunking
+The reading pipeline uses two smart features to save tokens and run quickly:
+*   **Subprocess OS Parsing**:
+    When downloading a file, the agent checks the host system for fast command-line tools. If found, it runs them in a lightweight subprocess:
+    *   **PDFs**: Spawns `pdftotext <temp_file> -` (very fast, uses low memory).
     *   **Word (`.docx`)**: Spawns `docx2txt <temp_file>`.
-    *   **Media (`.png`, `.jpg`, `.mp3`, `.mp4`)**: Spawns `exiftool` to pull detailed camera and geographic tags.
-    *   *Fallback*: If these binaries are absent, the client automatically falls back to our robust Python-native readers, ensuring perfect cross-platform execution.
-*   **Upgrade B: Smart Semantic relevance Chunker**:
-    When reading files, you can supply a context search query (e.g., `query="LCR ratio"`). The client:
-    1.  Segments the extracted raw text into overlapping semantic chunks (paragraphs).
-    2.  Ranks these chunks by keyword match density and exact phrase occurrences.
-    3.  Extracts and returns **only the top 3 most relevant chunks** decorated with visual section boundaries, omitting the rest of the document.
-    4.  **Scalability Impact**: Slashes LLM execution token size and context costs by **95%+**, preventing context window exhaustion while preserving highly accurate answering capabilities.
+    *   **Media (`.png`, `.jpg`, etc.)**: Spawns `exiftool` to read image/audio headers.
+    *   *Fallback*: If these tools are missing, it uses Python libraries to read files.
+*   **Smart Semantic Chunker**:
+    When you read a file, you can provide a search query (e.g., `query="LCR ratio"`). The client:
+    1.  Splits the text into overlapping semantic paragraphs.
+    2.  Ranks them by keyword match and phrase match.
+    3.  Returns **only the top 3 most relevant chunks** with clean borders.
+    4.  **Token Savings**: Cuts token size and LLM costs by **95%+** and prevents context window limits.
 
-### 5. Dual-Environment Configuration Protocol
-To maintain robust security and pristine code isolation across development phases, the client integration supports a dual-environment config resolution pipeline:
-1.  **Local Verification (Fallback)**: Loads configurations dynamically from a local `config.json` placed in the root folder.
-2.  **Cloud container staging (Primary)**: If running inside Google Cloud Vertex AI Agent Engine, the container expects all credentials to be securely loaded into `os.environ` at deploy time (supplied securely via `--env_file` in the deployment package). `config.json` is safely ignored via `.ae_ignore` to eliminate any possibility of packaging credentials in the staged cloud container.
-
+### 5. Dual-Environment Settings
+The client checks credentials dynamically based on the environment:
+1.  **Local (Fallback)**: Loads settings from `config.json` in your project root.
+2.  **Cloud Container (Primary)**: If running inside Vertex AI Agent Engine, it reads credentials directly from environment variables. `config.json` is ignored to keep your secrets out of staged cloud container uploads.
