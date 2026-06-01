@@ -37,6 +37,12 @@ These graphs are embedded directly inside the detailed audit report **`stats/sha
 
 ---
 
+## 🤖 ADK Agent Integration
+
+*   **`collate_stats.py`**: **Does NOT** use the ADK Agent. It is built as a system-level dashboard and auditing utility. It bypasses conversational agent flows and imports core REST API helpers (`sharepoint_client.py`) directly to recursively compile file sizes, extension mappings, and Purview labels. This ensures that you can audit your data footprint and security coverage before ever activating or configuring an LLM agent.
+
+---
+
 ## 🚀 Execution Guide
 
 Ensure your virtual environment is active:
