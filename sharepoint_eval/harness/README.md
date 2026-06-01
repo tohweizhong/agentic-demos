@@ -1,6 +1,6 @@
 # 🧪 SharePoint Agent Evaluation Harness
 
-The evaluation harness allows you to execute robust regression testing on the SharePoint File Agent. It scores whether the agent correctly answers user queries and selects the most efficient tool trajectory across persistent conversational turns.
+This tool lets you run tests on the SharePoint File Agent. It checks if the agent answers questions correctly and uses the right tools.
 
 ---
 
@@ -21,65 +21,65 @@ graph TD
 ## 📁 Components
 
 ### 1. Dataset Generator (`generate_dataset.py`)
-Traverses your SharePoint document library recursively and automatically synthesizes a **100-row golden benchmark dataset** (`evaluation_dataset.csv`):
-*   **RMS-Protected Files**: Identifies encrypted Purview items (Confidential/Highly Confidential). It generates a generic query (*"Summarize the contents of..."*) and maps the expected response to the standard Purview decryption error block.
-*   **Unencrypted Files**: Downloads and extracts text from readable Word, PDF, PowerPoint, and text files. It then uses Gemini to synthesize a **highly specific, natural question** and a **precise factual answer** based on the document.
-*   **Schema**: Mapped as `query`, `expected_response`, `expected_tool_trajectory`, `source`, `file_type`, `sensitivity_label`, and `is_encrypted`.
+Scans your SharePoint folders and automatically creates a **100-row test dataset** (`evaluation_dataset.csv`):
+*   **Encrypted Files**: Finds locked Purview files (Confidential/Highly Confidential). It writes a query (*"Summarize the contents of..."*) and sets the expected answer to the standard Purview decryption error message.
+*   **Unencrypted Files**: Downloads and reads text from Word, PDF, PowerPoint, and text files. It then uses Gemini to write a **clear question** and a **correct answer** based on the file.
+*   **Schema**: Saved as `query`, `expected_response`, `expected_tool_trajectory`, `source`, `file_type`, `sensitivity_label`, and `is_encrypted`.
 
 ### 2. Evaluation Runner (`run_eval.py`)
-Reads the benchmark CSV, executes the queries sequentially on the ADK Runner in persistent sessions, and scores the outcomes:
-*   **Trajectory Logging**: Hooks into `agent.py` using a module-level list `_tool_calls_log` to record the exact sequence of tool calls and parameters the agent actually executed.
-*   **Semantic Correctness (LLM-as-a-Judge)**: Uses Gemini to evaluate the semantic correctness of the agent's response against the benchmark's expected response, ignoring minor wording or greeting differences.
-*   **Trajectory Scoring**: Computes trajectory match rates by comparing actual executed tool calls against expected benchmark trajectories.
-*   **Detailed Output**: Generates a detailed JSON run summary (`evaluation_results.json`), a complete case-by-case trace report (`evaluation_report.md`), and a deep analytical insights report (`evaluation_insights.md`) summarizing the exact operational capabilities and dataset optimizations.
+Reads the CSV, runs the queries one by one on the agent, and grades the results:
+*   **Tool Tracking**: Logs the tools the agent called to verify if it chose the right path.
+*   **Answer Grading (LLM Judge)**: Uses Gemini to check if the agent's answer matches the expected answer.
+*   **Path Grading**: Computes if the tools the agent called match the expected tool path.
+*   **Outputs**: Creates a raw JSON summary (`evaluation_results.json`), a full markdown report (`evaluation_report.md`), and a clean insights report (`evaluation_insights.md`).
 
 ---
 
 ## 🤖 ADK Agent Integration
 
-This evaluation harness serves as an automated quality assurance and regression pipeline specifically auditing your ADK agent's performance:
-*   **`generate_dataset.py`**: **Does NOT** use the ADK agent. It walks your SharePoint site directly using core Graph REST API clients (`sharepoint_client.py`) and queries raw Gemini API models (`google.genai.Client`) to synthesize test scenarios.
-*   **`run_eval.py`**: **YES (Active Agent Testing)**. It imports the ADK agent (`root_agent` from `agent.py`) and actively executes sequential user query prompts directly inside persistent agent conversational runs (`root_agent.run_async()`). It tests:
-    1.  **Tool Trajectory Accuracy**: Validates if the agent correctly selects `search_sharepoint_files` followed by `read_sharepoint_file` or `list_file_permissions` to solve prompts.
-    2.  **Answering Correctness**: Measures if the agent successfully presents the clickable links, file sizes, and Purview sensitivity indicators in the Markdown table format specified in its system instructions.
-    3.  **Context Size & Footprint Costs**: Records the precise token cost of each run, verifying that our file reader's semantic chunking successfully minimizes LLM token usage.
+This harness helps test and check your ADK agent automatically:
+*   **`generate_dataset.py`**: **Does NOT** use the ADK agent. It walks your SharePoint site directly using Graph API (`sharepoint_client.py`) and calls Gemini (`google.genai.Client`) to write test questions.
+*   **`run_eval.py`**: **YES (Active Agent Testing)**. It imports the ADK agent (`root_agent` from `agent.py`) and runs the test queries directly inside conversational sessions (`root_agent.run_async()`). It checks:
+    1.  **Tool Paths**: Checks if the agent calls `search_sharepoint_files` and `read_sharepoint_file` correctly.
+    2.  **Answers**: Checks if the agent formats outputs cleanly in Markdown tables as instructed.
+    3.  **Token Costs**: Records how many tokens are used to verify that our chunking saves costs.
 
 ---
 
 ## 🚀 Execution Guide
 
-Ensure your virtual environment is active:
+Activate your virtual environment:
 ```bash
 source .venv/bin/activate
 ```
 
-### A. Generating the Golden Dataset
-To recursively scan SharePoint and generate the 100-row golden Q&A CSV:
+### A. Generate the Dataset
+To scan SharePoint and create the 100-row test CSV:
 ```bash
 python harness/generate_dataset.py
 ```
 *   *Output CSV*: `harness/evaluation_dataset.csv`
 
-### B. Running the Evaluation Runner
-To evaluate the agent's accuracy and trajectories (defaults to the first 5 test cases for efficiency, pass an integer to override):
+### B. Run the Tests
+To run the tests (defaults to the first 5 test cases, pass a number to run more):
 ```bash
-# Run first 5 test cases
+# Run first 5 tests
 python harness/run_eval.py 5
 
-# Run full 100-row evaluation
+# Run all 100 tests
 python harness/run_eval.py 100
 ```
 *   *Output Report*: [evaluation_report.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_report.md)
-*   *Deep Analytical Insights*: [evaluation_insights.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_insights.md)
+*   *Deep Insights*: [evaluation_insights.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_insights.md)
 *   *Raw JSON Metrics*: [evaluation_results.json](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_results.json)
 
 ---
 
 > [!TIP]
 > ### 📊 Analyzing Evaluation Metrics
-> After executing a full 100-row evaluation run, refer directly to **[evaluation_insights.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_insights.md)**. 
+> After running the tests, read **[evaluation_insights.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_insights.md)**. 
 > 
-> This curated analytics report collates key performance indicators including **Semantic Accuracy (LLM Judge)**, **Tool Trajectory Match Rate**, and **Average Query Latency**, giving PMs and field teams immediate data-backed proof of connector agent efficiency and cost optimizations.
+> This report shows key metrics like **Semantic Accuracy (LLM Judge)**, **Tool Path Match Rate**, and **Average Speed**, proving that the search connector is fast and saves token costs.
 
 ---
 
@@ -87,15 +87,18 @@ python harness/run_eval.py 100
 
 When designing conversational queries, constructing benchmark datasets, or evaluating agent trajectories against SharePoint repositories, follow these general best practices to balance LLM correctness, trajectory efficiency, and programmatic validation:
 
-### 1. Avoid Ambient Query Ambiguity (Conversational Disambiguation)
-*   **The Challenge**: Prompts that ask *"according to the document"* or *"in the file"* without explicit keywords are highly ambiguous. Rather than guessing or hallucinating, a high-quality, secure conversational agent will (and should) ask the user for clarification (e.g., *"Which document are you referring to?"*).
-*   **The Tip**: When generating "golden" benchmark datasets, ensure queries contain clear filename keywords or distinct identifiers (e.g. *"In the GovText Guide, what is the primary focus...?"*). In testing engines, recognize that conversational disambiguation is a sign of robust conversational intelligence, not a trajectory failure.
+### 1. Run Stats First to Manage SharePoint Cleanliness Expectations
+*   **The Challenge**: Out-of-the-box connectors rely entirely on SharePoint Search. If the repository is messy (e.g., huge files, old/outdated content, conflicting data, duplicate names, super long paths, or missing security labels/permissions), search quality and agent answers will suffer.
+*   **The Tip**: Before setting up your agent or running tests, check your SharePoint cleanliness first. You can use the audit and plotting scripts in the **[stats/](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/stats/README.md)** folder to automatically find duplicates, size distributions, and sensitive labels. This manages data hygiene expectations before integration.
 
-### 2. Embrace Search Metadata Short-cutting (Trajectory Efficiency)
-*   **The Challenge**: When a query asks about file properties (e.g., *"When was the policy last updated?"* or *"Who is the author of the roadmap?"*), an efficient agent should parse the SharePoint search results header directly. It should NOT download and parse the complete file payload.
-*   **The Tip**: Avoid programmatically penalizing the agent for using a single `[search_sharepoint_files]` tool call instead of the expected `[search -> read]` sequence. Design testing evaluations to reward short-cutting when the answer is successfully resolved purely via metadata search headers, saving significant latency and token costs.
+### 2. Allow Metadata Shortcuts (Skip Unnecessary Downloads)
+*   **The Challenge**: If a user asks a metadata question (e.g., *"When was this policy last updated?"*), a smart agent should read the answer directly from the search result header, bypassing downloading and parsing the document.
+*   **The Tip**: Do not penalize the agent for skipping the document read step. Design your evaluation runner to accept a search-only path when metadata alone successfully answers the user's prompt. This saves token cost and response latency.
 
-### 3. Isolate Ingestion Formats & Purview RMS Controls
-*   **The Challenge**: Standard office documents (`.docx`, `.xlsx`, `.pdf`) can be parsed directly, but encrypted Purview Information Protection (RMS) wrappers cannot be read by external utilities.
-*   **The Tip**: Ensure the connector client queries sensitivity classifications at the metadata stage *before* running a binary download. Implement automated flows that route encrypted items directly to polite user-notification states (explaining Purview decryption boundaries) instead of attempting programmatic parsing that triggers parsing exceptions.
+### 3. Check Ingestion Formats & Purview RMS Controls
+*   **The Challenge**: Standard files (`.docx`, `.xlsx`, `.pdf`) are easy to parse, but encrypted Purview (RMS) files cannot be opened by code utilities.
+*   **The Tip**: Always check the sensitivity labels at the metadata stage *before* attempting a download. Intercept encrypted files early and return a polite explanation about Purview decryption boundaries instead of letting the pipeline crash.
 
+### 4. Avoid Vague Benchmark Queries
+*   **The Challenge**: Vague prompts like *"what percentage of people reported attacks according to the document"* trigger safe conversational rules. The agent will ask which document you mean rather than guessing.
+*   **The Tip**: When creating test datasets, write specific, self-contained questions (e.g., *"In the 2023 Cyber Report, what percentage..."*). Programmatically, treat requests for clarification as intelligent behavior, not a test failure.

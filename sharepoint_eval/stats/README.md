@@ -1,6 +1,6 @@
 # 📊 SharePoint Sizing & Cleanliness Auditor
 
-The statistics module crawls SharePoint recursively to generate a high-level, graphical dashboard auditing your files, data size, Purview security classifications, and file suffix distributions. This helps evaluate content volume and security configurations before connecting LLM assistants.
+This tool scans your SharePoint site and creates a visual dashboard. It shows file sizes, sensitivity labels, and file type counts. This helps you check your data size and security labels before setting up an AI agent.
 
 ---
 
@@ -20,41 +20,41 @@ graph TD
 ## 📁 Components
 
 ### 1. Audit Engine (`collate_stats.py`)
-Traverses the site recursively and compiles:
-*   **Sizing Sizing**: Total items, files count, folders count, total size, and average/median file sizes.
-*   **Suffix Distribution**: Breakdown of suffixes (`.pdf`, `.xlsx`, `.docx`, `.pptx`, `.txt`, `.csv`, etc.) by count and percentage.
-*   **Sensitivity Breakdown**: Quantifies unclassified files vs. Purview sensitivity labels (`General`, `Confidential`, `Highly Confidential`) and calculates the **encryption percentage** (RMS-protected files).
-*   **Cleanliness Indicators**: Flags duplicate filenames, empty (0-byte) documents, and long path warnings exceeding 260 characters.
+Scans your site recursively and counts:
+*   **Sizes**: Total items, files count, folders count, total size, and average file size.
+*   **File Types**: Breakdown of file extensions (`.pdf`, `.xlsx`, `.docx`, etc.) by count and percentage.
+*   **Sensitivity Labels**: Finds how many files have Microsoft Purview labels (`General`, `Confidential`, `Highly Confidential`) and how many are locked (RMS-protected).
+*   **Data Cleanliness**: Flags duplicate names, empty (0-byte) files, and very long paths (over 260 characters).
 
-### 2. Graphical Plotter (Matplotlib Integration)
-Automatically plots and generates **four high-resolution PNG distribution charts** saved to `/stats/`:
-1.  `file_sizes_distribution.png`: Histogram of file capacities.
-2.  `sensitivity_labels_distribution.png`: Horizontal bar chart of Purview labels.
-3.  `file_types_distribution.png`: Pie chart of file extensions.
-4.  `last_modified_distribution.png`: Bar chart timeline of last modified dates.
+### 2. Graphical Charts (Matplotlib)
+Automatically draws **four visual PNG charts** in `/stats/`:
+1.  `file_sizes_distribution.png`: Chart showing file sizes.
+2.  `sensitivity_labels_distribution.png`: Chart showing Purview labels.
+3.  `file_types_distribution.png`: Chart showing file types.
+4.  `last_modified_distribution.png`: Chart showing modification dates.
 
-These graphs are embedded directly inside the detailed audit report **`stats/sharepoint_contents_report.md`**.
+These charts are embedded directly inside the final audit report **`stats/sharepoint_contents_report.md`**.
 
 ---
 
 ## 🤖 ADK Agent Integration
 
-*   **`collate_stats.py`**: **Does NOT** use the ADK Agent. It is built as a system-level dashboard and auditing utility. It bypasses conversational agent flows and imports core REST API helpers (`sharepoint_client.py`) directly to recursively compile file sizes, extension mappings, and Purview labels. This ensures that you can audit your data footprint and security coverage before ever activating or configuring an LLM agent.
+*   **`collate_stats.py`**: **Does NOT** use the ADK Agent. It is built as a standalone tool. It talks directly to the SharePoint API using our Graph helper (`sharepoint_client.py`) to collect stats. This lets you audit your data footprint and security coverage before activating or configuring an AI agent.
 
 ---
 
 ## 🚀 Execution Guide
 
-Ensure your virtual environment is active:
+Make sure your virtual environment is active:
 ```bash
 source .venv/bin/activate
 ```
 
-### Running the Sizing & Cleanliness Audit
-To generate the graphical distribution charts and the cleanliness report:
+### Run the Sizing & Cleanliness Audit
+To generate the charts and the report:
 ```bash
 python stats/collate_stats.py
 ```
-*   *Output Report*: `stats/sharepoint_contents_report.md`
-*   *Raw JSON Metrics*: `stats/sharepoint_contents_stats.json`
+*   *Output Report*: [stats/sharepoint_contents_report.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/stats/sharepoint_contents_report.md)
+*   *Raw JSON Stats*: `stats/sharepoint_contents_stats.json`
 *   *PNG Chart Images*: `stats/*.png`

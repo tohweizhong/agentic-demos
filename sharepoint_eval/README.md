@@ -1,115 +1,113 @@
 # SharePoint File Lister & Searcher ADK Agent
 
-This project implements an enterprise-ready Agent Development Kit (ADK) assistant that allows listing, searching, browsing, and reading files in a SharePoint site document library. It features advanced integration with Microsoft Purview Sensitivity Labels, robust region-routed search pipelines, and dependency-free file content extraction.
+This project is an assistant built with the Agent Development Kit (ADK). It lets you list, search, browse, and read files in a SharePoint site document library. It can read Microsoft Purview Sensitivity Labels, run fast regional search pipelines, and extract file contents without extra setup.
 
 ---
 
 ## 📁 File Structure
 
-- **`config.json`**: Configuration file for Microsoft Azure AD, SharePoint site details, Gemini model name, and GCP project specs (excluded from Git).
-- **`deploy_ge_ae/.env`**: Environment configuration file storing SharePoint tenant/client credentials for cloud deployment (excluded from Git).
-- **`sharepoint_client.py`**: Core helper library containing Graph API interactions, regional search query execution, file content downloading, and Word document parsing.
-- **`agent.py`**: The main ADK agent instruction set, custom tool registration (`list_sharepoint_files`, `search_sharepoint_files`, `read_sharepoint_file`), and advanced Markdown visual formatting rules.
-- **`runner.py`**: Interactive and command-line CLI agent chat runner.
-- **`agent_tests/`**: Directory containing specialized conversational verification scripts for testing Word, PDF, PowerPoint, Excel, and file permissions workflows.
-- **`sharepoint_agent_walkthrough.md`**: Comprehensive walkthrough of SharePoint OAuth registration, Graph API permission setup, and configuration steps.
-- **`harness/`**: At-scale automated evaluation harness including dataset generator (`generate_dataset.py`) and Gemini-graded regression runner (`run_eval.py`).
-- **`stats/`**: SharePointDocument library recursively walks sizing, Purview classifications, file extensions compilation, and Matplotlib graph plotters.
-- **`analyse_conflict/`**: Semantic contradiction auditing utility that builds a factual statement index and groups policy conflict statements using Vertex AI Gemini.
-- **`deploy_ge_ae/`**: Self-contained deployment package containing environment configuration, build ignores, and automated shell scripts for deploying the ADK Agent to Gemini Enterprise Agent Engine.
-- **`mock_data/`**: Unique banking dataset generation scripts and MSAL token-refresh SharePoint file uploaders.
-- **`.gitignore`**: Pre-configured git ignore rules to protect credentials (`config.json`, `.env`) and python artifacts.
+- **`config.json`**: Settings for Microsoft Azure AD, SharePoint, Gemini, and GCP (ignored by Git).
+- **`deploy_ge_ae/.env`**: Environment settings with credentials for cloud deployment (ignored by Git).
+- **`sharepoint_client.py`**: Core helper to talk to Graph API, run search, download files, and parse documents.
+- **`agent.py`**: Main agent instructions, tool registrations (`list_sharepoint_files`, `search_sharepoint_files`, `read_sharepoint_file`), and Markdown formatting rules.
+- **`runner.py`**: Interactive command-line chat for the agent.
+- **`agent_tests/`**: Tests to verify Word, PDF, PowerPoint, Excel, and file permissions.
+- **`sharepoint_agent_walkthrough.md`**: Setup guide for Azure AD App registration, permissions, and config.
+- **`harness/`**: Automated test harness with a dataset generator (`generate_dataset.py`) and a Gemini-graded evaluation runner (`run_eval.py`).
+- **`stats/`**: Scripts to count file sizes, labels, and extensions, and plot graphs with Matplotlib.
+- **`analyse_conflict/`**: Utility to find factual statements and group conflicting policy statements using Gemini.
+- **`deploy_ge_ae/`**: Package and scripts to deploy the agent to Gemini Enterprise Agent Engine.
+- **`mock_data/`**: Scripts to generate banking files and upload them to SharePoint.
+- **`.gitignore`**: Rules to keep secrets (`config.json`, `.env`) and python files out of Git.
 
 ---
 
 ## ✨ Core Features
 
-### 🔍 Dual-Stage Fast Search
-Avoids slow recursive folder scanning. The agent uses the modern Microsoft Graph `/search/query` endpoint with APC (Asia-Pacific) regional routing to locate files instantly across the entire site. It then makes a fast, direct call to retrieve the unique sensitivity labels.
+### 🔍 Fast Two-Step Search
+We do not scan folders slowly. The agent uses the modern Microsoft Graph search endpoint to find files instantly across the site. It then makes a fast, direct call to get sensitivity labels.
 
 ### 🛡️ Purview Sensitivity Labels
-Automatically retrieves and displays Microsoft Purview information protection sensitivity levels (e.g., `General`, `Confidential`, `Highly Confidential`) next to each file, categorized with intuitive status emojis (🟢, 🟡, 🔴).
+Shows Microsoft Purview labels (🟢 `General`, 🟡 `Confidential`, 🔴 `Highly Confidential`) next to each file using status emojis.
 
-### 📖 High-Speed Bash Parsers & Smart Context Chunker
-*   **Bash-Native Subprocess Parsing**: Spawns high-speed, native command-line parsers (e.g., `pdftotext` for PDFs, `docx2txt` for Word, and `exiftool` for images/media) via Python subprocesses. Automatically falls back to robust Python-native parsers if bash utilities are absent in the host environment, guaranteeing universal execution.
-*   **Semantic Relevance Chunker**: Implements a keyword match density chunker. Instead of loading an entire large file (e.g., a 50-page document) into the context window, it splits text into overlapping semantic paragraphs, scores them dynamically against the user's context query, and streams only the top 3 most relevant segments—minimizing LLM execution costs by **95%+** and completely preventing context window overflow.
+### 📖 Fast Subprocess Parsers & Smart Chunking
+*   **Fast Subprocess Parsing**: Spawns fast, native command-line tools (`pdftotext` for PDFs, `docx2txt` for Word, and `exiftool` for media) to parse files. Falls back to Python libraries if these tools are missing, so it runs anywhere.
+*   **Smart Chunking**: Splits large files into overlapping semantic paragraphs. Scores them against the user's query and sends only the top 3 most relevant segments to the LLM. This cuts token cost by **95%+** and stops context window overflow.
 
-### 🧪 At-Scale Regression Evaluation Harness
-Includes a robust, automated regression testing suite. It uses a crawler script (`harness/generate_dataset.py`) to recursively scan your SharePoint library and compile structured test cases, then executes persistent conversational turns through the ADK Agent (`harness/run_eval.py`), automatically score-judging answering accuracy, trajectory correctness, and LLM context cost parameters via a Gemini judge.
+### 🧪 Automated Test Harness
+Runs regression tests automatically. A crawler script (`harness/generate_dataset.py`) scans your SharePoint site to generate 100 test cases. The runner (`harness/run_eval.py`) executes these turns and uses Gemini as a judge to grade accuracy, tool paths, and token costs.
 
-### 🔐 RMS Encryption Awareness
-*   **RMS-Protected Files**: Correctly identifies and handles files encrypted with Microsoft Information Protection (MIP) / Rights Management Services (RMS) based on metadata inspection before downloading content, safely reporting encryption constraints if a protected file cannot be opened.
+### 🔐 RMS Encryption Check
+Inspects metadata *before* downloading files to check if they are encrypted with Microsoft Information Protection (MIP/RMS). Reports encryption constraints safely if a file is locked.
 
-### 🎨 Premium Markdown Formatting
-Outputs beautiful, responsive Markdown tables with clickable Web URLs, specific emojis for folders vs. files, code block wrappers for relative paths, and clean human-readable file sizes.
+### 🎨 Clean Markdown Output
+Displays responsive Markdown tables with clickable Web URLs, distinct emojis for files vs. folders, code blocks for paths, and clear file sizes.
 
 ---
 
 ## 🚀 Setup & Usage
 
-Please follow the step-by-step instructions inside the walkthrough guides:
-*   **[sharepoint_agent_walkthrough.md](sharepoint_agent_walkthrough.md)**: Covers setting up Azure AD App registrations, permissions, credentials, and running the CLI agent.
-*   **[harness/README.md](harness/README.md)**: Covers generating the benchmark CSV and executing the automated Evaluation Harness.
-*   **[stats/README.md](stats/README.md)**: Covers calculating SharePoint metrics and plotting Matplotlib size/sensitivity/extension distribution charts.
-*   **[analyse_conflict/README.md](analyse_conflict/README.md)**: Covers building the factual statement index and executing the semantic contradictions/conflicts audit.
+Follow these step-by-step guides:
+*   **[sharepoint_agent_walkthrough.md](sharepoint_agent_walkthrough.md)**: Setup guide for Azure AD, credentials, and running the CLI.
+*   **[harness/README.md](harness/README.md)**: Guide to generate the CSV dataset and run the test harness.
+*   **[stats/README.md](stats/README.md)**: Guide to count metrics and plot Matplotlib charts.
+*   **[analyse_conflict/README.md](analyse_conflict/README.md)**: Guide to check for policy conflicts.
 
 ### 1. Install Dependencies
-Ensure you have Python 3.11+ and your virtual environment activated, then install the packages:
+Make sure you have Python 3.11+ and your virtual environment is active, then run:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install google-adk msal
 ```
 
-### 2. Authenticate with Google Cloud Application Default Credentials (ADC)
-Before running the agent, authenticate with Google Cloud to enable the Gemini LLM via Vertex AI:
+### 2. Log In to Google Cloud (ADC)
+Log in to enable Vertex AI and the Gemini LLM:
 ```bash
 gcloud auth application-default login
 ```
 
-### 3. Run the Interactive CLI
+### 3. Run the CLI
 ```bash
 python runner.py
 ```
 
-### 4. Run Automated Conversational Tests
-To execute targeted, multi-turn conversational scripts with persistent memory on specific file types, run:
+### 4. Run Conversational Tests
+To test specific file types, run:
 ```bash
-# Test Word (.docx) parsing and context
+# Test Word (.docx)
 python agent_tests/test_docx.py
 
-# Test PDF (.pdf) page-by-page extraction
+# Test PDF (.pdf)
 python agent_tests/test_pdf.py
 
-# Test PowerPoint (.pptx) slide-by-slide parsing
+# Test PowerPoint (.pptx)
 python agent_tests/test_pptx.py
 
-# Test Excel (.xlsx) spreadsheet analytical insights
+# Test Excel (.xlsx)
 python agent_tests/test_xlsx.py
 
-# Test SharePoint Direct File Permissions Auditing
+# Test SharePoint Permissions Audit
 python agent_tests/test_permissions_agent.py
 ```
 
-### 5. Run SharePoint Content & Cleanliness Audit
-To recursively analyze your SharePoint Document Library and generate a high-level report on file sizing, Purview sensitivity labels, file suffixes, and data cleanliness:
+### 5. Run Cleanliness Audit
+To scan SharePoint and generate a report on file sizes, sensitivity labels, and extensions:
 ```bash
 python stats/collate_stats.py
 ```
-Detailed output is saved to `stats/sharepoint_contents_report.md` and raw JSON metrics to `stats/sharepoint_contents_stats.json`.
+Saves report to `stats/sharepoint_contents_report.md` and raw stats to `stats/sharepoint_contents_stats.json`.
 
-### 6. Run Semantic Contradiction & Conflict Audit
-To recursively traverse SharePoint, build a factual statement index from all unencrypted documents, and perform a semantic auditing run to identify file clusters and policy contradictions:
+### 6. Run Conflict Audit
+To find conflicting facts across your documents:
 ```bash
 python analyse_conflict/detect_conflicts.py
 ```
-Detailed report is saved to `analyse_conflict/semantic_conflicts_report.md` and raw JSON statements to `analyse_conflict/semantic_conflicts.json`.
+Saves report to `analyse_conflict/semantic_conflicts_report.md` and raw statements to `analyse_conflict/semantic_conflicts.json`.
 
 ### 7. Deploy to Gemini Enterprise Agent Engine
-To package and deploy this ADK Agent to Google Cloud's Gemini Enterprise Agent Engine (Reasoning Engine), follow the self-contained instructions inside the deployment folder:
-*   **[deploy_ge_ae/README.md](deploy_ge_ae/README.md)**: Comprehensive walkthrough on configuring your environment variables and triggering the automated one-click deployment script.
+To deploy the agent to Google Cloud:
+*   **[deploy_ge_ae/README.md](deploy_ge_ae/README.md)**: Guide to set environment variables and run the deploy script.
 
 > [!NOTE]
-> **Dual-Environment Aware Configuration Architecture**: The agent helper `sharepoint_client.py` automatically checks for environment variables (`TENANT_ID`, `CLIENT_ID`, etc.) set dynamically by Agent Engine in the cloud, and seamlessly falls back to the local `config.json` file only when running locally. This prevents packaging hardcoded credentials into your staged build uploads.
-
-
+> **Smart Credentials Check**: The agent checks for cloud environment variables first. If running locally, it falls back to `config.json`. This keeps your secrets out of your staged build uploads.
