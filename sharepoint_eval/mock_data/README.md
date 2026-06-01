@@ -52,6 +52,12 @@ Performs robust directory checking and files ingestion:
 
 ---
 
+## 🤖 ADK Agent Integration
+
+*   **`generate_mock_files.py` & `upload_mock_files.py`**: **Do NOT** use the ADK Agent. They operate purely as offline utility scripts to prepare and ingest representative data corpus, executing local document formatting and Microsoft Graph REST PUT payloads directly.
+
+---
+
 ## 🔐 Azure AD Consent & Permissions Requirements
 
 To perform uploads, the Application registration configured in your root `config.json` must have write-scoped directory roles:

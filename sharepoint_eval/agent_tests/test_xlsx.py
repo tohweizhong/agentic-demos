@@ -2,7 +2,7 @@ import asyncio
 import sys
 import os
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")))
 
 from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
@@ -29,16 +29,16 @@ async def send_query(runner, user_query: str, session_id: str):
         print(f"Error occurred: {e}")
 
 async def main():
-    print("Initializing Agent Runner for PPTX Testing...")
+    print("Initializing Agent Runner for XLSX Testing...")
     session_service = InMemorySessionService()
     runner = Runner(agent=agent.root_agent, session_service=session_service, app_name="sharepoint_file_lister", auto_create_session=True)
-    session_id = "pptx_session"
+    session_id = "xlsx_session"
     
-    # 1. Locate the unencrypted PPTX file
-    await send_query(runner, "Locate the file Corporate transactions.pptx", session_id)
+    # 1. Locate the unencrypted XLSX file
+    await send_query(runner, "Locate the file 7-day Moving Average Daily Estimated Numbers of COVID-19 Infections.xlsx", session_id)
     
-    # 2. Ask a slide-specific detail extraction question
-    await send_query(runner, "List the three key platforms for corporate transactions described in the slides and explain what Corppass does", session_id)
+    # 2. Ask a question requiring direct data extraction and comparison insight (weekends vs weekdays)
+    await send_query(runner, "Read the table contents. Tell me what columns are in this file and give me an insight: looking at the data, do infection numbers tend to be higher or lower on weekends/holidays (where the holiday column is 1) compared to weekdays (0)?", session_id)
 
 if __name__ == "__main__":
     asyncio.run(main())

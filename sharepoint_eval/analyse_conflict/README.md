@@ -33,6 +33,12 @@ Executes the following pipeline:
 
 ---
 
+## 🤖 ADK Agent Integration
+
+*   **`detect_conflicts.py`**: **Does NOT** use the ADK Agent. It is a batch-auditing pipeline that runs independently of conversational interfaces. It queries the raw SharePoint client to parse documents and uses the baseline Gemini API (`google.genai.Client`) directly to build the fact index, cluster topics, and group contradiction clusters.
+
+---
+
 ## 🚀 Execution Guide
 
 Ensure your virtual environment is active:

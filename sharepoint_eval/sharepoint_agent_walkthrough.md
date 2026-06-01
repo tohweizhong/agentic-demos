@@ -28,9 +28,8 @@ graph TD
 2. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline, along with permissions audits.
 3. **`agent.py`**: Main ADK Agent configuration registering all four tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
 4. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
-5. **`test_agent.py`**: Programmatic persistent session simulator.
-6. **`test_docx.py` / `test_pdf.py` / `test_pptx.py` / `test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
-7. **`test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
+5. **`agent_tests/test_docx.py` / `agent_tests/test_pdf.py` / `agent_tests/test_pptx.py` / `agent_tests/test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
+6. **`agent_tests/test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
 8. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
 9. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
 10. **`harness/generate_dataset.py`**: Dataset builder script that crawls your active SharePoint document library recursively to compile a clean evaluation spreadsheet benchmark of documents, target queries, and ground-truth references.
@@ -102,23 +101,23 @@ python runner.py
 ```
 
 ### Option B: Automated Conversational Verification
-You can execute the automated persistent session test scripts to verify specific file type search, extraction, and reasoning capabilities:
+You can execute the automated persistent session test scripts inside the `agent_tests/` folder to verify specific file type search, extraction, and reasoning capabilities:
 
 *   **Test Word (`.docx`)**: Resolves names, reads text, and answers target questions:
     ```bash
-    python test_docx.py
+    python agent_tests/test_docx.py
     ```
 *   **Test PDF (`.pdf`)**: Downloads, extracts page-by-page text, and summarizes:
     ```bash
-    python test_pdf.py
+    python agent_tests/test_pdf.py
     ```
 *   **Test PowerPoint (`.pptx`)**: Reads slide-by-slide layout and extracts contents:
     ```bash
-    python test_pptx.py
+    python agent_tests/test_pptx.py
     ```
-*   **Test Excel (`.xlsx`)**: Downloads cell grids and performs complex analytical data reasoning (e.g., comparing weekend vs. weekday infection trends):
+*   **Test Excel (`.xlsx`)**: Downloads cell grids and performs complex analytical data reasoning:
     ```bash
-    python test_xlsx.py
+    python agent_tests/test_xlsx.py
     ```
 
 ### Option C: At-Scale Evaluation Harness
