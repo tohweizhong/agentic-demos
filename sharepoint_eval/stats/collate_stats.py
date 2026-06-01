@@ -12,7 +12,8 @@ from sharepoint_client import (
     get_access_token,
     get_site_id,
     get_default_drive_id,
-    get_all_files_recursive
+    get_all_files_recursive,
+    get_file_permissions_api
 )
 
 def format_bytes(num_bytes: int) -> str:
@@ -53,11 +54,16 @@ def analyze_sharepoint_contents():
     file_sizes = []
     last_modified_times = []
     
+    # Permission analysis variables
+    principals_list = []
+    principal_types = []
+    
     duplicates_counter = Counter()
     paths_list = []
     
     for item in all_items:
         is_folder = item.get("type") == "folder"
+        name = item.get("name", "")
         path = item.get("path", "")
         paths_list.append(path)
         
@@ -74,8 +80,18 @@ def analyze_sharepoint_contents():
             total_size_bytes += size
             file_sizes.append(size)
             
+            # Fetch direct file permissions for security audit
+            item_id = item.get("id")
+            print(f"[{files_count}] Auditing access permissions for: '{name}'...")
+            try:
+                perms = get_file_permissions_api(item_id=item_id, drive_id=drive_id)
+                for p in perms:
+                    principals_list.append(p.get("name", "Unknown"))
+                    principal_types.append(p.get("type", "Unknown"))
+            except Exception as e:
+                print(f"Error fetching permissions for {name}: {e}")
+            
             # File details
-            name = item.get("name", "")
             ext = name.split(".")[-1].lower() if "." in name else "no_extension"
             extensions.append(ext)
             
@@ -103,12 +119,13 @@ def analyze_sharepoint_contents():
             # Track name duplicates
             duplicates_counter[name] += 1
 
-    # Calculate averages & distributions
     avg_file_size = total_size_bytes / files_count if files_count > 0 else 0
     median_file_size = sorted(file_sizes)[files_count // 2] if files_count > 0 else 0
-    
+
     ext_dist = Counter(extensions)
     label_dist = Counter(sensitivity_labels)
+    principal_counts = Counter(principals_list)
+    principal_type_counts = Counter(principal_types)
     
     # Identify duplicate filenames (count > 1)
     duplicates = {name: count for name, count in duplicates_counter.items() if count > 1}
@@ -136,7 +153,9 @@ def analyze_sharepoint_contents():
         "oldest_modified": oldest_modified,
         "newest_modified": newest_modified,
         "file_type_distribution": dict(ext_dist),
-        "sensitivity_label_distribution": dict(label_dist)
+        "sensitivity_label_distribution": dict(label_dist),
+        "principal_distribution": dict(principal_counts),
+        "principal_type_distribution": dict(principal_type_counts)
     }
     
     stats_dir = os.path.dirname(os.path.abspath(__file__))
@@ -151,6 +170,7 @@ def analyze_sharepoint_contents():
     plot_file_types_distribution(stats["file_type_distribution"], os.path.join(stats_dir, "file_types_distribution.png"))
     plot_sensitivity_distribution(stats["sensitivity_label_distribution"], os.path.join(stats_dir, "sensitivity_labels_distribution.png"))
     plot_file_sizes_distribution(file_sizes, os.path.join(stats_dir, "file_sizes_distribution.png"))
+    plot_principals_distribution(stats["principal_distribution"], os.path.join(stats_dir, "principals_distribution.png"))
     
     generate_markdown_report(stats, md_path, duplicates, file_sizes)
     
@@ -198,6 +218,17 @@ def generate_markdown_report(stats: dict, output_path: str, duplicates: dict, fi
         
         f.write("### 🛡️ Graphical Sensitivity Classifications\n\n")
         f.write("![Sensitivity Labels Distribution](sensitivity_labels_distribution.png)\n\n")
+        
+        f.write("### 👥 Access Authorization & Principal Distributions\n\n")
+        f.write("This section shows which users, groups, or sharing links have direct explicit permissions across your document library.\n\n")
+        f.write("| Principal | Access Count |\n")
+        f.write("| :--- | :--- |\n")
+        # Top 5 authorized
+        top_principals = sorted(stats["principal_distribution"].items(), key=lambda x: x[1], reverse=True)[:5]
+        for name, count in top_principals:
+            f.write(f"| **{name}** | {count} files |\n")
+        f.write("\n")
+        f.write("![Principals Distribution](principals_distribution.png)\n\n")
         
         f.write("## 📄 File Types & Suffix Distribution\n\n")
         f.write("| Suffix | Count | Percentage |\n")
@@ -332,6 +363,24 @@ def plot_file_sizes_distribution(file_sizes: list, output_img_path: str):
     plt.xlabel("Size Categories", fontsize=11, labelpad=10)
     plt.ylabel("Number of Files", fontsize=11, labelpad=10)
     plt.grid(axis='y', linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.savefig(output_img_path, dpi=150)
+    plt.close()
+
+def plot_principals_distribution(principal_dist: dict, output_img_path: str):
+    """Plots a horizontal bar chart of the most highly-authorized principals on the SharePoint site."""
+    import matplotlib.pyplot as plt
+    sorted_principals = sorted(principal_dist.items(), key=lambda x: x[1], reverse=True)[:10]
+    sorted_principals.reverse()
+    
+    labels = [k for k, v in sorted_principals]
+    counts = [v for k, v in sorted_principals]
+    
+    plt.figure(figsize=(10, 5))
+    plt.barh(labels, counts, color='#EAB308', edgecolor='#CA8A04', alpha=0.85)
+    plt.title("Top Access-Authorized Principals (Explicit Access count)", fontsize=14, fontweight='bold', pad=15)
+    plt.xlabel("Number of Files with Explicit Access Granted", fontsize=11, labelpad=10)
+    plt.grid(axis='x', linestyle='--', alpha=0.5)
     plt.tight_layout()
     plt.savefig(output_img_path, dpi=150)
     plt.close()
