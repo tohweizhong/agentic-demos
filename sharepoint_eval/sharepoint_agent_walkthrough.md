@@ -25,11 +25,12 @@ graph TD
 ```
 
 1. **`config.json`**: Centralized configuration storing SharePoint credentials, site path, Vertex AI model name, and region specs.
-2. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline, along with permissions audits.
-3. **`agent.py`**: Main ADK Agent configuration registering all four tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
-4. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
-5. **`agent_tests/test_docx.py` / `agent_tests/test_pdf.py` / `agent_tests/test_pptx.py` / `agent_tests/test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
-6. **`agent_tests/test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
+2. **`deploy_ge_ae/.env`**: Environment configuration file storing SharePoint tenant/client credentials for cloud deployment.
+3. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline, along with permissions audits.
+4. **`agent.py`**: Main ADK Agent configuration registering all four tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
+5. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
+6. **`agent_tests/test_docx.py` / `agent_tests/test_pdf.py` / `agent_tests/test_pptx.py` / `agent_tests/test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
+7. **`agent_tests/test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
 8. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
 9. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
 10. **`harness/generate_dataset.py`**: Dataset builder script that crawls your active SharePoint document library recursively to compile a clean evaluation spreadsheet benchmark of documents, target queries, and ground-truth references.
@@ -169,3 +170,9 @@ To bridge technical scalability gaps, the file reading pipeline implements two p
     2.  Ranks these chunks by keyword match density and exact phrase occurrences.
     3.  Extracts and returns **only the top 3 most relevant chunks** decorated with visual section boundaries, omitting the rest of the document.
     4.  **Scalability Impact**: Slashes LLM execution token size and context costs by **95%+**, preventing context window exhaustion while preserving highly accurate answering capabilities.
+
+### 5. Dual-Environment Configuration Protocol
+To maintain robust security and pristine code isolation across development phases, the client integration supports a dual-environment config resolution pipeline:
+1.  **Local Verification (Fallback)**: Loads configurations dynamically from a local `config.json` placed in the root folder.
+2.  **Cloud container staging (Primary)**: If running inside Google Cloud Vertex AI Agent Engine, the container expects all credentials to be securely loaded into `os.environ` at deploy time (supplied securely via `--env_file` in the deployment package). `config.json` is safely ignored via `.ae_ignore` to eliminate any possibility of packaging credentials in the staged cloud container.
+

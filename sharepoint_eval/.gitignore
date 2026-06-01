@@ -12,6 +12,9 @@ env/
 # Sensitive Configuration & Credentials
 config.json
 mock_data/mock_upload_config.json
+.env
+deploy_ge_ae/.env
+test_remote.py
 
 # macOS Specific
 .DS_Store
