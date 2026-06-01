@@ -1,0 +1,10 @@
+{
+  "TENANT_ID": "YOUR_AZURE_AD_TENANT_ID_GUID",
+  "CLIENT_ID": "YOUR_AZURE_AD_CLIENT_ID_GUID",
+  "CLIENT_SECRET": "YOUR_AZURE_AD_CLIENT_SECRET_VALUE",
+  "SHAREPOINT_SITE_HOST": "yourcompany.sharepoint.com",
+  "SHAREPOINT_SITE_PATH": "/sites/your-sharepoint-site-name",
+  "MODEL_NAME": "gemini-2.5-flash",
+  "GCP_PROJECT_ID": "your-gcp-project-id",
+  "GCP_LOCATION": "us-central1"
+}
