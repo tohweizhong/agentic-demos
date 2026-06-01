@@ -69,5 +69,33 @@ python harness/run_eval.py 5
 # Run full 100-row evaluation
 python harness/run_eval.py 100
 ```
-*   *Output Report*: `harness/evaluation_report.md`
-*   *Raw JSON Metrics*: `harness/evaluation_results.json`
+*   *Output Report*: [evaluation_report.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_report.md)
+*   *Deep Analytical Insights*: [evaluation_insights.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_insights.md)
+*   *Raw JSON Metrics*: [evaluation_results.json](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_results.json)
+
+---
+
+> [!TIP]
+> ### 📊 Analyzing Evaluation Metrics
+> After executing a full 100-row evaluation run, refer directly to **[evaluation_insights.md](file:///Users/weizhongt/coding/agentic-demos/sharepoint_eval/harness/evaluation_insights.md)**. 
+> 
+> This curated analytics report collates key performance indicators including **Semantic Accuracy (LLM Judge)**, **Tool Trajectory Match Rate**, and **Average Query Latency**, giving PMs and field teams immediate data-backed proof of connector agent efficiency and cost optimizations.
+
+---
+
+## 💡 General Tips for SharePoint Query & Evaluation Design
+
+When designing conversational queries, constructing benchmark datasets, or evaluating agent trajectories against SharePoint repositories, follow these general best practices to balance LLM correctness, trajectory efficiency, and programmatic validation:
+
+### 1. Avoid Ambient Query Ambiguity (Conversational Disambiguation)
+*   **The Challenge**: Prompts that ask *"according to the document"* or *"in the file"* without explicit keywords are highly ambiguous. Rather than guessing or hallucinating, a high-quality, secure conversational agent will (and should) ask the user for clarification (e.g., *"Which document are you referring to?"*).
+*   **The Tip**: When generating "golden" benchmark datasets, ensure queries contain clear filename keywords or distinct identifiers (e.g. *"In the GovText Guide, what is the primary focus...?"*). In testing engines, recognize that conversational disambiguation is a sign of robust conversational intelligence, not a trajectory failure.
+
+### 2. Embrace Search Metadata Short-cutting (Trajectory Efficiency)
+*   **The Challenge**: When a query asks about file properties (e.g., *"When was the policy last updated?"* or *"Who is the author of the roadmap?"*), an efficient agent should parse the SharePoint search results header directly. It should NOT download and parse the complete file payload.
+*   **The Tip**: Avoid programmatically penalizing the agent for using a single `[search_sharepoint_files]` tool call instead of the expected `[search -> read]` sequence. Design testing evaluations to reward short-cutting when the answer is successfully resolved purely via metadata search headers, saving significant latency and token costs.
+
+### 3. Isolate Ingestion Formats & Purview RMS Controls
+*   **The Challenge**: Standard office documents (`.docx`, `.xlsx`, `.pdf`) can be parsed directly, but encrypted Purview Information Protection (RMS) wrappers cannot be read by external utilities.
+*   **The Tip**: Ensure the connector client queries sensitivity classifications at the metadata stage *before* running a binary download. Implement automated flows that route encrypted items directly to polite user-notification states (explaining Purview decryption boundaries) instead of attempting programmatic parsing that triggers parsing exceptions.
+
