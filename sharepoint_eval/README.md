@@ -1,4 +1,4 @@
-# SharePoint File Lister & Searcher ADK Agent
+# SharePoint ADK Agent
 
 This project is an assistant built with the Agent Development Kit (ADK). It lets you list, search, browse, and read files in a SharePoint site document library. It can read Microsoft Purview Sensitivity Labels, run fast regional search pipelines, and extract file contents without extra setup.
 
@@ -25,7 +25,7 @@ This project is an assistant built with the Agent Development Kit (ADK). It lets
 ## ✨ Core Features
 
 ### 🔍 Fast Two-Step Search
-We do not scan folders slowly. The agent uses the modern Microsoft Graph search endpoint to find files instantly across the site. It then makes a fast, direct call to get sensitivity labels.
+The agent uses the modern Microsoft Graph search endpoint to find files instantly across the site. It then makes a direct call to get Purview sensitivity labels.
 
 ### 🛡️ Purview Sensitivity Labels
 Shows Microsoft Purview labels (🟢 `General`, 🟡 `Confidential`, 🔴 `Highly Confidential`) next to each file using status emojis.
