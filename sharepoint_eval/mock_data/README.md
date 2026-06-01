@@ -35,14 +35,14 @@ Generates **100 completely unique files** distributed evenly (25 of each type: `
 
 Each file utilizes content-aware naming conventions (e.g., `Anti_Money_Laundering_AML_Standard_Operating_Procedures_v1.docx`) and includes realistic document formats with tables, metadata headers, bullet points, and slide outlines to simulate authentic files.
 
-### 2. SharePoint Directory Configuration (`mock_upload_config.json`)
-Specifies the target SharePoint destination directory inside the document library:
+### 2. SharePoint Directory Configuration (`mock_upload_config.json.example`)
+A template file is provided to configure the target SharePoint destination directory:
 ```json
 {
-  "TARGET_FOLDER_NAME": "Mock data Jun26"
+  "TARGET_FOLDER_NAME": "YOUR_TARGET_SHAREPOINT_FOLDER_NAME"
 }
 ```
-*This file contains only folder parameters and references the root `config.json` for all secrets and credentials to ensure zero security overlap.*
+*Note: The actual `mock_upload_config.json` is ignored by Git to prevent environment pollution. Copy `mock_upload_config.json.example` to `mock_upload_config.json` and fill in your specific target directory name. This file references the root `config.json` for credentials to ensure zero security overlap.*
 
 ### 3. Fresh-Token Upload Engine (`upload_mock_files.py`)
 Performs robust directory checking and files ingestion:
