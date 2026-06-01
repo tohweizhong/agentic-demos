@@ -275,8 +275,132 @@ def extract_text_from_docx(file_bytes: bytes) -> str:
     except Exception as e:
         return f"[Error parsing DOCX file: {str(e)}]"
 
-def read_sharepoint_file_api(item_id: str, drive_id: str = None) -> str:
-    """Downloads and returns the text content of a file from SharePoint."""
+def parse_file_via_bash(file_bytes: bytes, ext: str) -> str:
+    """Spawns local bash-native parsers to extract text from file bytes if available in the environment."""
+    import subprocess
+    import tempfile
+    import shutil
+    
+    # Check if bash-native parser is available in path
+    if ext == "pdf" and shutil.which("pdftotext"):
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
+                temp_file.write(file_bytes)
+                temp_path = temp_file.name
+            result = subprocess.run(["pdftotext", temp_path, "-"], capture_output=True, text=True, check=True)
+            os.remove(temp_path)
+            print(" -> Successfully parsed PDF via bash-native 'pdftotext'")
+            return result.stdout
+        except Exception as e:
+            print(f" ⚠️ pdftotext bash parser failed: {e}. Falling back to Python reader.")
+            
+    elif ext == "docx" and shutil.which("docx2txt"):
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
+                temp_file.write(file_bytes)
+                temp_path = temp_file.name
+            result = subprocess.run(["docx2txt", temp_path], capture_output=True, text=True, check=True)
+            txt_path = temp_path.replace(".docx", ".txt")
+            if os.path.exists(txt_path):
+                with open(txt_path, "r") as f:
+                    extracted = f.read()
+                os.remove(txt_path)
+            else:
+                extracted = result.stdout
+            os.remove(temp_path)
+            print(" -> Successfully parsed DOCX via bash-native 'docx2txt'")
+            return extracted
+        except Exception as e:
+            print(f" ⚠️ docx2txt bash parser failed: {e}. Falling back to Python reader.")
+            
+    elif ext in ["png", "jpg", "jpeg", "mp3", "mp4"] and shutil.which("exiftool"):
+        try:
+            with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False) as temp_file:
+                temp_file.write(file_bytes)
+                temp_path = temp_file.name
+            result = subprocess.run(["exiftool", temp_path], capture_output=True, text=True, check=True)
+            os.remove(temp_path)
+            print(" -> Successfully parsed EXIF tags via bash-native 'exiftool'")
+            return result.stdout
+        except Exception as e:
+            print(f" ⚠️ exiftool bash parser failed: {e}.")
+            
+    return None
+
+def chunk_text_semantically(text: str, chunk_size: int = 1500, overlap: int = 300) -> list:
+    """Splits raw text into overlapping semantic paragraphs/sections."""
+    paragraphs = text.split("\n\n")
+    chunks = []
+    current_chunk = []
+    current_size = 0
+    
+    for para in paragraphs:
+        para = para.strip()
+        if not para:
+            continue
+        para_len = len(para)
+        
+        if current_size + para_len > chunk_size and current_chunk:
+            chunks.append("\n\n".join(current_chunk))
+            overlap_candidates = []
+            overlap_size = 0
+            for c_para in reversed(current_chunk):
+                if overlap_size + len(c_para) < overlap:
+                    overlap_candidates.insert(0, c_para)
+                    overlap_size += len(c_para)
+                else:
+                    break
+            current_chunk = overlap_candidates
+            current_size = overlap_size
+            
+        current_chunk.append(para)
+        current_size += para_len
+        
+    if current_chunk:
+        chunks.append("\n\n".join(current_chunk))
+        
+    return chunks
+
+def select_relevant_chunks(chunks: list, query: str, top_n: int = 3) -> str:
+    """Ranks semantic chunks by keyword/query match density and returns the top N chunks with visual boundaries."""
+    if not query or not chunks:
+        return "\n\n".join(chunks)
+        
+    query_words = [w.lower() for w in query.split() if len(w) > 2]
+    if not query_words:
+        return "\n\n".join(chunks[:top_n])
+        
+    chunk_scores = []
+    for i, chunk in enumerate(chunks):
+        chunk_lower = chunk.lower()
+        score = 0
+        for word in query_words:
+            score += chunk_lower.count(word) * 2
+            if query.lower() in chunk_lower:
+                score += 10
+        chunk_scores.append((score, i, chunk))
+        
+    chunk_scores.sort(key=lambda x: (-x[0], x[1]))
+    
+    selected = []
+    top_selections = chunk_scores[:top_n]
+    has_positive_scores = any(s[0] > 0 for s in top_selections)
+    if has_positive_scores:
+        top_selections = [s for s in top_selections if s[0] > 0]
+        
+    top_selections.sort(key=lambda x: x[1])
+    
+    for score, idx, chunk in top_selections:
+        selected.append(f"=== [Section {idx+1} (Relevance Score: {score})] ===\n{chunk}")
+        
+    if not selected:
+        return "[No direct matches found for your query within the document context.]"
+        
+    header = f"💡 [Note: Document context optimized. Displaying top {len(selected)} most relevant sections for query: '{query}']\n\n"
+    return header + "\n\n".join(selected)
+
+def read_sharepoint_file_api(item_id: str, query: str = "", drive_id: str = None) -> str:
+    """Downloads and returns the text content of a file from SharePoint, optionally filtering relevant chunks."""
     config = load_config()
     token = get_access_token(config)
     
@@ -284,7 +408,6 @@ def read_sharepoint_file_api(item_id: str, drive_id: str = None) -> str:
         site_id = get_site_id(token, config["SHAREPOINT_SITE_HOST"], config["SHAREPOINT_SITE_PATH"])
         drive_id = get_default_drive_id(token, site_id)
     
-    # Verify item metadata
     metadata_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{item_id}"
     headers = {"Authorization": f"Bearer {token}"}
     metadata_response = requests.get(metadata_url, headers=headers)
@@ -298,7 +421,6 @@ def read_sharepoint_file_api(item_id: str, drive_id: str = None) -> str:
         
     name = metadata.get("name", "")
     
-    # Download file stream
     content_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{item_id}/content"
     content_response = requests.get(content_url, headers=headers)
     
@@ -307,20 +429,32 @@ def read_sharepoint_file_api(item_id: str, drive_id: str = None) -> str:
         
     file_bytes = content_response.content
     
-    # Parse content
     ext = name.split(".")[-1].lower() if "." in name else ""
-    if ext == "docx":
-        return extract_text_from_docx(file_bytes)
-    elif ext == "pdf":
-        return extract_text_from_pdf(file_bytes)
-    elif ext == "pptx":
-        return extract_text_from_pptx(file_bytes)
-    elif ext == "xlsx":
-        return extract_text_from_xlsx(file_bytes)
-    elif ext in ["txt", "md", "json", "csv", "xml", "html", "sh", "py", "js", "css"]:
-        return file_bytes.decode("utf-8", errors="replace")
-    else:
-        return f"[File type .{ext} is not directly readable as text. File Name: {name}, Size: {len(file_bytes)} bytes.]"
+    
+    # 1. Try Upgrade A (Bash-Native subprocess parsing)
+    raw_text = parse_file_via_bash(file_bytes, ext)
+    
+    # 2. Fallback to Python-native parsers if bash parsers are not present or fail
+    if raw_text is None:
+        if ext == "docx":
+            raw_text = extract_text_from_docx(file_bytes)
+        elif ext == "pdf":
+            raw_text = extract_text_from_pdf(file_bytes)
+        elif ext == "pptx":
+            raw_text = extract_text_from_pptx(file_bytes)
+        elif ext == "xlsx":
+            raw_text = extract_text_from_xlsx(file_bytes)
+        elif ext in ["txt", "md", "json", "csv", "xml", "html", "sh", "py", "js", "css"]:
+            raw_text = file_bytes.decode("utf-8", errors="replace")
+        else:
+            raw_text = f"[File type .{ext} is not directly readable as text. File Name: {name}, Size: {len(file_bytes)} bytes.]"
+            
+    # 3. Apply Upgrade B (Smart semantic chunking and context relevance routing)
+    if query and not raw_text.startswith("[Error") and not raw_text.startswith("[File type"):
+        chunks = chunk_text_semantically(raw_text)
+        return select_relevant_chunks(chunks, query)
+        
+    return raw_text
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     """Extracts clean text pages from a PDF binary stream using pypdf."""
@@ -420,6 +554,62 @@ def extract_text_from_xlsx(file_bytes: bytes) -> str:
             return "\n\n".join(sheets_text)
     except Exception as e:
         return f"[Error parsing XLSX file: {str(e)}]"
+
+def get_file_permissions_api(item_id: str, drive_id: str = None) -> list:
+    """Retrieves access permissions for a specific file in SharePoint Document Library."""
+    config = load_config()
+    token = get_access_token(config)
+    
+    if not drive_id:
+        site_id = get_site_id(token, config["SHAREPOINT_SITE_HOST"], config["SHAREPOINT_SITE_PATH"])
+        drive_id = get_default_drive_id(token, site_id)
+        
+    url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{item_id}/permissions"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        permissions = response.json().get("value", [])
+        results = []
+        for perm in permissions:
+            granted_to = perm.get("grantedTo", {})
+            user = granted_to.get("user", {})
+            group = granted_to.get("group", {})
+            
+            principal_name = "Unknown"
+            principal_email = "-"
+            principal_type = "Unknown"
+            
+            if user:
+                principal_name = user.get("displayName", "Unknown User")
+                principal_email = user.get("email", "-")
+                principal_type = "User"
+            elif group:
+                principal_name = group.get("displayName", "Unknown Group")
+                principal_type = "Group"
+                
+            link = perm.get("link", {})
+            link_url = "-"
+            link_scope = "-"
+            if link:
+                link_url = link.get("webUrl", "-")
+                link_scope = link.get("scope", "-")
+                principal_name = f"Sharing Link ({link.get('type', 'view')})"
+                principal_type = "Link"
+                
+            results.append({
+                "id": perm.get("id"),
+                "name": principal_name,
+                "email": principal_email,
+                "type": principal_type,
+                "roles": perm.get("roles", []),
+                "link_url": link_url,
+                "link_scope": link_scope
+            })
+        return results
+    else:
+        raise Exception(f"Failed to retrieve file permissions: {response.status_code} - {response.text}")
+
 
 
 
