@@ -15,21 +15,24 @@ graph TD
     Agent --> Tool1[list_sharepoint_files]
     Agent --> Tool2[search_sharepoint_files]
     Agent --> Tool3[read_sharepoint_file]
+    Agent --> Tool4[list_file_permissions]
     Tool1 --> Client[sharepoint_client.py]
     Tool2 --> Client
     Tool3 --> Client
+    Tool4 --> Client
     Client --> Config[config.json]
     Client --> GraphAPI[Microsoft Graph API]
 ```
 
 1. **`config.json`**: Centralized configuration storing SharePoint credentials, site path, Vertex AI model name, and region specs.
-2. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline.
-3. **`agent.py`**: Main ADK Agent configuration registering all three tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
+2. **`sharepoint_client.py`**: Core integration engine executing Microsoft Graph REST queries, parsing `.docx` files, and implementing the two-step search-and-fetch pipeline, along with permissions audits.
+3. **`agent.py`**: Main ADK Agent configuration registering all four tools and enforcing strict Markdown, emoji, and tabular formatting instructions.
 4. **`runner.py`**: Interactive CLI chat and one-shot query CLI runner.
 5. **`test_agent.py`**: Programmatic persistent session simulator.
 6. **`test_docx.py` / `test_pdf.py` / `test_pptx.py` / `test_xlsx.py`**: Specialized file type test scripts performing targeted metadata searching, content parsing, and insight-driven analytical queries.
-7. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
-8. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
+7. **`test_permissions_agent.py`**: Persistent conversational test simulating direct metadata searches followed by comprehensive Direct File Permissions audits.
+8. **`stats/collate_stats.py`**: Statistics and audit engine that recursively traverses SharePoint to compile detailed file sizing, Purview sensitivity classifications, and data cleanliness metrics into markdown reports.
+9. **`analyse_conflict/detect_conflicts.py`**: Deep semantic contradiction auditing script that extracts actionable policy statements across all readable documents, builds a fact index, and uses Gemini to group files into content clusters and identify direct policy contradictions.
 
 ---
 
@@ -59,7 +62,7 @@ To interact with SharePoint, the agent authenticates using the **Microsoft Graph
 
 ## ⚙️ Step 2: Configuration
 
-Create or edit the `config.json` file in the project root directory:
+Copy the `config.json.example` file to create your `config.json` file in the project root directory, and populate it with your credentials:
 
 ```json
 {
