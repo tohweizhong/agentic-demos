@@ -4,9 +4,10 @@
 PROJECT_ID="weizhong-project03"
 LOCATION="sg" # or 'us', 'eu'
 COLLECTION_ID="sharepoint-sg-2-apr26_1777961646884"
+POLICY_ID="sdp-policy-sg-1-may26"
 
 # Example full policy resource name: "projects/${PROJECT_ID}/locations/${LOCATION}/contentPolicies/${POLICY_ID}"
-SDP_POLICY="projects/${PROJECT_ID}/locations/${LOCATION}/contentPolicies/sdp-policy-sg-1-may26"
+SDP_POLICY="projects/${PROJECT_ID}/locations/${LOCATION}/contentPolicies/${POLICY_ID}"
 
 # Get your access token
 ACCESS_TOKEN=$(gcloud auth print-access-token)
