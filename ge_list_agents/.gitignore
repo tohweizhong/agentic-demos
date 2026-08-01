@@ -1,0 +1,17 @@
+# Environment variables file containing sensitive credentials
+.env
+
+# Python build artifacts and caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Output CSV tables and helper text files
+*.csv
+*.txt
+
+# Legacy and obsolete development folders
+shell/
+obsolete/
+
