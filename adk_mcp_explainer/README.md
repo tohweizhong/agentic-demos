@@ -1,6 +1,15 @@
 # ADK Agent and Secure MCP Server on Cloud Run
 
-This repository contains the code and configuration for building a secure MCP server and an ADK Agent deployed to Google Cloud Run, based on the following Google Developer Codelabs:
+This repository contains the code and configuration for building a secure MCP server and an ADK Agent deployed to Google Cloud Run, based on Google Developer Codelabs. It is designed as an educational playground for exploring Model Context Protocol (MCP) and Agent Development Kit (ADK) at a low level.
+
+## Project Structure
+
+*   **[mcp-on-cloudrun/](file:///usr/local/google/home/weizhongt/coding/agentic-demos/adk_mcp_explainer/mcp-on-cloudrun/)**: The secure MCP Server components.
+    *   `server.py`: FastMCP server exposing tools and prompts.
+    *   `pyproject.toml`: Toml config with `fastmcp` dependencies.
+    *   `Dockerfile`: Multi-stage Docker config for Cloud Run deployment.
+*   **[agent.py](file:///usr/local/google/home/weizhongt/coding/agentic-demos/adk_mcp_explainer/agent.py)**: The ADK Client Agent script, implementing a Zoo Tour Guide.
+*   **[EXPLAINER.md](file:///usr/local/google/home/weizhongt/coding/agentic-demos/adk_mcp_explainer/EXPLAINER.md)**: A comprehensive guide detailing the low-level mechanics of all components, written with both deep technical details and simple ELI5 explanations.
 
 ## Reference Codelabs
 
