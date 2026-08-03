@@ -1,89 +1,113 @@
-# my-agent
+# Organic Chemistry Parallel Multi-Agent Companion
 
-Simple ReAct agent
-Agent generated with `agents-cli` version `0.4.0`
+Welcome to the **Organic Chemistry Parallel Multi-Agent Companion** repository. This is an advanced AI assistant designed to help laboratory students and researchers concurrently perform academic research (via Wikipedia REST APIs) and check physical inventory levels, shelf storage locations, CAS numbers, and standard synthetic reaction procedures (via a local SQLite database).
 
-## Project Structure
+This project is built using **Google's Agent Development Kit (ADK)**, orchestrated using **`agents-cli`**, and integrated with external data stores using the **Model Context Protocol (MCP)**.
+
+---
+
+## 📊 System Diagrams
+
+### 1. Developer Tooling & Lifecycle Workflow
+This diagram illustrates how various software engineering and agentic tooling layers integrate in this repository, from the developer's Antigravity IDE down to the underlying database and external APIs:
+
+```mermaid
+graph TD
+    subgraph Local Developer Environment [User Machine]
+        IDE["Antigravity 2.0 Chat UI"] -- Prompt Instructions /Goal --> Developer["Student / Developer"]
+        Developer -- Executes Command --> CLI["agents-cli (CLI Tool)"]
+        CLI -- Controls & Runs --> ADK["google-adk Framework"]
+        ADK -- Launches Subprocess --> FastMCP["FastMCP server (mcp_sqlite_server.py)"]
+        FastMCP -- Local DB Queries --> SQLite[("lab_inventory.db (SQLite)")]
+    end
+    
+    subgraph Cloud & Remote Web Services
+        ADK -- Native REST API --> Wiki["Wikipedia REST API"]
+        ADK -- LLM Inference --> Gemini["Gemini Flash (Vertex AI / Google AI Studio)"]
+    end
+```
+
+---
+
+### 2. Parallel Multi-Agent Orchestration Architecture
+This diagram illustrates how incoming student queries are processed concurrently across specialized researchers before being synthesized into a safe, comprehensive laboratory guide sheet:
+
+```mermaid
+graph TD
+    User([Student Prompt]) --> Parser["chemical_parser (ADK Agent)"]
+    Parser --> |Extracts target chemical| Parallel{"ParallelAgent"}
+    
+    subgraph Parallel Researchers
+        Parallel --> WikiAgent["wikipedia_specialist (Agent)"]
+        Parallel --> InvAgent["lab_inventory_specialist (Agent)"]
+    end
+    
+    WikiAgent --> |Native REST Tool| WikiTool["search_wikipedia"]
+    InvAgent --> |FastMCP Stdio Server| MCPTool["search_inventory / get_synthesis_procedure"]
+    
+    WikiAgent --> |State: wiki_result| Assembler["report_assembler (Agent)"]
+    InvAgent --> |State: inventory_result| Assembler
+    
+    Assembler --> Report([Consolidated Laboratory Sheet])
+```
+
+---
+
+## 📁 Repository Structure
 
 ```
-my-agent/
-├── app/         # Core agent code
-│   ├── agent.py               # Main agent logic
-│   ├── agent_runtime_app.py    # Agent Runtime application logic
-│   └── app_utils/             # App utilities and helpers
-├── tests/                     # Unit, integration, and load tests
-├── GEMINI.md                  # AI-assisted development guide
-└── pyproject.toml             # Project dependencies
+organic-chem-agent/
+├── app/                      # Core agent code
+│   ├── agent.py              # Main parallel/sequential agent orchestration definition
+│   └── agent_runtime_app.py  # Agent Runtime application wrapper
+├── tests/                    # Evaluation, integration, and unit tests
+│   └── eval/                 # Evaluation dataset & metrics
+│       ├── datasets/         # Test scenarios (chemistry_dataset.json)
+│       └── eval_config.yaml  # Correctness and Safety metrics definition
+├── init_db.py                # Database seeding script (creates lab_inventory.db)
+├── wikipedia_tool.py         # Native ADK Wikipedia scraper tool
+├── mcp_sqlite_server.py      # FastMCP SQLite database tool server
+├── lab_inventory.db          # SQLite Local database storing chemistry inventory and steps
+├── CODELAB.md                # Full Google Codelab lesson guide for NTU students
+├── README.md                 # Project Overview (This file)
+├── GEMINI.md                 # Agentic coding instructions & commands guide
+└── pyproject.toml            # Dependencies and build definitions
 ```
 
-> 💡 **Tip:** Use [Gemini CLI](https://github.com/google-gemini/gemini-cli) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
+---
 
-## Requirements
+## ⚡ Quick Start
 
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **agents-cli**: Agents CLI - Install with `uv tool install google-agents-cli`
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-
-
-## Quick Start
-
-Install `agents-cli` and its skills if not already installed:
-
+### 1. Environment Initialization
+Set up your virtual environment and install the locked dependencies using PyPI:
 ```bash
-uvx google-agents-cli setup
+uv sync --default-index https://pypi.org/simple
 ```
 
-Install required packages:
-
+### 2. Initialize the Database
+Populate your local university chemistry laboratory SQLite database with raw materials and synthetic recipes:
 ```bash
-agents-cli install
+.venv/bin/python init_db.py
 ```
 
-Test the agent with a local web server:
+### 3. Run the Parallel Agent
+Ensure you have authenticated Google Application Default Credentials (ADC) or set your API key, then invoke the pipeline on a compound:
+```bash
+# Authenticate
+gcloud auth application-default login
 
+# Execute
+agents-cli run "aspirin"
+```
+
+### 4. Open the Web Playground
+Launch the high-fidelity interactive chat interface to witness parallel agent transfers and lookups:
 ```bash
 agents-cli playground
 ```
 
-You can also use features from the [ADK](https://adk.dev/) CLI with `uv run adk`.
-
-## Commands
-
-| Command              | Description                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `agents-cli install` | Install dependencies using uv                                                         |
-| `agents-cli playground` | Launch local development environment                                                  |
-| `agents-cli lint`    | Run code quality checks                                                               |
-| `agents-cli eval`    | Evaluate agent behavior (generate, grade, analyze, and more — see `agents-cli eval --help`) |
-| `uv run pytest tests/unit tests/integration` | Run unit and integration tests                                                        |
-| `agents-cli deploy`  | Deploy agent to Agent Runtime                                                                |
-| `agents-cli publish gemini-enterprise` | Register deployed agent to Gemini Enterprise                    |
-
-## 🛠️ Project Management
-
-| Command | What It Does |
-|---------|--------------|
-| `agents-cli scaffold enhance` | Add CI/CD pipelines and Terraform infrastructure |
-| `agents-cli infra cicd` | One-command setup of entire CI/CD pipeline + infrastructure |
-| `agents-cli scaffold upgrade` | Auto-upgrade to latest version while preserving customizations |
-
----
-
-## Development
-
-Edit your agent logic in `app/agent.py` and test with `agents-cli playground` - it auto-reloads on save.
-
-## Deployment
-
+### 5. Evaluate the Agent
+Verify correctness and safety rating guidelines using LLM-as-a-judge:
 ```bash
-gcloud config set project <your-project-id>
-agents-cli deploy
+agents-cli eval run --dataset tests/eval/datasets/chemistry_dataset.json
 ```
-
-To add CI/CD and Terraform, run `agents-cli scaffold enhance`.
-To set up your production infrastructure, run `agents-cli infra cicd`.
-
-## Observability
-
-Built-in telemetry exports to Cloud Trace, BigQuery, and Cloud Logging.

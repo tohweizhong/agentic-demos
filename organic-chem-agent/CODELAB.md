@@ -5,20 +5,59 @@ In this Codelab, you will build a **Multi-Agent Laboratory Synthesis & Safety Co
 
 To make execution highly efficient, you will build a **parallel multi-agent workflow** that runs both research and inventory lookups **concurrently** before combining them into a final laboratory sheet.
 
+### Codelab Workflow & Tooling Layout
+This diagram illustrates the lifecycle of developer tooling used in the Codelab:
+```mermaid
+graph TD
+    subgraph Local Developer Environment [User Machine]
+        IDE["Antigravity 2.0 Chat UI"] -- Prompt Instructions /Goal --> Developer["Student / Developer"]
+        Developer -- Executes Command --> CLI["agents-cli (CLI Tool)"]
+        CLI -- Controls & Runs --> ADK["google-adk Framework"]
+        ADK -- Launches Subprocess --> FastMCP["FastMCP server (mcp_sqlite_server.py)"]
+        FastMCP -- Local DB Queries --> SQLite[("lab_inventory.db (SQLite)")]
+    end
+    
+    subgraph Cloud & Remote Web Services
+        ADK -- Native REST API --> Wiki["Wikipedia REST API"]
+        ADK -- LLM Inference --> Gemini["Gemini Flash (Vertex AI / Google AI Studio)"]
+    end
+```
+
+### Multi-Agent Parallel Orchestration Architecture
+This diagram illustrates how incoming student queries are processed concurrently across specialized researchers before being synthesized into a safe, comprehensive laboratory guide sheet:
+```mermaid
+graph TD
+    User([Student Prompt]) --> Parser["chemical_parser (ADK Agent)"]
+    Parser --> |Extracts target chemical| Parallel{"ParallelAgent"}
+    
+    subgraph Parallel Researchers
+        Parallel --> WikiAgent["wikipedia_specialist (Agent)"]
+        Parallel --> InvAgent["lab_inventory_specialist (Agent)"]
+    end
+    
+    WikiAgent --> |Native REST Tool| WikiTool["search_wikipedia"]
+    InvAgent --> |FastMCP Stdio Server| MCPTool["search_inventory / get_synthesis_procedure"]
+    
+    WikiAgent --> |State: wiki_result| Assembler["report_assembler (Agent)"]
+    InvAgent --> |State: inventory_result| Assembler
+    
+    Assembler --> Report([Consolidated Laboratory Sheet])
+```
+
 ---
 
 ### 🚀 The Antigravity 2.0 Way: Agentic Software Engineering
 Traditionally, software tutorials involve manual reading, typing, and copy-pasting. 
 **Not this one.**
 
-In this Codelab, you will pair-program with the **Antigravity 2.0 IDE Agent**. Instead of copy-pasting code blocks, you will write **prompts** to guide the agent in building, testing, and evaluating the multi-agent system. Each section includes:
-1.  **🤖 The Agentic Prompt**: The exact instruction to feed to your Antigravity 2.0 IDE chat panel.
+In this Codelab, you will pair-program with the **Antigravity 2.0 Agent**. Instead of copy-pasting code blocks, you will write **prompts** to guide the agent in building, testing, and evaluating the multi-agent system. Each section includes:
+1.  **🤖 The Agentic Prompt**: The exact instruction to feed to your Antigravity 2.0 chat panel.
 2.  **📄 Expected Reference Code**: The target structure you can use to review, verify, or double-check what your agent generates.
 
 ---
 
 ### What You Will Learn
-*   How to build code agentically inside **Antigravity 2.0 IDE** using natural language prompts.
+*   How to build code agentically inside **Antigravity 2.0** using natural language prompts.
 *   How to scaffold and manage agent projects using `agents-cli`.
 *   How to build native Python-decorated ADK `FunctionTools`.
 *   How to create and run an external **MCP (Model Context Protocol)** SQLite tool server using Python's high-level `FastMCP` framework.
@@ -30,8 +69,17 @@ In this Codelab, you will pair-program with the **Antigravity 2.0 IDE Agent**. I
 ## 2. Environment Setup & Scaffolding
 We will use Google's `google-agents-cli` and `uv` (a fast Python package installer and lock manager) to manage the project environment.
 
-### Command Line Setup
-Run the following commands in your terminal to install prerequisites and scaffold a prototype agent:
+### Workspace Directory Setup
+Before starting, ensure you have a dedicated `antigravity` workspace directory. We will scaffold our project inside it, then open the resulting folder in your preferred code editor (such as VS Code):
+
+```bash
+# Create the parent antigravity directory (if it doesn't already exist)
+mkdir -p ~/antigravity
+cd ~/antigravity
+```
+
+### Command Line Setup & Scaffolding
+Run the following commands in your terminal to install prerequisites and scaffold your prototype agent inside your workspace:
 
 ```bash
 # 1. Install uv (modern python packager)
@@ -40,10 +88,16 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # 2. Install google-agents-cli
 uv tool install google-agents-cli
 
-# 3. Create a clean ADK prototype project
+# 3. Scaffold the project in your current directory (~/antigravity/)
 agents-cli create organic-chem-agent --adk --output-dir . --yes
 
-# 4. Limit the target environments to macOS and Linux (prevents Windows-dependency build failures)
+# 4. Step into the newly created folder
+cd organic-chem-agent
+
+# 5. Open the folder in VS Code or your favorite IDE
+code .
+
+# 6. Limit the target environments to macOS and Linux (prevents Windows-dependency build failures)
 cat <<EOF >> pyproject.toml
 
 [tool.uv]
@@ -53,7 +107,7 @@ environments = [
 ]
 EOF
 
-# 5. Install chemistry dependencies from PyPI
+# 7. Install chemistry dependencies from PyPI
 uv pip install requests mcp --index-url https://pypi.org/simple
 uv lock --default-index https://pypi.org/simple
 ```
@@ -63,7 +117,7 @@ uv lock --default-index https://pypi.org/simple
 ## 3. Seed the Laboratory Database
 We will represent our university chemistry lab inventory and procedures inside a local SQLite database (`lab_inventory.db`).
 
-### 🤖 The Agentic Prompt (Antigravity 2.0 IDE)
+### 🤖 The Agentic Prompt (Antigravity 2.0)
 Open the **Antigravity 2.0 Chat Interface** and type the following prompt to ask your developer agent to create and run the seed script:
 
 ```text
@@ -155,7 +209,7 @@ The first tool is a **native ADK tool** that queries Wikipedia's REST API. In AD
 1.  A descriptive docstring (sent to the LLM to explain when and how to call it).
 2.  Clear, strong type annotations.
 
-### 🤖 The Agentic Prompt (Antigravity 2.0 IDE)
+### 🤖 The Agentic Prompt (Antigravity 2.0)
 Ask your agent to write the scraping tool:
 
 ```text
@@ -202,7 +256,7 @@ Next, we want to build a local tool server using **Model Context Protocol (MCP)*
 
 We will use `FastMCP`, which leverages Python decorators to turn database query functions into standard MCP tools.
 
-### 🤖 The Agentic Prompt (Antigravity 2.0 IDE)
+### 🤖 The Agentic Prompt (Antigravity 2.0)
 Prompt your agent to create the MCP server:
 
 ```text
@@ -313,8 +367,8 @@ Now, we want to construct the multi-agent system. To maximize efficiency, we wil
 3.  **`lab_inventory_specialist`**: Resolves storage and steps concurrently using our MCP server tools.
 4.  **`report_assembler`**: Synthesizes the results into a cohesive laboratory guide sheet.
 
-### 🤖 The Agentic Prompt (Antigravity 2.0 IDE)
-Use the powerful `/goal` slash command in the **Antigravity 2.0 IDE Chat** to orchestrate the pipeline:
+### 🤖 The Agentic Prompt (Antigravity 2.0)
+Use the powerful `/goal` slash command in the **Antigravity 2.0 Chat** to orchestrate the pipeline:
 
 ```text
 /goal "Re-architect app/agent.py using ADK to implement a parallel multi-agent system.
@@ -474,8 +528,12 @@ app = App(
 Now you can test your pipeline!
 
 ### Local Terminal Test (Smoke Test)
-Execute the pipeline with a single query using the `agents-cli run` command:
+Execute the pipeline with a single query using the `agents-cli run` command (ensure you are inside the directory containing `agents-cli-manifest.yaml`):
 ```bash
+# Step into the project directory
+cd organic-chem-agent
+
+# Run the smoke test
 agents-cli run "aspirin" -v
 ```
 The `-v` (verbose) flag prints out the raw trace events. In the output, observe how:
@@ -488,14 +546,24 @@ ADK comes with a high-fidelity playground UI. Start it by running:
 ```bash
 agents-cli playground
 ```
-This starts a local FastAPI server and opens a sleek chat window. Type `aspirin` or `acetaminophen` to talk to your organic chemistry assistant, see the multi-agent transfers, and view the structured artifact summaries!
+This starts a local FastAPI server and automatically opens a sleek chat window in your web browser (usually at `http://localhost:8000`).
+
+> [!IMPORTANT]
+> **Select the Right Application:**
+> Once the ADK Web UI loads, look at the top navigation bar and ensure that **`app`** is selected in the application/agent dropdown. Selecting **`app`** loads our parallel organic chemistry pipeline orchestration.
+
+Once selected, type `aspirin` or `acetaminophen` in the chat bar to talk to your organic chemistry assistant, witness concurrent multi-agent transfers in real time, and view the structured laboratory sheets!
+
+> [!TIP]
+> **Stopping the Playground Server:**
+> The playground runs a persistent local server that locks your terminal window. To stop the playground server and return to your terminal shell, press **`Ctrl + C`** in your active terminal. You must do this to release the port before running other commands (like the evaluations in Section 8)!
 
 ---
 
 ## 8. Agentic Evaluation (LLM-as-a-Judge)
 To prove that our agent meets both **accuracy** and **safety compliance** thresholds, we will write a local evaluation suite.
 
-### 🤖 The Agentic Prompt (Antigravity 2.0 IDE)
+### 🤖 The Agentic Prompt (Antigravity 2.0)
 Ask your agent to create the evaluation files:
 
 ```text
