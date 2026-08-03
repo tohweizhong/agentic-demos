@@ -10,7 +10,7 @@ import argparse
 import csv
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
 
@@ -27,16 +27,11 @@ def load_env_file(filepath=".env"):
 # Load environment from local .env file
 load_env_file()
 
-# Locations to scan (can be overridden by LOCATION or LOCATIONS env var)
-env_locations = os.getenv("LOCATION") or os.getenv("LOCATIONS")
-if env_locations:
-    LOCATIONS = [loc.strip() for loc in env_locations.split(",") if loc.strip()]
-else:
-    LOCATIONS = ["global"]
 
 
 
-def list_engines(session, project_id, location):
+
+def list_engines(session, project_id, location, timeout=30):
     """Lists all engines in the project for a given location."""
     engines_url = f"https://{location}-discoveryengine.googleapis.com/v1alpha/projects/{project_id}/locations/{location}/collections/default_collection/engines"
     engines = []
@@ -46,7 +41,7 @@ def list_engines(session, project_id, location):
         if next_page_token:
             params["pageToken"] = next_page_token
         try:
-            response = session.get(engines_url, params=params)
+            response = session.get(engines_url, params=params, timeout=timeout)
             if response.status_code in [403, 404]:
                 break
             if response.status_code != 200:
@@ -60,7 +55,7 @@ def list_engines(session, project_id, location):
             break
     return engines
 
-def list_agents(session, project_id, location, engine_id):
+def list_agents(session, project_id, location, engine_id, timeout=30):
     """Lists all agents for a given engine."""
     agents_url = f"https://{location}-discoveryengine.googleapis.com/v1alpha/projects/{project_id}/locations/{location}/collections/default_collection/engines/{engine_id}/assistants/default_assistant/agents"
     agents = []
@@ -70,7 +65,7 @@ def list_agents(session, project_id, location, engine_id):
         if next_page_token:
             params["pageToken"] = next_page_token
         try:
-            response = session.get(agents_url, params=params)
+            response = session.get(agents_url, params=params, timeout=timeout)
             if response.status_code != 200:
                 break
             data = response.json()
@@ -103,7 +98,7 @@ def extract_creator_identity(auth_info):
         return subject
     return None
 
-def get_agent_creators(session, project_id, agent_ids):
+def get_agent_creators(session, project_id, agent_ids, min_create_time=None, timeout=30):
     """Retrieves agent creator emails or identities from Cloud Audit Logs for specific agent IDs."""
     if not agent_ids:
         return {}
@@ -119,17 +114,30 @@ def get_agent_creators(session, project_id, agent_ids):
         f'(protoPayload.response.name:({id_filter_str}) OR protoPayload.resourceName:({id_filter_str}))'
     )
 
+    # Add timestamp filter to prevent long scans in large projects
+    if min_create_time:
+        try:
+            # Parse creation time (e.g. 2026-08-01T12:34:56.789Z) and apply a 1-hour buffer
+            main_part = min_create_time.rstrip("Z").split(".")[0]
+            dt = datetime.strptime(main_part, "%Y-%m-%dT%H:%M:%S")
+            dt_buffered = dt - timedelta(hours=1)
+            timestamp_filter = dt_buffered.strftime("%Y-%m-%dT%H:%M:%SZ")
+            log_filter += f' AND timestamp >= "{timestamp_filter}"'
+        except Exception as e:
+            print(f"Warning: Could not parse min_create_time '{min_create_time}': {e}", file=sys.stderr)
+
     next_page_token = ""
     while True:
         payload = {
             "resourceNames": [f"projects/{project_id}"],
             "filter": log_filter,
-            "pageSize": 1000
+            "pageSize": 1000,
+            "orderBy": "timestamp desc"  # Scan newest logs first
         }
         if next_page_token:
             payload["pageToken"] = next_page_token
         try:
-            response = session.post(logging_url, json=payload)
+            response = session.post(logging_url, json=payload, timeout=timeout)
             if response.status_code != 200:
                 print(f"Error fetching logs (HTTP {response.status_code}): {response.text}", file=sys.stderr)
                 break
@@ -144,10 +152,10 @@ def get_agent_creators(session, project_id, agent_ids):
                 auth_info = proto_payload.get("authenticationInfo", {})
                 creator = extract_creator_identity(auth_info)
                 if agent_name and creator:
-                    # Match by agent ID (last part of resource name path)
-                    agent_id = agent_name.split("/")[-1]
-                    if agent_id and agent_id != "default_assistant" and agent_id not in creators:
-                        creators[agent_id] = creator
+                     # Match by agent ID (last part of resource name path)
+                     agent_id = agent_name.split("/")[-1]
+                     if agent_id and agent_id != "default_assistant" and agent_id not in creators:
+                         creators[agent_id] = creator
             next_page_token = data.get("nextPageToken")
             if not next_page_token:
                 break
@@ -222,8 +230,19 @@ def main():
     parser = argparse.ArgumentParser(description="List Gemini Enterprise agents and their creator emails.")
     parser.add_argument("--project_id", help="Google Cloud Project ID. Defaults to detecting from environment.")
     parser.add_argument("--format", choices=["table", "csv"], default="table", help="Output format (default: table).")
+    parser.add_argument("--location", help="Comma-separated list of GCP locations to scan. Overrides default/env.")
     parser.add_argument("--output_uuids", default="unresolved_uuids.txt", help="Path to write unresolved WIF user UUIDs (default: unresolved_uuids.txt).")
     args = parser.parse_args()
+
+    # Determine locations to scan
+    if args.location:
+        locations = [loc.strip() for loc in args.location.split(",") if loc.strip()]
+    else:
+        env_locations = os.getenv("LOCATION") or os.getenv("LOCATIONS")
+        if env_locations:
+            locations = [loc.strip() for loc in env_locations.split(",") if loc.strip()]
+        else:
+            locations = ["global", "us", "eu"]  # Broader default to scan common locations
 
     # Authenticate and detect project
     try:
@@ -244,8 +263,9 @@ def main():
     # 1. Scan locations for engines and agents
     all_agents_info = []
     unresolved_agent_ids = []
+    unresolved_agent_create_times = []
     
-    for loc in LOCATIONS:
+    for loc in locations:
         print(f"Scanning location: {loc} ...", file=sys.stderr)
         engines = list_engines(session, project_id, loc)
         for engine in engines:
@@ -282,12 +302,15 @@ def main():
                 
                 if not creator:
                     unresolved_agent_ids.append(agent_id)
+                    if agent.get("createTime"):
+                        unresolved_agent_create_times.append(agent.get("createTime"))
 
     # 2. Resolve creator emails from Cloud Audit Logs for unresolved agents
     print(f"Found {len(all_agents_info)} no-code/low-code agents.", file=sys.stderr)
     if unresolved_agent_ids:
         print(f"Resolving {len(unresolved_agent_ids)} creator emails from Cloud Audit Logs...", file=sys.stderr)
-        creators_map = get_agent_creators(session, project_id, unresolved_agent_ids)
+        min_create_time = min(unresolved_agent_create_times) if unresolved_agent_create_times else None
+        creators_map = get_agent_creators(session, project_id, unresolved_agent_ids, min_create_time=min_create_time)
         for info in all_agents_info:
             if not info["creator"]:
                 info["creator"] = creators_map.get(info["agent_id"], "N/A (No log entry found)")
