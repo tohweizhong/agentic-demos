@@ -104,7 +104,12 @@ Open the **Antigravity Chat Interface** and type the following prompt to ask you
 Create a python script named init_db.py that initializes a local SQLite database lab_inventory.db with two tables: inventory (storing compound_name, formula, cas_number, quantity_g, purity, location, hazard_ghs) and synthesis_procedures (storing target_compound, reagents_required, procedure_steps, safety_precautions). Seed it with salicylic acid, acetic anhydride, p-aminophenol, aspirin, acetaminophen, and synthesis procedures for aspirin and acetaminophen. Then, run the script to initialize the DB.
 ```
 
+Here is what it looks like when you input the prompt and the agent generates and runs the database seed script:
+
+![Antigravity Agent Seeding Database](images/agent_seeding_db.png)
+
 ### 📄 Expected Reference Code
+
 If you want to review what your agent generated, here is the reference code for `init_db.py`:
 
 ```python
@@ -508,6 +513,10 @@ app = App(
 
 ## 7. Testing the Pipeline
 Duration: 0:05:00
+
+Here is the completed re-architecture response from the Antigravity agent when the pipeline files have been verified:
+
+![Antigravity Agent Verification Output](images/agent_verification.png)
 
 Now you can test your pipeline!
 
