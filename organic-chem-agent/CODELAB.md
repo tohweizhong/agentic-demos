@@ -8,7 +8,7 @@ authors: Weizhong Toh
 
 # Build a Multi-Agent Organic Chemistry Safety & Research Assistant with ADK & MCP
 
-## 1. Overview & Objectives
+## Overview & Objectives
 Duration: 0:02:00
 
 In this codelab, you will build a **Multi-Agent Laboratory Synthesis & Safety Companion**. This assistant helps chemistry students research compound history (via Wikipedia) and check laboratory reagent stock availability, physical storage locations, and synthesis procedures (via a local SQLite database).
@@ -42,7 +42,7 @@ Each section includes:
 
 ---
 
-## 2. Environment Setup & Scaffolding
+## Environment Setup & Scaffolding
 Duration: 0:05:00
 
 We will use Google's `google-agents-cli` and `uv` (a fast Python package installer and lock manager) to manage the project environment.
@@ -92,7 +92,7 @@ uv lock --default-index https://pypi.org/simple
 
 ---
 
-## 3. Seed the Laboratory Database
+## Seed the Laboratory Database
 Duration: 0:05:00
 
 We will represent our university chemistry lab inventory and procedures inside a local SQLite database (`lab_inventory.db`).
@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
 ---
 
-## 4. Implement Wikipedia Search Tool
+## Implement Wikipedia Search Tool
 Duration: 0:05:00
 
 The first tool is a **native ADK tool** that queries Wikipedia's REST API. In ADK, any standard Python function can act as a tool as long as it has:
@@ -234,7 +234,7 @@ def search_wikipedia(query: str) -> dict:
 
 ---
 
-## 5. Build SQLite FastMCP Server
+## Build SQLite FastMCP Server
 Duration: 0:08:00
 
 Next, we want to build a local tool server using **Model Context Protocol (MCP)**. This server will connect to our `lab_inventory.db` SQLite database and expose tools to query chemical inventory levels and synthetic procedures.
@@ -348,7 +348,7 @@ When you launch the FastMCP server, it will display the server name, active tran
 ---
 
 
-## 6. Assemble the Multi-Agent System (ADK Orchestration)
+## Assemble the Multi-Agent System (ADK Orchestration)
 Duration: 0:10:00
 
 Now, we want to construct the multi-agent system. To maximize efficiency, we will parallelize research:
@@ -509,16 +509,17 @@ app = App(
 )
 ```
 
----
-
-## 7. Testing the Pipeline
-Duration: 0:05:00
-
-Here is the completed re-architecture response from the Antigravity agent when the pipeline files have been verified:
+When your developer agent successfully completes the re-architecture of the `app/agent.py` file, it will output a verification message:
 
 ![Antigravity Agent Verification Output](images/agent_verification.png)
 
+---
+
+## Testing the Pipeline
+Duration: 0:05:00
+
 Now you can test your pipeline!
+
 
 ### Local Terminal Test (Smoke Test)
 Execute the pipeline with a single query using the `agents-cli run` command (ensure you are inside the directory containing `agents-cli-manifest.yaml`):
@@ -558,7 +559,7 @@ Positive : **Stopping the Playground Server**: The playground runs a persistent 
 
 ---
 
-## 8. Agentic Evaluation
+## Agentic Evaluation
 Duration: 0:08:00
 
 To prove that our agent meets both **accuracy** and **safety compliance** thresholds, we will write a local evaluation suite.
@@ -640,7 +641,7 @@ When the evaluations complete, the terminal will print a summary table grading e
 ---
 
 
-## 9. Summary & Next Steps
+## Summary & Next Steps
 Duration: 0:02:00
 
 Congratulations! You have successfully built, parallelized, and evaluated a multi-agent laboratory research assistant using Google ADK and MCP. 
