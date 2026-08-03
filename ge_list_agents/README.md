@@ -69,7 +69,7 @@ pip install requests google-auth
    ```
 2. Open `.env` and fill in the details:
    * `PROJECT_ID`: Your GCP Project ID.
-   * `LOCATION` (Optional): Google Cloud locations to scan (comma-separated, e.g. `global,us`). Defaults to `global`.
+   * `LOCATION` (Optional): Google Cloud locations to scan (comma-separated, e.g. `global,us,eu`). Defaults to `global,us,eu`. Can also be overridden at runtime via the `--location` CLI flag.
    * **Azure/Entra credentials** (Only required if using the WIF resolver flow):
      * `AZURE_TENANT_ID`
      * `AZURE_CLIENT_ID`
@@ -87,6 +87,7 @@ Use this if your creators login using standard Google Accounts.
    ```bash
    python3 list_agents.py --format table
    ```
+   *   *Note: You can override the locations to scan using `--location <locations>` (e.g. `--location global,us`). Defaults to `global,us,eu`.*
 2. **Export to CSV:**
    ```bash
    python3 list_agents.py --format csv > list_agents.csv
@@ -105,6 +106,7 @@ python3 list_agents_wif.py --format table
 ```
 *   **Outputs**: Generates `unresolved_uuids.txt` (by default) listing all unique external subject UUIDs.
 *   *Note: You can override the output text file using `--output_uuids <path>`.*
+*   *Note: You can override the locations to scan using `--location <locations>` (e.g. `--location global,us`). Defaults to `global,us,eu`.*
 
 #### Step 2: Resolve WIF UUIDs to Emails against Entra ID
 Run the Entra resolver script pointing to the text file generated in Step 1:
