@@ -1,12 +1,13 @@
 id: build-parallel-multi-agent-chemistry-assistant
-summary: Build a parallel multi-agent organic chemistry safety & research assistant with ADK & MCP.
+summary: Build a parallel multi-agent organic chemistry safety & research assistant with Antigravity, agents-cli, ADK & MCP.
 categories: AI Agents, Python, MCP
 environments: Web
 status: Draft
 feedback link: https://github.com/tohweizhong/agentic-demos/issues
 authors: Weizhong Toh
 
-# Build a Multi-Agent Organic Chemistry Safety & Research Assistant with ADK & MCP
+# Build a Multi-Agent Organic Chemistry Safety & Research Assistant with Antigravity, agents-cli, ADK & MCP
+
 
 ## Overview & Objectives
 Duration: 0:02:00
@@ -66,17 +67,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # 2. Install google-agents-cli
 uv tool install google-agents-cli
 
-# 3. Scaffold the project in your current directory (~/antigravity/)
+# 3. Authenticate Application Default Credentials (ADC) to access Vertex AI Gemini APIs
+gcloud auth application-default login
+
+# 4. Scaffold the project in your current directory (~/antigravity/)
 agents-cli create organic-chem-agent --adk --output-dir . --yes
 
-# 4. Step into the newly created folder
+# 5. Step into the newly created folder
 cd organic-chem-agent
 
-# 5. Open the folder in VS Code or your favorite IDE
+# 6. Open the folder in VS Code or your favorite IDE
 code .
 
-# 6. Limit the target environments to macOS and Linux (prevents Windows-dependency build failures)
+# 7. Limit the target environments to macOS and Linux (prevents Windows-dependency build failures)
 cat <<EOF >> pyproject.toml
+
 
 [tool.uv]
 environments = [
@@ -341,9 +346,10 @@ if __name__ == "__main__":
     mcp.run(transport="stdio")
 ```
 
-When you launch the FastMCP server, it will display the server name, active transport type, and startup logs in your terminal:
+When you launch the FastMCP server, it will display the server name, active transport type, and startup logs in your terminal. Note that later, when we execute the ADK pipeline agent, the framework will automatically launch this FastMCP server as a background subprocess to resolve inventory tool queries:
 
 ![FastMCP Server Startup Logs](images/fastmcp_server.png)
+
 
 ---
 
@@ -372,7 +378,12 @@ We need:
 Ensure you export this pipeline as 'app' to be loaded by agents-cli."
 ```
 
+When your developer agent successfully completes the re-architecture of the `app/agent.py` file, it will output a verification message:
+
+![Antigravity Agent Verification Output](images/agent_verification.png)
+
 ### 📄 Expected Reference Code
+
 Your agent will rewrite `app/agent.py` to match this target:
 
 ```python
@@ -509,11 +520,8 @@ app = App(
 )
 ```
 
-When your developer agent successfully completes the re-architecture of the `app/agent.py` file, it will output a verification message:
-
-![Antigravity Agent Verification Output](images/agent_verification.png)
-
 ---
+
 
 ## Testing the Pipeline
 Duration: 0:05:00
@@ -546,7 +554,9 @@ agents-cli playground
 
 This starts a local FastAPI server and automatically opens a sleek chat window in your web browser (usually at `http://localhost:8000`).
 
-Negative : **Select the Right Application**: Once the ADK Web UI loads, look at the top navigation bar and ensure that **`app`** is selected in the application/agent dropdown. Selecting **`app`** loads our parallel organic chemistry pipeline orchestration.
+<aside class="warning">
+<b>Select the Right Application</b>: Once the ADK Web UI loads, look at the top navigation bar and ensure that <code>app</code> is selected in the application/agent dropdown. Selecting <code>app</code> loads our parallel organic chemistry pipeline orchestration.
+</aside>
 
 Once selected, type `aspirin` or `acetaminophen` in the chat bar to talk to your organic chemistry assistant, witness concurrent multi-agent transfers in real time, and view the structured laboratory sheets!
 
@@ -554,7 +564,9 @@ Here is what the ADK Playground interface looks like, highlighting the multi-age
 
 ![ADK Playground Web Interface](images/adk_playground.png)
 
-Positive : **Stopping the Playground Server**: The playground runs a persistent local server that locks your terminal window. To stop the playground server and return to your terminal shell, press **`Ctrl + C`** in your active terminal. You must do this to release the port before running other commands (like the evaluations in Section 8)!
+<aside class="special">
+<b>Stopping the Playground Server</b>: The playground runs a persistent local server that locks your terminal window. To stop the playground server and return to your terminal shell, press <code>Ctrl + C</code> in your active terminal. You must do this to release the port before running other commands (like the evaluations in Section 8)!
+</aside>
 
 
 ---
@@ -640,9 +652,95 @@ When the evaluations complete, the terminal will print a summary table grading e
 
 ---
 
+## Challenge: Deploying to Google Cloud
+Duration: 0:10:00
+
+Now that your multi-agent chemistry assistant is working and verified locally, the ultimate goal is to transition it to a production-grade cloud setup.
+
+Your challenge is to deploy both your **FastMCP tool server** and your **ADK orchestrator** to Google Cloud Run!
+
+### Deployment Challenge Blueprint
+
+Here is the high-level roadmap and architectural overview to guide you:
+![Cloud Deployment Architecture](images/cloud_deployment_architecture.png)
+
+
+### 💡 Challenge Hints & Guidance
+
+#### Hint 1: Leverage Antigravity for Automation
+Do not perform these deployment and code modification steps manually! Just like in the previous sections, open the **Antigravity Chat Interface** and prompt your agent to automate these tasks for you. For example:
+> "Write a Dockerfile for the FastMCP server, modify the python script to run on SSE transport using the environment port, and write a script to deploy it to Cloud Run."
+
+#### Hint 2: Adapt FastMCP to SSE (Server-Sent Events)
+
+By default, your FastMCP server runs on `stdio` transport. Cloud Run is a web service and requires an HTTP-compatible transport. Update the entrypoint in `mcp_sqlite_server.py` to use `sse`:
+```python
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    mcp.run(transport="sse", host="0.0.0.0", port=port)
+```
+
+#### Hint 3: Containerize the MCP Server
+Create a `Dockerfile` for the tool server that copies your `lab_inventory.db` and dependencies:
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY pyproject.toml .
+RUN pip install .
+COPY mcp_sqlite_server.py lab_inventory.db ./
+EXPOSE 8080
+CMD ["python", "mcp_sqlite_server.py"]
+```
+Deploy the container:
+```bash
+gcloud run deploy lab-inventory-mcp --source . --allow-unauthenticated
+```
+
+#### Hint 4: Update ADK to use the Deployed Cloud Tool Server
+Once your tool server is live on Cloud Run, copy its service URL (e.g. `https://lab-inventory-mcp-xxxxx-uc.a.run.app`). Update the tool definition in `app/agent.py` to use the remote HTTP endpoint instead of a local stdio subprocess:
+```python
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset, SseConnectionParams
+
+sqlite_mcp_tools = McpToolset(
+    connection_params=SseConnectionParams(
+        url="https://your-mcp-server-cloudrun-url/sse"
+    )
+)
+```
+
+#### Hint 5: Deploy the ADK Agent App to Cloud Run (Via CLI or gcloud)
+Finally, you can deploy your ADK orchestrator agent. Because ADK applications are packaged with a built-in web playground server, deploying your project source to Cloud Run will automatically serve the **ADK Web Playground UI** at the root URL of your service!
+
+You can perform the deployment in two ways:
+
+##### Option A: Native ADK CLI Deployment (Recommended)
+You can configure and deploy the project directly using `agents-cli`:
+1. Add the Cloud Run deployment configurations to your project:
+   ```bash
+   agents-cli scaffold enhance --deployment-target cloud_run --yes
+   ```
+2. Deploy the agent:
+   ```bash
+   agents-cli deploy --project YOUR_PROJECT_ID --region YOUR_REGION
+   ```
+
+##### Option B: Direct gcloud Deployment
+Alternatively, deploy your agent repository source directory directly using `gcloud`:
+```bash
+gcloud run deploy organic-chem-agent \
+  --source . \
+  --allow-unauthenticated \
+  --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=True"
+```
+
+Once the deployment completes, open the output service URL in your browser. The embedded **ADK Web UI** will load, allowing you to query your chemistry agent, view real-time parallel execution traces, and inspect the final compiled laboratory sheet!
+
+---
 
 ## Summary & Next Steps
 Duration: 0:02:00
+
 
 Congratulations! You have successfully built, parallelized, and evaluated a multi-agent laboratory research assistant using Google ADK and MCP. 
 
