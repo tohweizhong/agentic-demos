@@ -1,10 +1,11 @@
 id: build-parallel-multi-agent-chemistry-assistant
 summary: Build a parallel multi-agent organic chemistry safety & research assistant with Antigravity, agents-cli, ADK & MCP.
-categories: AI Agents, Python, MCP
-environments: Web
-status: Draft
-feedback link: https://github.com/tohweizhong/agentic-demos/issues
 authors: Weizhong Toh
+keywords: docType:Codelab,category:AiAndMachineLearning,category:Cloud,product:Antigravity,product:GoogleCloud,product:VertexAi,product:Gemini,product:AgentPlatform,product:CloudRun,language:Python
+layout: scrolling
+
+
+
 
 # Build a Multi-Agent Organic Chemistry Safety & Research Assistant with Antigravity, agents-cli, ADK & MCP
 
@@ -698,13 +699,13 @@ gcloud run deploy lab-inventory-mcp --source . --allow-unauthenticated
 ```
 
 #### Hint 4: Update ADK to use the Deployed Cloud Tool Server
-Once your tool server is live on Cloud Run, copy its service URL (e.g. `https://lab-inventory-mcp-xxxxx-uc.a.run.app`). Update the tool definition in `app/agent.py` to use the remote HTTP endpoint instead of a local stdio subprocess:
+Once your tool server is live on Cloud Run, copy its service URL (e.g. `https://<service-name>-<hash>-<region>.a.run.app`). Update the tool definition in `app/agent.py` to use the remote HTTP endpoint instead of a local stdio subprocess:
 ```python
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset, SseConnectionParams
 
 sqlite_mcp_tools = McpToolset(
     connection_params=SseConnectionParams(
-        url="https://your-mcp-server-cloudrun-url/sse"
+        url="<full url to cloud run instance>/sse"
     )
 )
 ```
