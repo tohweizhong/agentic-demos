@@ -226,3 +226,7 @@ nca_demos/
 # System files
 .DS_Store
 Thumbs.db
+
+# ADK local storage
+.adk/
+
