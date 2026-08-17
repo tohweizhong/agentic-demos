@@ -97,7 +97,13 @@ When configured with `--alert-email="YOUR_EMAIL"` (default: `weizhongt@google.co
 - **Extracted Summary**: The email body displays the health score and per-probe status (`[google_search: PASS (13838ms), gemini_notebook: PASS (14762ms), deep_research: PASS (40497ms), sharepoint: PASS (60029ms)]`).
 - **Direct Links**: Includes clickable links to the Cloud Monitoring incident and Logs Explorer for full interactive streaming traces.
 
-#### 6. Manual Execution & Logging
+#### 6. Cloud Run Job Execution History & Cloud Logging
+View historical prober runs, execution durations, pass/fail indicators, and stream assistance trace logs directly in the Cloud Run Console or Cloud Logging:
+
+<p align="center">
+  <img src="./docs/images/cloud_run_job_execution.png" alt="Cloud Run Job Execution History & Task Logs" width="800"/>
+</p>
+
 - **Trigger an on-demand run**:
   ```bash
   gcloud run jobs execute ge-prober-daily --project="YOUR_GCP_PROJECT_ID" --region="us-central1" --wait
