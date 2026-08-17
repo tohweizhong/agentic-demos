@@ -230,3 +230,8 @@ Thumbs.db
 # ADK local storage
 .adk/
 
+
+# Go binaries and local prober artifacts
+ge-prober/ge-prober
+smoke_prober_results.json
+.agents/
