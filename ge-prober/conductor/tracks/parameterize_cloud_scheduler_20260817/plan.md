@@ -7,7 +7,7 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) cfb15be
 
 ## Phase 2: IAM Diagnostics, Trigger Verification & Documentation
-- [~] Task: Add pre-flight IAM role check (`roles/run.invoker`) and advisory warnings in `deploy_job.sh`
-- [ ] Task: Update `README.md` and `PROBER_SPECIFICATION.md` with the new Cloud Scheduler parameters, CLI usage, environment variables table, and standalone trigger examples
+- [x] Task: Add pre-flight IAM role check (`roles/run.invoker`) and advisory warnings in `deploy_job.sh` 33dee53
+- [~] Task: Update `README.md` and `PROBER_SPECIFICATION.md` with the new Cloud Scheduler parameters, CLI usage, environment variables table, and standalone trigger examples
 - [ ] Task: Run end-to-end regression validation on Go test suite and deployment scripts
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
