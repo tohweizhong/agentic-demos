@@ -127,8 +127,23 @@ assert_contains "${ONLY_SCHED_OUT}" "Configuring Cloud Scheduler trigger" "Sched
 assert_not_contains "${ONLY_SCHED_OUT}" "gcloud builds submit" "Build step skipped in --only-scheduler"
 assert_not_contains "${ONLY_SCHED_OUT}" "gcloud run jobs deploy" "Run deploy step skipped in --only-scheduler"
 
-# 7. Invalid Flag
-echo "Test 7: Error on Unknown Flag"
+# 7. Skip Build Mode
+echo "Test 7: Skip Build Mode"
+SKIP_BUILD_OUT="$("${DEPLOY_SCRIPT}" --dry-run --skip-build)"
+assert_contains "${SKIP_BUILD_OUT}" "(Skipped via --skip-build)" "Build step skipped in --skip-build"
+assert_contains "${SKIP_BUILD_OUT}" "gcloud run jobs deploy" "Run deploy step present in --skip-build"
+
+# 8. Short Flag Format
+echo "Test 8: Short Flag Format"
+SHORT_OUT="$("${DEPLOY_SCRIPT}" --dry-run -p short-proj -r us-east4 -s "15 3 * * *" -z "UTC" -a "short-sa@test.com")"
+assert_contains "${SHORT_OUT}" "short-proj" "Short -p flag resolved"
+assert_contains "${SHORT_OUT}" "us-east4" "Short -r flag resolved"
+assert_contains "${SHORT_OUT}" "15 3 * * *" "Short -s flag resolved"
+assert_contains "${SHORT_OUT}" "UTC" "Short -z flag resolved"
+assert_contains "${SHORT_OUT}" "short-sa@test.com" "Short -a flag resolved"
+
+# 9. Invalid Flag
+echo "Test 9: Error on Unknown Flag"
 assert_exit_code "'${DEPLOY_SCRIPT}' --unknown-flag" 1 "Unknown flag returns exit code 1"
 
 echo "================================================================================"
