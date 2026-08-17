@@ -142,8 +142,14 @@ assert_contains "${SHORT_OUT}" "15 3 * * *" "Short -s flag resolved"
 assert_contains "${SHORT_OUT}" "UTC" "Short -z flag resolved"
 assert_contains "${SHORT_OUT}" "short-sa@test.com" "Short -a flag resolved"
 
-# 9. Invalid Flag
-echo "Test 9: Error on Unknown Flag"
+# 9. Grant IAM Flag
+echo "Test 9: Grant IAM Flag"
+GRANT_IAM_OUT="$("${DEPLOY_SCRIPT}" --dry-run --grant-iam --service-account="prober-sa@proj.iam.gserviceaccount.com")"
+assert_contains "${GRANT_IAM_OUT}" "Granting roles/run.invoker to prober-sa@proj.iam.gserviceaccount.com" "IAM binding command generated"
+assert_contains "${GRANT_IAM_OUT}" "add-iam-policy-binding" "add-iam-policy-binding command present"
+
+# 10. Invalid Flag
+echo "Test 10: Error on Unknown Flag"
 assert_exit_code "'${DEPLOY_SCRIPT}' --unknown-flag" 1 "Unknown flag returns exit code 1"
 
 echo "================================================================================"

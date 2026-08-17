@@ -17,6 +17,7 @@ SERVICE_ACCOUNT="${SCHEDULER_SA_EMAIL:-}"
 DRY_RUN=false
 SKIP_BUILD=false
 ONLY_SCHEDULER=false
+GRANT_IAM=false
 
 # ==============================================================================
 # Help / Usage Function
@@ -37,6 +38,7 @@ Options:
   -s, --schedule CRON_EXPR          Cron schedule expression (default: \$SCHEDULE_CRON or '0 1 * * *')
   -z, --time-zone TIMEZONE          Time zone for schedule (default: \$TIME_ZONE or 'Asia/Singapore')
   -a, --service-account EMAIL       Service account email for invocation (default: \$SCHEDULER_SA_EMAIL or active gcloud account)
+      --grant-iam                   Automatically grant 'roles/run.invoker' to the service account on the Cloud Run Job
       --dry-run                     Preview planned commands and parameters without making changes
       --skip-build                  Deploy Cloud Run Job using existing image tag without running Cloud Build
       --only-scheduler              Configure or update Cloud Scheduler trigger only (skip container build & job deployment)
@@ -51,10 +53,10 @@ Examples:
   ./deploy_job.sh
 
   # Perform a dry-run check with custom project and schedule
-  ./deploy_job.sh --dry-run --project="my-gcp-project" --schedule="0 4 * * *" --time-zone="UTC"
+  ./deploy_job.sh --dry-run --project="my-gcp-project" --schedule="0 4 * * *" --time-zone="Asia/Singapore"
 
-  # Update only Cloud Scheduler schedule and dedicated Service Account
-  ./deploy_job.sh --only-scheduler --schedule="*/30 * * * *" --service-account="prober-runner@my-proj.iam.gserviceaccount.com"
+  # Update only Cloud Scheduler schedule and dedicated Service Account with automatic IAM role assignment
+  ./deploy_job.sh --only-scheduler --schedule="*/30 * * * *" --service-account="prober-runner@my-proj.iam.gserviceaccount.com" --grant-iam
 EOF
 }
 
@@ -135,6 +137,10 @@ while [[ $# -gt 0 ]]; do
       SERVICE_ACCOUNT="${1#*=}"
       shift
       ;;
+    --grant-iam)
+      GRANT_IAM=true
+      shift
+      ;;
     --dry-run)
       DRY_RUN=true
       shift
@@ -195,6 +201,7 @@ echo "Schedule Cron      : ${SCHEDULE_CRON}"
 echo "Time Zone          : ${TIME_ZONE}"
 echo "Service Account    : ${SERVICE_ACCOUNT}"
 echo "Execution URI      : ${URI}"
+echo "Grant IAM Invoker  : ${GRANT_IAM}"
 echo "Skip Build         : ${SKIP_BUILD}"
 echo "Only Scheduler     : ${ONLY_SCHEDULER}"
 echo "================================================================================"
@@ -233,6 +240,17 @@ if [[ "${DRY_RUN}" == true ]]; then
   echo "     --uri=\"${URI}\" \\"
   echo "     --http-method=POST \\"
   echo "     --oauth-service-account-email=\"${SERVICE_ACCOUNT}\""
+
+  if [[ "${GRANT_IAM}" == true ]]; then
+    echo "4. [IAM Binding] Granting roles/run.invoker to ${SERVICE_ACCOUNT}:"
+    echo "   gcloud run jobs add-iam-policy-binding \"${JOB_NAME}\" \\"
+    echo "     --project=\"${PROJECT_ID}\" \\"
+    echo "     --region=\"${REGION}\" \\"
+    echo "     --member=\"serviceAccount:${SERVICE_ACCOUNT}\" \\"
+    echo "     --role=\"roles/run.invoker\""
+  else
+    echo "4. [IAM Advisory] Ensure ${SERVICE_ACCOUNT} has 'roles/run.invoker' permission."
+  fi
   echo ""
   echo "✅ Dry-run validation passed."
   exit 0
@@ -291,7 +309,22 @@ else
     --oauth-service-account-email="${SERVICE_ACCOUNT}"
 fi
 
+# ==============================================================================
+# Optional IAM Role Grant
+# ==============================================================================
+if [[ "${GRANT_IAM}" == true ]]; then
+  echo "🔑 Granting 'roles/run.invoker' to ${SERVICE_ACCOUNT} on job ${JOB_NAME}..."
+  gcloud run jobs add-iam-policy-binding "${JOB_NAME}" \
+    --project="${PROJECT_ID}" \
+    --region="${REGION}" \
+    --member="serviceAccount:${SERVICE_ACCOUNT}" \
+    --role="roles/run.invoker"
+fi
+
 echo "================================================================================"
 echo "✅ Deployment complete! To execute manually:"
 echo "   gcloud run jobs execute ${JOB_NAME} --project=${PROJECT_ID} --region=${REGION}"
+echo ""
+echo "ℹ️  IAM Advisory: Ensure '${SERVICE_ACCOUNT}' has 'roles/run.invoker' on job '${JOB_NAME}':"
+echo "   gcloud run jobs add-iam-policy-binding ${JOB_NAME} --project=${PROJECT_ID} --region=${REGION} --member=serviceAccount:${SERVICE_ACCOUNT} --role=roles/run.invoker"
 echo "================================================================================"
