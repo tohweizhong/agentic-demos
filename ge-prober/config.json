@@ -1,0 +1,15 @@
+{
+  "project_id": "weizhong-project03",
+  "location": "global",
+  "engine_id": "ge-global-prober_1786960389717",
+  "assistant_id": "default_assistant",
+  "timeout_seconds": 180,
+  "max_concurrency": 4,
+  "data_store_ids": [
+    "sharepoint-global-2-jun26_1781851325372_file",
+    "sharepoint-global-2-jun26_1781851325372_attachment",
+    "sharepoint-global-2-jun26_1781851325372_comment",
+    "sharepoint-global-2-jun26_1781851325372_event",
+    "sharepoint-global-2-jun26_1781851325372_page"
+  ]
+}

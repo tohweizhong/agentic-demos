@@ -1,0 +1,8 @@
+{
+  "track_id": "fix_deep_research_planner_turns_exceeded_20260817",
+  "type": "bug",
+  "status": "completed",
+  "title": "Fix Deep Research PLANNER_TURNS_EXCEEDED Error",
+  "created_at": "2026-08-17T12:09:00Z",
+  "updated_at": "2026-08-17T12:21:40Z"
+}
