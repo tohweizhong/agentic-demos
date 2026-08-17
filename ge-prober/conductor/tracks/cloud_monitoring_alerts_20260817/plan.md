@@ -7,6 +7,6 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (Commit: `a6d0fa0`)
 
 ## Phase 2: Documentation & Live Validation
-- [ ] Task: Update `README.md` and `PROBER_SPECIFICATION.md` with alerting flags, email recipes, and schedule details
-- [ ] Task: Run end-to-end regression testing on Go test suite and deployment scripts
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Update `README.md` and `PROBER_SPECIFICATION.md` with alerting flags, email recipes, and schedule details (Commit: `05bfff3`)
+- [x] Task: Run end-to-end regression testing on Go test suite and deployment scripts (Commit: `05bfff3`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (Commit: `05bfff3`)
