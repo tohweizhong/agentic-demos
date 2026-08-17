@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -126,9 +127,22 @@ func main() {
 	passRate := float64(report.FunctionalPassed) / float64(report.TotalProbes) * 100.0
 	sloRate := float64(report.SLOPassed) / float64(report.TotalProbes) * 100.0
 
+	var probeDetails []string
+	for _, res := range report.Results {
+		status := "PASS"
+		if !res.Passed {
+			status = "FAIL"
+		}
+		probeDetails = append(probeDetails, fmt.Sprintf("%s: %s (%.0fms)", res.Subsystem, status, res.TotalLatencyMs))
+	}
+
 	fmt.Println()
-	fmt.Println("================================================================================")
-	fmt.Println("📊 PROBER SUMMARY & HEALTH SCORE")
+	fmt.Printf("📊 PROBER SUMMARY & HEALTH SCORE: %d/%d Passed (%.1f%%) | SLO: %d/%d (%.1f%%) | Duration: %.2fs | Details: [%s]\n",
+		report.FunctionalPassed, report.TotalProbes, passRate,
+		report.SLOPassed, report.TotalProbes, sloRate,
+		totalDuration,
+		strings.Join(probeDetails, ", "),
+	)
 	fmt.Println("================================================================================")
 	fmt.Printf("Total Duration       : %.2fs\n", totalDuration)
 	fmt.Printf("Functional Pass Rate : %d/%d (%.1f%%)\n", report.FunctionalPassed, report.TotalProbes, passRate)
