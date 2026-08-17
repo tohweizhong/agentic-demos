@@ -149,7 +149,7 @@ The suite covers **11 distinct enterprise subsystems**:
 
 ### Parameterized Deployment, Scheduling & Cloud Monitoring Alerting (`deploy_job.sh`)
 - **Default Trigger Schedule**: Twice daily at 09:00 & 17:00 Singapore Time (SGT, GMT+8) (`0 9,17 * * *`, `--time-zone="Asia/Singapore"`).
-- **Default Alert Recipient**: `weizhongt@google.com` (mode: `all` runs completion summary).
+- **Default Alert Recipient**: `alerts@example.com` (configurable via `--alert-email`, mode: `all` runs completion summary).
 - **Customizable Parameters**:
   - Target Project & Region (`--project`, `--region`)
   - Target Discovery Engine & Location (`--engine-id`, `--location`)

@@ -1,11 +1,11 @@
 # Specification: Implement Cloud Monitoring Alerting & Email Notifications for `ge-prober`
 
 ## 1. Overview
-Enhance `ge-prober` deployment automation by adding Google Cloud Monitoring notification channels and alert policies. Update the default Cloud Scheduler schedule to run twice daily (09:00 and 17:00 Singapore Time), and parameterize recipient email addresses (`weizhongt@google.com`) and alert modes (`all` runs vs `failure-only`).
+Enhance `ge-prober` deployment automation by adding Google Cloud Monitoring notification channels and alert policies. Update the default Cloud Scheduler schedule to run twice daily (09:00 and 17:00 Singapore Time), and parameterize recipient email addresses (`alerts@example.com`) and alert modes (`all` runs vs `failure-only`).
 
 ## 2. Functional Requirements
 1. **Parameterized Alerting Flags & Environment Variables**:
-   - `--alert-email EMAIL` / `-m EMAIL` (default: `weizhongt@google.com` or `$ALERT_EMAIL`).
+   - `--alert-email EMAIL` / `-m EMAIL` (default: `alerts@example.com` or `$ALERT_EMAIL`).
    - `--alert-mode MODE` (values: `all` | `failure-only`, default: `all` or `$ALERT_MODE`).
    - `--only-alerting` (creates or updates Notification Channels and Alert Policies without rebuilding container or redeploying Cloud Run Job).
 2. **Updated Default Schedule**:
@@ -23,6 +23,6 @@ Enhance `ge-prober` deployment automation by adding Google Cloud Monitoring noti
 
 ## 3. Acceptance Criteria
 - [ ] `./deploy_job.sh --help` displays `--alert-email`, `--alert-mode`, and `--only-alerting`.
-- [ ] `./deploy_job.sh --dry-run` displays default schedule `0 9,17 * * *`, timezone `Asia/Singapore`, and email `weizhongt@google.com`.
+- [ ] `./deploy_job.sh --dry-run` displays default schedule `0 9,17 * * *`, timezone `Asia/Singapore`, and email `alerts@example.com`.
 - [ ] `test_deploy_job.sh` test suite passes all assertions.
 - [ ] Documentation reflects alerting options and parameters.

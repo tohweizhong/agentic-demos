@@ -5,16 +5,16 @@ set -euo pipefail
 # ==============================================================================
 # Configuration & Defaults
 # ==============================================================================
-PROJECT_ID="${GCP_PROJECT_ID:-weizhong-project03}"
+PROJECT_ID="${GCP_PROJECT_ID:-my-gcp-project}"
 REGION="${GCP_REGION:-us-central1}"
-ENGINE_ID="${GE_ENGINE_ID:-ge-global-prober_1786960389717}"
+ENGINE_ID="${GE_ENGINE_ID:-my-gemini-app}"
 LOCATION="${GE_LOCATION:-global}"
 JOB_NAME="${JOB_NAME:-ge-prober-daily}"
 SCHEDULER_JOB="${SCHEDULER_JOB_NAME:-}"
 SCHEDULE_CRON="${SCHEDULE_CRON:-0 9,17 * * *}"
 TIME_ZONE="${TIME_ZONE:-Asia/Singapore}"
 SERVICE_ACCOUNT="${SCHEDULER_SA_EMAIL:-}"
-ALERT_EMAIL="${ALERT_EMAIL:-weizhongt@google.com}"
+ALERT_EMAIL="${ALERT_EMAIL:-alerts@example.com}"
 ALERT_MODE="${ALERT_MODE:-all}"
 DRY_RUN=false
 SKIP_BUILD=false
@@ -32,16 +32,16 @@ Usage: $(basename "$0") [OPTIONS]
 Deploy ge-prober as a Google Cloud Run Job, configure Cloud Scheduler trigger, and set up Cloud Monitoring alerts.
 
 Options:
-  -p, --project PROJECT_ID          Google Cloud Project ID (default: \$GCP_PROJECT_ID or 'weizhong-project03')
+  -p, --project PROJECT_ID          Google Cloud Project ID (default: \$GCP_PROJECT_ID or 'my-gcp-project')
   -r, --region REGION               Google Cloud Region (default: \$GCP_REGION or 'us-central1')
-  -e, --engine-id ENGINE_ID         Gemini Enterprise Engine ID (default: \$GE_ENGINE_ID)
+  -e, --engine-id ENGINE_ID         Gemini Enterprise Engine ID (default: \$GE_ENGINE_ID or 'my-gemini-app')
   -l, --location LOCATION           Gemini Enterprise Engine Location (default: \$GE_LOCATION or 'global')
   -j, --job-name JOB_NAME           Cloud Run Job name (default: 'ge-prober-daily')
   -n, --scheduler-name NAME         Cloud Scheduler Job name (default: 'trigger-<JOB_NAME>')
   -s, --schedule CRON_EXPR          Cron schedule expression (default: \$SCHEDULE_CRON or '0 9,17 * * *')
   -z, --time-zone TIMEZONE          Time zone for schedule (default: \$TIME_ZONE or 'Asia/Singapore')
   -a, --service-account EMAIL       Service account email for invocation (default: \$SCHEDULER_SA_EMAIL or active gcloud account)
-  -m, --alert-email EMAIL           Recipient email for Cloud Monitoring alerts (default: \$ALERT_EMAIL or 'weizhongt@google.com')
+  -m, --alert-email EMAIL           Recipient email for Cloud Monitoring alerts (default: \$ALERT_EMAIL or 'alerts@example.com')
       --alert-mode MODE             Alert mode: 'all' (summary of all runs) or 'failure-only' (default: \$ALERT_MODE or 'all')
       --grant-iam                   Automatically grant 'roles/run.invoker' to the service account on the Cloud Run Job
       --dry-run                     Preview planned commands and parameters without making changes
@@ -56,14 +56,14 @@ Environment Variables:
   ALERT_EMAIL, ALERT_MODE
 
 Examples:
-  # Deploy with default settings (twice daily at 09:00 & 17:00 SGT, alert to weizhongt@google.com)
+  # Deploy with default settings (twice daily at 09:00 & 17:00 SGT, alert to alerts@example.com)
   ./deploy_job.sh
 
   # Perform a dry-run check with custom project and schedule
   ./deploy_job.sh --dry-run --project="my-gcp-project" --schedule="0 9,17 * * *" --time-zone="Asia/Singapore" --alert-email="team@example.com"
 
   # Update only Cloud Monitoring alert policy without redeploying job
-  ./deploy_job.sh --only-alerting --alert-email="weizhongt@google.com" --alert-mode="all"
+  ./deploy_job.sh --only-alerting --alert-email="alerts@example.com" --alert-mode="all"
 EOF
 }
 
