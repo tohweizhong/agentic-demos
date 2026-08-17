@@ -305,7 +305,7 @@ if [[ "${DRY_RUN}" == true ]]; then
 
   if [[ "${ONLY_SCHEDULER}" == false && -n "${ALERT_EMAIL}" ]]; then
     echo "5. [Cloud Monitoring] Configuring Cloud Monitoring Notification Channel & Alert Policy (${ALERT_EMAIL}):"
-    echo "   gcloud monitoring channels create (or reuse) \\"
+    echo "   gcloud beta monitoring channels create (or reuse) \\"
     echo "     --project=\"${PROJECT_ID}\" \\"
     echo "     --display-name=\"ge-prober Notification (${ALERT_EMAIL})\" \\"
     echo "     --type=\"email\" \\"
@@ -410,13 +410,13 @@ fi
 # ==============================================================================
 if [[ "${ONLY_SCHEDULER}" == false && -n "${ALERT_EMAIL}" ]]; then
   echo "🔔 [4/4] Configuring Cloud Monitoring Notification Channel & Alert Policy for ${ALERT_EMAIL}..."
-  EXISTING_CHANNEL="$(gcloud monitoring channels list --project="${PROJECT_ID}" --filter="type=email AND labels.email_address=\"${ALERT_EMAIL}\"" --format="value(name)" 2>/dev/null | head -n 1 || true)"
+  EXISTING_CHANNEL="$(gcloud beta monitoring channels list --project="${PROJECT_ID}" --filter="type=email AND labels.email_address=\"${ALERT_EMAIL}\"" --format="value(name)" 2>/dev/null | head -n 1 || true)"
   if [[ -n "${EXISTING_CHANNEL}" ]]; then
     CHANNEL_ID="${EXISTING_CHANNEL}"
     echo "Found existing notification channel: ${CHANNEL_ID}"
   else
     echo "Creating new email notification channel for ${ALERT_EMAIL}..."
-    CHANNEL_ID="$(gcloud monitoring channels create \
+    CHANNEL_ID="$(gcloud beta monitoring channels create \
       --project="${PROJECT_ID}" \
       --display-name="ge-prober Notification (${ALERT_EMAIL})" \
       --type="email" \

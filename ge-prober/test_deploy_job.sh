@@ -83,7 +83,7 @@ assert_contains "${DRY_OUT}" "Asia/Singapore" "Default time zone is Asia/Singapo
 assert_contains "${DRY_OUT}" "weizhongt@google.com" "Default alert email is weizhongt@google.com"
 assert_contains "${DRY_OUT}" "all" "Default alert mode is all"
 assert_contains "${DRY_OUT}" "gcloud scheduler jobs" "Shows scheduler job command"
-assert_contains "${DRY_OUT}" "gcloud monitoring channels" "Shows monitoring channels command"
+assert_contains "${DRY_OUT}" "gcloud beta monitoring channels" "Shows monitoring channels command"
 assert_contains "${DRY_OUT}" "gcloud alpha monitoring policies" "Shows monitoring policies command"
 
 # 3. CLI Flag Overrides
