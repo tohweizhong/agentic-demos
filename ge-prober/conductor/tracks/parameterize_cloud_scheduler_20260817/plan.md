@@ -2,8 +2,8 @@
 
 ## Phase 1: Deployment & Scheduler Parameterization (TDD & Implementation)
 - [x] Task: Create test harness (`test_deploy_job.sh`) validating CLI flags, `--help`, `--dry-run`, and environment variable overrides d5d20b0
-- [~] Task: Implement full parameterization in `deploy_job.sh` (supporting `--project`, `--region`, `--engine-id`, `--location`, `--job-name`, `--scheduler-name`, `--schedule`, `--time-zone`, `--service-account`, `--dry-run`, `--skip-build`, `--only-scheduler`)
-- [ ] Task: Verify test harness passes with dry-run executions, flag precedence, and invalid input rejection
+- [x] Task: Implement full parameterization in `deploy_job.sh` (supporting `--project`, `--region`, `--engine-id`, `--location`, `--job-name`, `--scheduler-name`, `--schedule`, `--time-zone`, `--service-account`, `--dry-run`, `--skip-build`, `--only-scheduler`) cd7918c
+- [~] Task: Verify test harness passes with dry-run executions, flag precedence, and invalid input rejection
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: IAM Diagnostics, Trigger Verification & Documentation
