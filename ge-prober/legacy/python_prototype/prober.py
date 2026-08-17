@@ -190,9 +190,9 @@ def main():
     args = parser.parse_args()
 
     cfg = load_config(args.config)
-    project_id = cfg.get("project_id", "weizhong-project03")
-    location = cfg.get("location", "sg")
-    engine_id = cfg.get("engine_id", "ge-sg-ms_1775638591757")
+    project_id = cfg.get("project_id", "my-gcp-project")
+    location = cfg.get("location", "global")
+    engine_id = cfg.get("engine_id", "my-gemini-app")
     data_store_ids = cfg.get("data_store_ids", [])
     concurrency = args.concurrency or cfg.get("max_concurrency", 5)
     timeout = cfg.get("timeout_seconds", 45.0)

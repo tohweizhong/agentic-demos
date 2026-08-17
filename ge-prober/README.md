@@ -29,9 +29,9 @@ A high-performance, containerized Go synthetic monitoring tool and smoke prober 
 
 `deploy_job.sh` provides a fully parameterized, idempotent deployment, scheduler configuration, and Cloud Monitoring alerting workflow for Google Cloud Run, Cloud Scheduler, and Cloud Monitoring.
 
-#### 1. Quick Start (Default Settings: Twice Daily at 09:00 & 17:00 SGT, Alerts to `weizhongt@google.com`)
+#### 1. Quick Start (Default Settings: Twice Daily at 09:00 & 17:00 SGT, Alerts to `alerts@example.com`)
 ```bash
-./deploy_job.sh --project="YOUR_GCP_PROJECT_ID" --engine-id="YOUR_ENGINE_ID"
+./deploy_job.sh --project="YOUR_GCP_PROJECT_ID" --engine-id="YOUR_ENGINE_ID" --alert-email="YOUR_EMAIL"
 ```
 
 #### 2. Advanced Parameterized Deployment
@@ -40,14 +40,14 @@ Customize your schedule, time zone, dedicated service account, alert recipient, 
 ./deploy_job.sh \
   --project="my-gcp-project" \
   --region="us-central1" \
-  --engine-id="ge-global-prober_1786960389717" \
+  --engine-id="my-gemini-app" \
   --location="global" \
   --job-name="ge-prober-daily" \
   --scheduler-name="trigger-ge-prober-daily" \
   --schedule="0 9,17 * * *" \
   --time-zone="Asia/Singapore" \
   --service-account="prober-runner@my-gcp-project.iam.gserviceaccount.com" \
-  --alert-email="weizhongt@google.com" \
+  --alert-email="alerts@example.com" \
   --alert-mode="all" \
   --grant-iam
 ```
@@ -63,22 +63,22 @@ Update individual components without rebuilding containers or redeploying Cloud 
 ./deploy_job.sh --only-alerting --alert-email="team-alerts@example.com" --alert-mode="all"
 
 # Dry run / preview planned commands before executing
-./deploy_job.sh --dry-run --schedule="0 9,17 * * *" --alert-email="weizhongt@google.com"
+./deploy_job.sh --dry-run --schedule="0 9,17 * * *" --alert-email="alerts@example.com"
 ```
 
 #### 4. Deployment Script CLI Flags Reference
 | Flag | Short | Env Variable | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `--project` | `-p` | `GCP_PROJECT_ID` | `weizhong-project03` | Target Google Cloud Project ID |
+| `--project` | `-p` | `GCP_PROJECT_ID` | `my-gcp-project` | Target Google Cloud Project ID |
 | `--region` | `-r` | `GCP_REGION` | `us-central1` | Cloud Run execution region |
-| `--engine-id` | `-e` | `GE_ENGINE_ID` | `ge-global-prober_1786960389717` | Gemini Enterprise Discovery Engine ID |
+| `--engine-id` | `-e` | `GE_ENGINE_ID` | `my-gemini-app` | Gemini Enterprise Discovery Engine ID |
 | `--location` | `-l` | `GE_LOCATION` | `global` | Discovery Engine location |
 | `--job-name` | `-j` | `JOB_NAME` | `ge-prober-daily` | Cloud Run Job name |
 | `--scheduler-name` | `-n` | `SCHEDULER_JOB_NAME` | `trigger-<JOB_NAME>` | Cloud Scheduler Job name |
 | `--schedule` | `-s` | `SCHEDULE_CRON` | `0 9,17 * * *` | Cron schedule expression (twice daily) |
 | `--time-zone` | `-z` | `TIME_ZONE` | `Asia/Singapore` | Time zone (e.g. `Asia/Singapore` GMT+8, `UTC`) |
 | `--service-account` | `-a` | `SCHEDULER_SA_EMAIL` | Active compute SA | Service account email for Cloud Scheduler invocation |
-| `--alert-email` | `-m` | `ALERT_EMAIL` | `weizhongt@google.com` | Recipient email for Cloud Monitoring alerts |
+| `--alert-email` | `-m` | `ALERT_EMAIL` | `alerts@example.com` | Recipient email for Cloud Monitoring alerts |
 | `--alert-mode` | | `ALERT_MODE` | `all` | Alert mode: `all` (summary of all runs) or `failure-only` |
 | `--grant-iam` | | | `false` | Automatically grant `roles/run.invoker` to the service account |
 | `--dry-run` | | | `false` | Print resolved configs and exact `gcloud` commands without executing |
@@ -88,14 +88,11 @@ Update individual components without rebuilding containers or redeploying Cloud 
 | `--help` | `-h` | | | Show full usage guide and flag descriptions |
 
 #### 5. Automated Email Alerts & Results Breakdown
-When configured with `--alert-email="YOUR_EMAIL"` (default: `weizhongt@google.com`), Cloud Monitoring automatically sends an email report for each scheduled run containing the full pass/fail statistics, total execution time, and per-probe latency breakdown directly in your inbox:
+When configured with `--alert-email="YOUR_EMAIL"` (default: `alerts@example.com`), Cloud Monitoring automatically sends an email report for each scheduled run containing the full pass/fail statistics, total execution time, and per-probe latency breakdown directly in your inbox:
 
-<p align="center">
-  <img src="./docs/images/cloud_monitoring_policy_details.png" alt="Cloud Monitoring Alert Policy & Incidents Console" width="800"/>
-</p>
-<p align="center">
-  <img src="./docs/images/email_alert_sample.png" alt="Cloud Monitoring Email Notification Sample" width="600"/>
-</p>
+![Cloud Monitoring Alert Policy & Incidents Console](docs/images/cloud_monitoring_policy_details.png)
+
+![Cloud Monitoring Email Notification Sample](docs/images/email_alert_sample.png)
 
 - **Extracted Summary**: The email body displays the health score and per-probe status (`[google_search: PASS (13838ms), gemini_notebook: PASS (14762ms), deep_research: PASS (40497ms), sharepoint: PASS (60029ms)]`).
 - **Direct Links**: Includes clickable links to the Cloud Monitoring incident and Logs Explorer for full interactive streaming traces.
@@ -103,9 +100,7 @@ When configured with `--alert-email="YOUR_EMAIL"` (default: `weizhongt@google.co
 #### 6. Cloud Run Job Execution History & Cloud Logging
 View historical prober runs, execution durations, pass/fail indicators, and stream assistance trace logs directly in the Cloud Run Console or Cloud Logging:
 
-<p align="center">
-  <img src="./docs/images/cloud_run_job_execution.png" alt="Cloud Run Job Execution History & Task Logs" width="800"/>
-</p>
+![Cloud Run Job Execution History & Task Logs](docs/images/cloud_run_job_execution.png)
 
 - **Trigger an on-demand run**:
   ```bash
