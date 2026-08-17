@@ -1,0 +1,1 @@
+Task: Implement full parameterization in deploy_job.sh (supporting --project, --region, --engine-id, --location, --job-name, --scheduler-name, --schedule, --time-zone, --service-account, --dry-run, --skip-build, --only-scheduler)
