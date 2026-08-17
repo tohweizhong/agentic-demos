@@ -432,14 +432,17 @@ if [[ "${ONLY_SCHEDULER}" == false && -n "${ALERT_EMAIL}" ]]; then
 {
   "displayName": "${POLICY_NAME}",
   "documentation": {
-    "content": "Gemini Enterprise daily smoke test prober execution summary for job ${JOB_NAME}.",
+    "content": "### 📊 Gemini Enterprise Daily Prober Run Summary\n\n**Test Results & Health Score:**\n> \${log.extracted_label.prober_summary}\n\n---\n*Click the Incident & Log links below to view detailed per-probe execution traces.*",
     "mimeType": "text/markdown"
   },
   "conditions": [
     {
       "displayName": "Prober summary reported",
       "conditionMatchedLog": {
-        "filter": "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"${JOB_NAME}\" AND textPayload:\"PROBER SUMMARY & HEALTH SCORE\""
+        "filter": "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"${JOB_NAME}\" AND textPayload:\"PROBER SUMMARY & HEALTH SCORE\"",
+        "labelExtractors": {
+          "prober_summary": "EXTRACT(textPayload)"
+        }
       }
     }
   ],
