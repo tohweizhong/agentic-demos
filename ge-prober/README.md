@@ -25,33 +25,69 @@ A high-performance, containerized Go synthetic monitoring tool and smoke prober 
                                                               └───────────────────────────┘
 ```
 
-### ⚡ Quick Deployment (1 Command)
+### ⚡ Deployment & Cloud Scheduler Setup
 
-1. **Set your target GCP environment variables**:
-   ```bash
-   export GCP_PROJECT_ID="YOUR_GCP_PROJECT_ID"
-   export GE_ENGINE_ID="YOUR_GEMINI_ENTERPRISE_ENGINE_ID"
-   export GE_LOCATION="global"
-   export GCP_REGION="us-central1"   # Cloud Run execution region
-   ```
+`deploy_job.sh` provides a fully parameterized, idempotent deployment and scheduler configuration workflow for Google Cloud Run and Cloud Scheduler.
 
-2. **Run the deployment script**:
-   ```bash
-   bash deploy_job.sh
-   ```
-   *This script automatically builds the distroless container image via Google Cloud Build, deploys the Cloud Run Job `ge-prober-daily`, and configures Cloud Scheduler to trigger it daily at 01:00 UTC (09:00 SGT).*
+#### 1. Quick Start (Default Settings: Daily at 01:00 UTC / 09:00 SGT)
+```bash
+./deploy_job.sh --project="YOUR_GCP_PROJECT_ID" --engine-id="YOUR_ENGINE_ID"
+```
 
-3. **Execute an on-demand probe run anytime**:
-   ```bash
-   gcloud run jobs execute ge-prober-daily --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --wait
-   ```
+#### 2. Advanced Parameterized Deployment
+Customize your schedule, time zone, dedicated service account, and job names via CLI flags or environment variables:
+```bash
+./deploy_job.sh \
+  --project="my-gcp-project" \
+  --region="us-central1" \
+  --engine-id="ge-global-prober_1786960389717" \
+  --location="global" \
+  --job-name="ge-prober-daily" \
+  --scheduler-name="trigger-ge-prober-daily" \
+  --schedule="0 1 * * *" \
+  --time-zone="Asia/Singapore" \
+  --service-account="prober-runner@my-gcp-project.iam.gserviceaccount.com" \
+  --grant-iam
+```
 
-4. **View Execution Logs & Health**:
-   - In Cloud Console: Navigate to **Cloud Run $\rightarrow$ Jobs $\rightarrow$ `ge-prober-daily` $\rightarrow$ Executions**.
-   - In Terminal:
-     ```bash
-     gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=ge-prober-daily" --limit=50 --format="value(textPayload)"
-     ```
+#### 3. Standalone Cloud Scheduler Management (`--only-scheduler`)
+Update or recreate the Cloud Scheduler schedule trigger and target service account without rebuilding the container or redeploying the Cloud Run Job:
+```bash
+# Update schedule to run every 30 minutes in Singapore Time (SGT, GMT+8)
+./deploy_job.sh --only-scheduler --schedule="*/30 * * * *" --time-zone="Asia/Singapore"
+
+# Dry run / preview commands before executing
+./deploy_job.sh --dry-run --schedule="0 */2 * * *" --time-zone="Asia/Singapore"
+```
+
+#### 4. Deployment Script CLI Flags Reference
+| Flag | Short | Env Variable | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `--project` | `-p` | `GCP_PROJECT_ID` | `weizhong-project03` | Target Google Cloud Project ID |
+| `--region` | `-r` | `GCP_REGION` | `us-central1` | Cloud Run execution region |
+| `--engine-id` | `-e` | `GE_ENGINE_ID` | `ge-global-prober_1786960389717` | Gemini Enterprise Discovery Engine ID |
+| `--location` | `-l` | `GE_LOCATION` | `global` | Discovery Engine location |
+| `--job-name` | `-j` | `JOB_NAME` | `ge-prober-daily` | Cloud Run Job name |
+| `--scheduler-name` | `-n` | `SCHEDULER_JOB_NAME` | `trigger-<JOB_NAME>` | Cloud Scheduler Job name |
+| `--schedule` | `-s` | `SCHEDULE_CRON` | `0 1 * * *` | Cron schedule expression |
+| `--time-zone` | `-z` | `TIME_ZONE` | `Asia/Singapore` | Time zone (e.g. `Asia/Singapore` GMT+8, `UTC`) |
+| `--service-account` | `-a` | `SCHEDULER_SA_EMAIL` | Active gcloud user | Service account email for Cloud Scheduler invocation |
+| `--grant-iam` | | | `false` | Automatically grant `roles/run.invoker` to the service account |
+| `--dry-run` | | | `false` | Print resolved configs and exact `gcloud` commands without executing |
+| `--skip-build` | | | `false` | Deploy Cloud Run Job using existing image tag (skips Cloud Build) |
+| `--only-scheduler` | | | `false` | Update only Cloud Scheduler trigger (skips build and job deployment) |
+| `--help` | `-h` | | | Show full usage guide and flag descriptions |
+
+#### 5. Manual Execution & Logging
+- **Trigger an on-demand run**:
+  ```bash
+  gcloud run jobs execute ge-prober-daily --project="YOUR_GCP_PROJECT_ID" --region="us-central1" --wait
+  ```
+- **View logs in terminal**:
+  ```bash
+  gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=ge-prober-daily" --limit=50 --format="value(textPayload)"
+  ```
+
 
 ---
 

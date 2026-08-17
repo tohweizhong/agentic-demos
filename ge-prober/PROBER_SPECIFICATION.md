@@ -146,3 +146,15 @@ The suite covers **11 distinct enterprise subsystems**:
 │    http://x20web/~weizhongt/test_suite_reports/dashboard.html         │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Parameterized Deployment & Scheduler Trigger (`deploy_job.sh`)
+- **Default Trigger Schedule**: Daily at 01:00 UTC / 09:00 Singapore Time (SGT, GMT+8) (`0 1 * * *`, `--time-zone="Asia/Singapore"`).
+- **Customizable Parameters**:
+  - Target Project & Region (`--project`, `--region`)
+  - Target Discovery Engine & Location (`--engine-id`, `--location`)
+  - Cloud Run Job & Scheduler Job Name (`--job-name`, `--scheduler-name`)
+  - Cron Schedule & Timezone (`--schedule`, `--time-zone`)
+  - Invocation Service Account (`--service-account`, `--grant-iam`)
+  - Dry Run Validation (`--dry-run`)
+  - Partial updates (`--skip-build`, `--only-scheduler`)
+
