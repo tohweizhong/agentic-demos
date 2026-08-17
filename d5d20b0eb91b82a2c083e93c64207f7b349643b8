@@ -1,0 +1,1 @@
+Task: Create test harness (test_deploy_job.sh) validating CLI flags, --help, --dry-run, and environment variable overrides
