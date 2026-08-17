@@ -1,1 +1,1 @@
-Task: Verify test harness passes with dry-run executions, flag precedence, and invalid input rejection
+Task: Verify test harness passes with dry-run executions, flag precedence, and invalid input rejection. Phase 1 Checkpoint Verification: All 36 test_deploy_job.sh assertions passed. Verified CLI flags, dry-run mode, and Asia/Singapore (GMT+8) scheduler parameterization. Approved by user.
