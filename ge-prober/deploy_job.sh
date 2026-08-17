@@ -311,15 +311,12 @@ if [[ "${DRY_RUN}" == true ]]; then
     echo "     --type=\"email\" \\"
     echo "     --channel-labels=\"email_address=${ALERT_EMAIL}\""
     if [[ "${ALERT_MODE}" == "all" ]]; then
-      echo "   gcloud alpha monitoring policies create \\"
+      echo "   gcloud monitoring policies create --policy-from-file=... \\"
       echo "     --project=\"${PROJECT_ID}\" \\"
       echo "     --notification-channels=\"<CHANNEL_ID>\" \\"
-      echo "     --display-name=\"[Daily Report] Gemini Enterprise Smoke Prober Results (${JOB_NAME})\" \\"
-      echo "     --condition-display-name=\"Prober summary reported\" \\"
-      echo "     --condition-filter=\"resource.type = \\\"cloud_run_job\\\" AND resource.labels.job_name = \\\"${JOB_NAME}\\\" AND textPayload =~ \\\"PROBER SUMMARY & HEALTH SCORE\\\"\" \\"
-      echo "     --combiner=\"OR\""
+      echo "     --display-name=\"[Daily Report] Gemini Enterprise Smoke Prober Results (${JOB_NAME})\""
     else
-      echo "   gcloud monitoring policies create \\"
+      echo "   gcloud monitoring policies create --policy-from-file=... \\"
       echo "     --project=\"${PROJECT_ID}\" \\"
       echo "     --notification-channels=\"<CHANNEL_ID>\" \\"
       echo "     --display-name=\"[ALERT] Gemini Enterprise Smoke Prober Failure (${JOB_NAME})\" \\"
@@ -430,13 +427,37 @@ if [[ "${ONLY_SCHEDULER}" == false && -n "${ALERT_EMAIL}" ]]; then
     echo "Configuring log-based alert policy for all completions: ${POLICY_NAME}..."
     EXISTING_POLICY="$(gcloud monitoring policies list --project="${PROJECT_ID}" --filter="displayName:\"${POLICY_NAME}\"" --format="value(name)" 2>/dev/null | head -n 1 || true)"
     if [[ -z "${EXISTING_POLICY}" ]]; then
-      gcloud alpha monitoring policies create \
-        --project="${PROJECT_ID}" \
-        --notification-channels="${CHANNEL_ID}" \
-        --display-name="${POLICY_NAME}" \
-        --condition-display-name="Prober summary reported" \
-        --condition-filter="resource.type = \"cloud_run_job\" AND resource.labels.job_name = \"${JOB_NAME}\" AND textPayload =~ \"PROBER SUMMARY & HEALTH SCORE\"" \
-        --combiner="OR"
+      TMP_POLICY_JSON="$(mktemp)"
+      cat <<EOF > "${TMP_POLICY_JSON}"
+{
+  "displayName": "${POLICY_NAME}",
+  "documentation": {
+    "content": "Gemini Enterprise daily smoke test prober execution summary for job ${JOB_NAME}.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "Prober summary reported",
+      "conditionMatchedLog": {
+        "filter": "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"${JOB_NAME}\" AND textPayload:\"PROBER SUMMARY & HEALTH SCORE\""
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationRateLimit": {
+      "period": "300s"
+    },
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "${CHANNEL_ID}"
+  ]
+}
+EOF
+      gcloud monitoring policies create --policy-from-file="${TMP_POLICY_JSON}" --project="${PROJECT_ID}"
+      rm -f "${TMP_POLICY_JSON}"
     else
       echo "Alert policy already exists: ${EXISTING_POLICY}"
     fi
@@ -445,18 +466,44 @@ if [[ "${ONLY_SCHEDULER}" == false && -n "${ALERT_EMAIL}" ]]; then
     echo "Configuring metric-based failure alert policy: ${POLICY_NAME}..."
     EXISTING_POLICY="$(gcloud monitoring policies list --project="${PROJECT_ID}" --filter="displayName:\"${POLICY_NAME}\"" --format="value(name)" 2>/dev/null | head -n 1 || true)"
     if [[ -z "${EXISTING_POLICY}" ]]; then
-      gcloud monitoring policies create \
-        --project="${PROJECT_ID}" \
-        --notification-channels="${CHANNEL_ID}" \
-        --display-name="${POLICY_NAME}" \
-        --condition-display-name="Cloud Run Job execution failed" \
-        --condition-filter="resource.type = \"cloud_run_job\" AND resource.labels.job_name = \"${JOB_NAME}\" AND metric.type = \"run.googleapis.com/job/completed_execution_count\" AND metric.labels.result = \"failed\"" \
-        --aggregation-alignment-period="300s" \
-        --aggregation-per-series-aligner="ALIGN_DELTA" \
-        --aggregation-cross-series-reducer="REDUCE_SUM" \
-        --condition-threshold-value=0 \
-        --condition-threshold-comparison="COMPARISON_GT" \
-        --combiner="OR"
+      TMP_POLICY_JSON="$(mktemp)"
+      cat <<EOF > "${TMP_POLICY_JSON}"
+{
+  "displayName": "${POLICY_NAME}",
+  "documentation": {
+    "content": "Gemini Enterprise smoke test prober execution failure on job ${JOB_NAME}.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "Cloud Run Job execution failed",
+      "conditionThreshold": {
+        "filter": "resource.type = \"cloud_run_job\" AND resource.labels.job_name = \"${JOB_NAME}\" AND metric.type = \"run.googleapis.com/job/completed_execution_count\" AND metric.labels.result = \"failed\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "300s",
+            "perSeriesAligner": "ALIGN_DELTA",
+            "crossSeriesReducer": "REDUCE_SUM"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 0,
+        "duration": "0s",
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "${CHANNEL_ID}"
+  ]
+}
+EOF
+      gcloud monitoring policies create --policy-from-file="${TMP_POLICY_JSON}" --project="${PROJECT_ID}"
+      rm -f "${TMP_POLICY_JSON}"
     else
       echo "Alert policy already exists: ${EXISTING_POLICY}"
     fi
