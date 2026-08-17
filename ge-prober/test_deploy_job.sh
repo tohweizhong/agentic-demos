@@ -12,7 +12,7 @@ assert_contains() {
   local expected="$2"
   local test_name="$3"
   TESTS_RUN=$((TESTS_RUN + 1))
-  if echo "${output}" | grep -Fq "${expected}"; then
+  if echo "${output}" | grep -Fq -- "${expected}"; then
     echo "  ✅ PASS: ${test_name}"
     TESTS_PASSED=$((TESTS_PASSED + 1))
   else
@@ -28,7 +28,7 @@ assert_not_contains() {
   local unexpected="$2"
   local test_name="$3"
   TESTS_RUN=$((TESTS_RUN + 1))
-  if ! echo "${output}" | grep -Fq "${unexpected}"; then
+  if ! echo "${output}" | grep -Fq -- "${unexpected}"; then
     echo "  ✅ PASS: ${test_name}"
     TESTS_PASSED=$((TESTS_PASSED + 1))
   else
