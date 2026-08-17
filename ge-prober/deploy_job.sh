@@ -170,13 +170,21 @@ if [[ -z "${SCHEDULER_JOB}" ]]; then
   SCHEDULER_JOB="trigger-${JOB_NAME}"
 fi
 
-# Resolve service account email if not set
+# Resolve service account email if not explicitly provided
 if [[ -z "${SERVICE_ACCOUNT}" ]]; then
   if command -v gcloud >/dev/null 2>&1; then
-    SERVICE_ACCOUNT="$(gcloud config get-value account 2>/dev/null || echo "")"
+    ACCOUNT_VAL="$(gcloud config get-value account 2>/dev/null || true)"
+    if [[ "${ACCOUNT_VAL}" == *".gserviceaccount.com" ]]; then
+      SERVICE_ACCOUNT="${ACCOUNT_VAL}"
+    else
+      DEFAULT_SA="$(gcloud iam service-accounts list --project="${PROJECT_ID}" --filter="displayName:'Default compute service account' OR email:compute@developer.gserviceaccount.com" --format="value(email)" 2>/dev/null | head -n 1 || true)"
+      if [[ -n "${DEFAULT_SA}" ]]; then
+        SERVICE_ACCOUNT="${DEFAULT_SA}"
+      fi
+    fi
   fi
   if [[ -z "${SERVICE_ACCOUNT}" ]]; then
-    SERVICE_ACCOUNT="default-service-account"
+    SERVICE_ACCOUNT="default-service-account@${PROJECT_ID}.iam.gserviceaccount.com"
   fi
 fi
 
