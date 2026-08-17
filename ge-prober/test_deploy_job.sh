@@ -84,7 +84,7 @@ assert_contains "${DRY_OUT}" "weizhongt@google.com" "Default alert email is weiz
 assert_contains "${DRY_OUT}" "all" "Default alert mode is all"
 assert_contains "${DRY_OUT}" "gcloud scheduler jobs" "Shows scheduler job command"
 assert_contains "${DRY_OUT}" "gcloud beta monitoring channels" "Shows monitoring channels command"
-assert_contains "${DRY_OUT}" "gcloud alpha monitoring policies" "Shows monitoring policies command"
+assert_contains "${DRY_OUT}" "gcloud monitoring policies" "Shows monitoring policies command"
 
 # 3. CLI Flag Overrides
 echo "Test 3: CLI Flag Overrides"
