@@ -18,4 +18,5 @@
 ## Containerization & Deployment
 - **Container Build**: Multi-stage Docker build (`golang:1.22-alpine` builder $\rightarrow$ `gcr.io/distroless/static-debian12` runner).
 - **Orchestration**: Google Cloud Run Job (Daily scheduled batch execution via Cloud Scheduler).
+- **Deployment Automation**: Parameterized bash workflow (`deploy_job.sh`) with dry-run verification, dedicated IAM invocation role assignment (`roles/run.invoker`), and granular schedule/timezone controls.
 - **Telemetry**: Structured stdout JSON logging to Google Cloud Logging & Monitoring.
