@@ -91,6 +91,9 @@ Update individual components without rebuilding containers or redeploying Cloud 
 When configured with `--alert-email="YOUR_EMAIL"` (default: `weizhongt@google.com`), Cloud Monitoring automatically sends an email report for each scheduled run containing the full pass/fail statistics, total execution time, and per-probe latency breakdown directly in your inbox:
 
 <p align="center">
+  <img src="./docs/images/cloud_monitoring_policy_details.png" alt="Cloud Monitoring Alert Policy & Incidents Console" width="800"/>
+</p>
+<p align="center">
   <img src="./docs/images/email_alert_sample.png" alt="Cloud Monitoring Email Notification Sample" width="600"/>
 </p>
 
