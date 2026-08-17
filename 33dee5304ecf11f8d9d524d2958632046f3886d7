@@ -1,0 +1,1 @@
+Task: Add pre-flight IAM role check (roles/run.invoker) and advisory warnings in deploy_job.sh
