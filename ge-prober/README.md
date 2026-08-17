@@ -25,17 +25,17 @@ A high-performance, containerized Go synthetic monitoring tool and smoke prober 
                                                               └───────────────────────────┘
 ```
 
-### ⚡ Deployment & Cloud Scheduler Setup
+### ⚡ Deployment, Scheduling & Cloud Monitoring Alerting Setup
 
-`deploy_job.sh` provides a fully parameterized, idempotent deployment and scheduler configuration workflow for Google Cloud Run and Cloud Scheduler.
+`deploy_job.sh` provides a fully parameterized, idempotent deployment, scheduler configuration, and Cloud Monitoring alerting workflow for Google Cloud Run, Cloud Scheduler, and Cloud Monitoring.
 
-#### 1. Quick Start (Default Settings: Daily at 01:00 UTC / 09:00 SGT)
+#### 1. Quick Start (Default Settings: Twice Daily at 09:00 & 17:00 SGT, Alerts to `weizhongt@google.com`)
 ```bash
 ./deploy_job.sh --project="YOUR_GCP_PROJECT_ID" --engine-id="YOUR_ENGINE_ID"
 ```
 
 #### 2. Advanced Parameterized Deployment
-Customize your schedule, time zone, dedicated service account, and job names via CLI flags or environment variables:
+Customize your schedule, time zone, dedicated service account, alert recipient, alert mode, and job names via CLI flags or environment variables:
 ```bash
 ./deploy_job.sh \
   --project="my-gcp-project" \
@@ -44,20 +44,26 @@ Customize your schedule, time zone, dedicated service account, and job names via
   --location="global" \
   --job-name="ge-prober-daily" \
   --scheduler-name="trigger-ge-prober-daily" \
-  --schedule="0 1 * * *" \
+  --schedule="0 9,17 * * *" \
   --time-zone="Asia/Singapore" \
   --service-account="prober-runner@my-gcp-project.iam.gserviceaccount.com" \
+  --alert-email="weizhongt@google.com" \
+  --alert-mode="all" \
   --grant-iam
 ```
 
-#### 3. Standalone Cloud Scheduler Management (`--only-scheduler`)
-Update or recreate the Cloud Scheduler schedule trigger and target service account without rebuilding the container or redeploying the Cloud Run Job:
+#### 3. Standalone Management Modes
+Update individual components without rebuilding containers or redeploying Cloud Run:
+
 ```bash
 # Update schedule to run every 30 minutes in Singapore Time (SGT, GMT+8)
 ./deploy_job.sh --only-scheduler --schedule="*/30 * * * *" --time-zone="Asia/Singapore"
 
-# Dry run / preview commands before executing
-./deploy_job.sh --dry-run --schedule="0 */2 * * *" --time-zone="Asia/Singapore"
+# Update or configure only Cloud Monitoring email alerts (all runs vs failure-only)
+./deploy_job.sh --only-alerting --alert-email="team-alerts@example.com" --alert-mode="all"
+
+# Dry run / preview planned commands before executing
+./deploy_job.sh --dry-run --schedule="0 9,17 * * *" --alert-email="weizhongt@google.com"
 ```
 
 #### 4. Deployment Script CLI Flags Reference
@@ -69,13 +75,16 @@ Update or recreate the Cloud Scheduler schedule trigger and target service accou
 | `--location` | `-l` | `GE_LOCATION` | `global` | Discovery Engine location |
 | `--job-name` | `-j` | `JOB_NAME` | `ge-prober-daily` | Cloud Run Job name |
 | `--scheduler-name` | `-n` | `SCHEDULER_JOB_NAME` | `trigger-<JOB_NAME>` | Cloud Scheduler Job name |
-| `--schedule` | `-s` | `SCHEDULE_CRON` | `0 1 * * *` | Cron schedule expression |
+| `--schedule` | `-s` | `SCHEDULE_CRON` | `0 9,17 * * *` | Cron schedule expression (twice daily) |
 | `--time-zone` | `-z` | `TIME_ZONE` | `Asia/Singapore` | Time zone (e.g. `Asia/Singapore` GMT+8, `UTC`) |
-| `--service-account` | `-a` | `SCHEDULER_SA_EMAIL` | Active gcloud user | Service account email for Cloud Scheduler invocation |
+| `--service-account` | `-a` | `SCHEDULER_SA_EMAIL` | Active compute SA | Service account email for Cloud Scheduler invocation |
+| `--alert-email` | `-m` | `ALERT_EMAIL` | `weizhongt@google.com` | Recipient email for Cloud Monitoring alerts |
+| `--alert-mode` | | `ALERT_MODE` | `all` | Alert mode: `all` (summary of all runs) or `failure-only` |
 | `--grant-iam` | | | `false` | Automatically grant `roles/run.invoker` to the service account |
 | `--dry-run` | | | `false` | Print resolved configs and exact `gcloud` commands without executing |
 | `--skip-build` | | | `false` | Deploy Cloud Run Job using existing image tag (skips Cloud Build) |
 | `--only-scheduler` | | | `false` | Update only Cloud Scheduler trigger (skips build and job deployment) |
+| `--only-alerting` | | | `false` | Configure or update Cloud Monitoring Notification Channel & Alert Policy only |
 | `--help` | `-h` | | | Show full usage guide and flag descriptions |
 
 #### 5. Manual Execution & Logging

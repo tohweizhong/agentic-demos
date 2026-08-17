@@ -147,14 +147,16 @@ The suite covers **11 distinct enterprise subsystems**:
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Parameterized Deployment & Scheduler Trigger (`deploy_job.sh`)
-- **Default Trigger Schedule**: Daily at 01:00 UTC / 09:00 Singapore Time (SGT, GMT+8) (`0 1 * * *`, `--time-zone="Asia/Singapore"`).
+### Parameterized Deployment, Scheduling & Cloud Monitoring Alerting (`deploy_job.sh`)
+- **Default Trigger Schedule**: Twice daily at 09:00 & 17:00 Singapore Time (SGT, GMT+8) (`0 9,17 * * *`, `--time-zone="Asia/Singapore"`).
+- **Default Alert Recipient**: `weizhongt@google.com` (mode: `all` runs completion summary).
 - **Customizable Parameters**:
   - Target Project & Region (`--project`, `--region`)
   - Target Discovery Engine & Location (`--engine-id`, `--location`)
   - Cloud Run Job & Scheduler Job Name (`--job-name`, `--scheduler-name`)
   - Cron Schedule & Timezone (`--schedule`, `--time-zone`)
   - Invocation Service Account (`--service-account`, `--grant-iam`)
+  - Alert Email & Mode (`--alert-email`, `--alert-mode`)
   - Dry Run Validation (`--dry-run`)
-  - Partial updates (`--skip-build`, `--only-scheduler`)
+  - Partial updates (`--skip-build`, `--only-scheduler`, `--only-alerting`)
 
