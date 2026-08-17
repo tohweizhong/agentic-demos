@@ -87,7 +87,17 @@ Update individual components without rebuilding containers or redeploying Cloud 
 | `--only-alerting` | | | `false` | Configure or update Cloud Monitoring Notification Channel & Alert Policy only |
 | `--help` | `-h` | | | Show full usage guide and flag descriptions |
 
-#### 5. Manual Execution & Logging
+#### 5. Automated Email Alerts & Results Breakdown
+When configured with `--alert-email="YOUR_EMAIL"` (default: `weizhongt@google.com`), Cloud Monitoring automatically sends an email report for each scheduled run containing the full pass/fail statistics, total execution time, and per-probe latency breakdown directly in your inbox:
+
+<p align="center">
+  <img src="./docs/images/email_alert_sample.png" alt="Cloud Monitoring Email Notification Sample" width="600"/>
+</p>
+
+- **Extracted Summary**: The email body displays the health score and per-probe status (`[google_search: PASS (13838ms), gemini_notebook: PASS (14762ms), deep_research: PASS (40497ms), sharepoint: PASS (60029ms)]`).
+- **Direct Links**: Includes clickable links to the Cloud Monitoring incident and Logs Explorer for full interactive streaming traces.
+
+#### 6. Manual Execution & Logging
 - **Trigger an on-demand run**:
   ```bash
   gcloud run jobs execute ge-prober-daily --project="YOUR_GCP_PROJECT_ID" --region="us-central1" --wait
@@ -238,7 +248,7 @@ The prober automatically manages authentication across environments:
 ✅ [sharepoint] SharePoint Document Retrieval               | TTFT: 40138.1ms | TTLT: 40138.1ms
 
 ================================================================================
-📊 PROBER SUMMARY & HEALTH SCORE
+📊 PROBER SUMMARY & HEALTH SCORE: 4/4 Passed (100.0%) | SLO: 4/4 (100.0%) | Duration: 40.14s | Details: [gemini_notebook: PASS (14133ms), google_search: PASS (15118ms), deep_research: PASS (37596ms), sharepoint: PASS (40138ms)]
 ================================================================================
 Total Duration       : 40.14s
 Functional Pass Rate : 4/4 (100.0%)
