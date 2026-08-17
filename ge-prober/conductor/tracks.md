@@ -16,3 +16,7 @@
 
 - [x] **Track: Generalize Gemini Enterprise Prober Configuration**
   *Link: [generalize_ge_prober_configuration_20260817](./tracks/generalize_ge_prober_configuration_20260817/index.md)*
+
+- [ ] **Track: Parameterize Cloud Scheduler and Deployment**
+  *Link: [parameterize_cloud_scheduler_20260817](./tracks/parameterize_cloud_scheduler_20260817/index.md)*
+
