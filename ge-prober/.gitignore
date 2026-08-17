@@ -1,0 +1,34 @@
+# Compiled Go binaries & packages
+ge-prober
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Local runtime configurations & credentials
+.env
+.env.local
+config.json
+!config.example.json
+!.env.example
+
+# Runtime prober test outputs & reports
+smoke_prober_results.json
+*.json.report
+scratch/
+tmp/
+
+# IDE, OS & Tooling logs
+.agents/
+.gemini/
+.DS_Store
+.idea/
+.vscode/
+
+# Python cache (legacy prototype)
+__pycache__/
+*.py[cod]
+*$py.class

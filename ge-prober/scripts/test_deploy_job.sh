@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEPLOY_SCRIPT="${SCRIPT_DIR}/deploy_job.sh"
+DEPLOY_SCRIPT="${SCRIPT_DIR}/../deploy_job.sh"
 TESTS_RUN=0
 TESTS_PASSED=0
 
