@@ -1,8 +1,8 @@
 # Implementation Plan: Google Drive Connector Grounding & Authentication Probe
 
 ## Phase 1: Test Case Catalog & TDD Client Tool Routing
-- [ ] Task: Update `test_cases/smoke_test_cases.json` to configure `smoke_gdrive_01` ("Tell me about the helicopter racing league", `grounding_type: "google_drive"`, `must_have_citations: true`, zero keyword assertions `must_contain_keywords: []`, and semantic contract).
-- [ ] Task: [TDD] Update `client_test.go` with unit tests verifying `BuildStreamAssistRequest` payload for `google_drive` grounding.
+- [x] Task: Update `test_cases/smoke_test_cases.json` to configure `smoke_gdrive_01` ("Tell me about the helicopter racing league", `grounding_type: "google_drive"`, `must_have_citations: true`, zero keyword assertions `must_contain_keywords: []`, and semantic contract). e00901a
+- [~] Task: [TDD] Update `client_test.go` with unit tests verifying `BuildStreamAssistRequest` payload for `google_drive` grounding.
 - [ ] Task: Implement `BuildStreamAssistRequest` in `client.go` to construct Google Drive 1P tool routing payload.
 - [ ] Task: [TDD] Update `prober_test.go` and `config_test.go` to verify test case parsing and LLM Judge evaluation without keyword assertions.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
