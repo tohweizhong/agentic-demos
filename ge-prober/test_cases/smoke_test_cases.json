@@ -6,6 +6,7 @@
     "title": "SharePoint Document Retrieval",
     "query": "Find the workplace policy document in our SharePoint site.",
     "expected_behavior": "Must query SharePoint data store, locate relevant policy document, and return grounded summary with source citation.",
+    "semantic_contract": "The response must locate and present actual workplace policy documents or links from SharePoint. It must NOT be a refusal message, an error, or a setup/configuration guide explaining how to connect SharePoint.",
     "grounding_type": "vertex_ai_search",
     "slo_targets": {
       "max_ttft_ms": 60000.0,
@@ -33,6 +34,7 @@
     "title": "Deep Research Multi-Step Plan & Synthesis",
     "query": "Project management methodologies",
     "expected_behavior": "Must trigger Deep Research Agent via agentsSpec, generate structured Research Plan and research questions accordions, and emit session token.",
+    "semantic_contract": "The response must contain a structured multi-step Deep Research plan outlining project management methodologies (such as Agile, Waterfall, Scrum, Kanban, or Hybrid approaches).",
     "grounding_type": "deep_research_agent",
     "slo_targets": {
       "max_ttft_ms": 120000.0,
@@ -61,6 +63,7 @@
     "title": "Gemini Notebook Knowledge Base Q&A",
     "query": "What is Model Armor's overarching purpose and operational approach to AI protection?",
     "expected_behavior": "Must query Gemini Notebook directly without external data stores, returning grounded explanation of Model Armor security policies and proactive screening.",
+    "semantic_contract": "The response must clearly explain Model Armor's purpose (generative AI safety and security guardrails) and operational approach (dual-sided input/output filtering, DLP, and policy enforcement) grounded in notebook knowledge.",
     "grounding_type": "gemini_notebook",
     "slo_targets": {
       "max_ttft_ms": 60000.0,
@@ -88,6 +91,7 @@
     "title": "Public Google Search Web Grounding",
     "query": "What are the latest announced Google Cloud Singapore regional capabilities this year?",
     "expected_behavior": "Must invoke Google Search web grounding spec and provide real-time facts with clickable web citations.",
+    "semantic_contract": "The response must provide specific, factual regional capabilities announced for Google Cloud Singapore (such as data residency, model availability, or regional ML processing) with factual citations.",
     "grounding_type": "web_search",
     "slo_targets": {
       "max_ttft_ms": 60000.0,
