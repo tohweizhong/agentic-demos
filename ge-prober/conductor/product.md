@@ -1,23 +1,58 @@
 # Product Definition — Gemini Enterprise Prober (`ge-prober`)
 
 ## Overview
-`ge-prober` is a simple, lightweight daily smoke test prober deployed on Google Cloud Run. Authenticating via standard service account and Google Cloud API credentials, it executes a curated set of selected smoke test cases once or twice per day to measure Time to First Token (TTFT), track error rates, and verify Gemini Enterprise app stability.
+`ge-prober` is a simple, lightweight daily synthetic prober and regression testing suite deployed on Google Cloud Run. Scheduled via Cloud Scheduler, it executes a curated set of smoke tests once or twice per day to measure Time to First Token (TTFT), track error rates, evaluate semantic quality with Vertex AI LLM-as-a-Judge, and verify Gemini Enterprise app stability and connector health.
 
 ---
 
 ## Core Value Proposition & Objectives
-1. **App Stability & Vitality**: Detects service degradation, breaking API changes, or unexpected error bursts across Gemini Enterprise.
+1. **Connector & App Vitality**: Detects service degradation, breaking API changes, or authentication failures across Gemini Enterprise and enterprise data connectors (starting with Google Drive).
 2. **Deterministic Latency Telemetry**: Accurately tracks **Time to First Token (TTFT)** and total response latency across standard test queries.
 3. **Lean & Self-Contained**: Executes on Google Cloud Run via Cloud Scheduler with zero interactive overhead ($0 idle compute).
-4. **Actionable Alerts**: Produces structured JSON test reports and automated Cloud Monitoring email alerts on probe failures.
+4. **Automated Semantic Validation**: Evaluates answer faithfulness, contract fulfillment, and refusal detection via Vertex AI LLM-as-a-Judge (`gemini-2.5-flash`).
+5. **Actionable Alerts**: Produces structured JSON test reports and automated Cloud Monitoring email alerts on probe failures.
 
 ---
 
 ## Core Scenarios Tested (Current Baseline)
-- **SharePoint & Enterprise Connectors**: Verifies document retrieval and grounding citations.
+- **Google Drive Connector Grounding (Primary Focus)**:
+  - **Query**: `"Tell me about the helicopter racing league"`
+  - **Connectors**: Google Drive enabled (Google Search disabled, SharePoint disabled).
+  - **Expected Behavior**: Validates authentication and connector tool routing, retrieves internal Google Drive document excerpts, and returns a grounded response with citations.
 - **Deep Research Agent**: Validates multi-step research plan generation and synthesis.
-- **NotebookLM Integration**: Validates enterprise notebook source Q&A and artifact generation.
+- **Gemini Notebook Integration**: Validates enterprise notebook source Q&A and artifact generation.
 - **Web Grounding**: Validates public web search grounding and real-time fact retrieval.
+
+---
+
+## Architectural Insights & Authentication Foundations
+
+### 1. Delegated Permissions vs. Machine Identities (EUC vs. Service Account)
+- **End-User Credentials (EUC)**: When querying federated connectors (e.g., SharePoint, Jira, Salesforce), Gemini Enterprise's `DataConnectorService` requires an End-User Credential (`ya29...` user token) because vaulted 3rd-party OAuth refresh tokens are strictly indexed by the caller's Google Identity (Gaia ID / WIF subject).
+- **Service Account (ADC)**: Background compute service accounts lack interactive 3P consent sessions in `DataConnectorService`, causing calls to 3P connectors to return 0 results, refusals, or `AUTH_REQUIRED` stream payloads ("Broken Delegation" / "Confused Deputy").
+
+### 2. First-Party (1P) Google Workspace vs. Third-Party (3P) Connectors
+| Dimension | Third-Party (SharePoint, Jira, Salesforce) | First-Party Google Workspace (Google Drive, Gmail) |
+| :--- | :--- | :--- |
+| **Identity Namespace** | Heterogeneous (External IDs / Entra GUIDs) | Unified (Native Google Cloud Identity / Gaia) |
+| **Initial Consent** | Interactive 3P OAuth consent popup required | Zero interactive 3P consent required (Native 1P auth / 3LO) |
+| **Token Brokering** | `DataConnectorService` vaults & refreshes 3P tokens | Direct Google-internal authorization |
+| **ACL Evaluation** | Ingested ACLs or real-time Microsoft Graph evaluation | Native Google Drive ACLs and Google Groups |
+
+### 3. API Selection: `StreamAssist` (FiberDag) vs. `Assist`
+- **FiberDag Runtime**: `AssistantService.StreamAssist` executes queries through a Directed Acyclic Graph (DAG) runtime with dynamic intent classification (`query_classifier` node), query reformulation / DRIP (`query_rewriter` node), and Manta tool selector (`MantaSkillSelector`).
+- **Prober Target**: `ge-prober` exclusively targets `StreamAssist` to accurately benchmark Time to First Token (TTFT), trace streamed chunk progression, and validate true production tool dispatch.
+
+### 4. Headless Auth Patterns for Synthetic Probing
+1. **Application Default Credentials (ADC)**: Direct service account authentication for Web Grounding, Deep Research Agent, Gemini Notebook, Vertex AI LLM Judge, and ingested data stores.
+2. **Headless OAuth 2.0 Refresh Token Pattern (Non-WIF)**: A dedicated synthetic test user (e.g., `prober-robot@domain.com`) whose Google OAuth refresh token is securely vaulted in GCP Secret Manager. At runtime, Cloud Run exchanges the refresh token for a fresh EUC token without human intervention.
+3. **Workforce Identity Federation (WIF) with Entra ID**: Exchanging Entra ID ROPC tokens at Google Cloud STS (`sts.googleapis.com`) for federated Google access tokens.
+
+### 5. Error Taxonomy & Stream Failure Modes
+- **Transport / API Errors**: Non-200 HTTP codes (401, 403, 500, 503).
+- **Planner Errors**: `PLANNER_TURNS_EXCEEDED`, missing tools, or query timeout.
+- **`AUTH_REQUIRED` Stream State**: Emitted when vaulted 3P tokens expire or are revoked, accompanied by an `authorizationUri`. Triggers dedicated alerts and token re-consent runbooks.
+- **Silent Refusal / Ungrounded Fallback**: Model produces a generic completion or refusal without triggering connector retrieval; detected and failed by Vertex AI LLM-as-a-Judge semantic contract verification.
 
 ---
 
@@ -30,52 +65,40 @@
 - Fully parameterized bash deployment scripts (`deploy_job.sh`).
 
 ### ✅ Phase 2: Verbose Cloud Logging & Real-Time Stream Tracing (Completed)
-- **Formatted Probe Header & Query**: Output clear probe markers for each test case matching Cloud Run task logs:
-  - Probe Header: `[X/N] 🔎 [<grounding_type>] <test_case_id>` (e.g. `[4/4] 🔎 [sharepoint] sharepoint_01`)
-  - Query Display: `📜 Query: "<query_text>"` (e.g. `📜 Query: "Search for files about FormSG in our SharePoint site."`)
-- **Line-by-Line Response Tracing**:
-  - Response Header: `💬 Response:`
-  - Emit Gemini Enterprise streamed chunks and complete response line-by-line into standard output so that markdown headings (`### 📌 Primary Document`), bullet points, citations, and grounded document URLs (`* **[Doc.pdf](https://...)**`) are rendered as distinct, readable entries in Cloud Run Log Explorer.
-- **Stream Performance & Completion Metric**:
-  - Completion Banner: `✅ Stream Done (TTFT: X.X ms | Total: Y.Y ms)`
-- **Execution Suite Summary**:
-  - Clean, formatted execution summary table (`📊 TEST SUITE EXECUTION SUMMARY`) at the conclusion of the probe run.
+- **Formatted Probe Header & Query**: Output clear probe markers for each test case matching Cloud Run task logs.
+- **Line-by-Line Response Tracing**: Emit Gemini Enterprise streamed chunks and markdown response line-by-line into Cloud Run Log Explorer.
+- **Stream Performance & Completion Metric**: Real-time TTFT and total latency banners.
+- **Execution Suite Summary**: Clean, formatted execution summary table (`📊 TEST SUITE EXECUTION SUMMARY`).
 
 ### ✅ Phase 3: Vertex AI LLM-as-a-Judge Semantic Evaluation (Completed)
-1. **Automated Semantic & Faithfulness Evaluation**:
-   - Integrated Vertex AI Gemini (`gemini-2.5-flash`) as an automated judge to evaluate probe response quality, refusal/unconnected states, and semantic contract fulfillment beyond deterministic keyword matching.
-2. **Structured Scoring & Cloud Telemetry**:
-   - Provide rubric scoring (1-5), refusal detection (`detected_refusal_or_unconnected`), and stream evaluation logs (`⚖️ Judge Verdict: ✅ FULFILLED (Score: 5/5 | gemini-2.5-flash)`) into Cloud Run logs and JSON reports.
-   - Summarize test suite semantic pass rate alongside functional pass rate.
+- Integrated Vertex AI Gemini (`gemini-2.5-flash`) as an automated judge.
+- Rubric scoring (1-5), refusal detection (`detected_refusal_or_unconnected`), and stream evaluation logs.
+- Test suite summary with semantic pass rates alongside functional pass rates.
 
-### 🎯 Phase 4: NotebookLM Grounding & Trigger Verification (Near-Term)
-- **Investigate & Resolve Payload Configuration**: Investigate and resolve the NotebookLM probe payload configuration so that the enterprise NotebookLM knowledge base and assistant service are authentically triggered and grounded, rather than falling back to generic ungrounded completions.
-- **Refine Assertions & Citation Checks**: Tailor assertions, citation checks, and grounding metadata verifications specifically for NotebookLM source document answers.
+### 🎯 Phase 4: Google Drive Connector Grounding & Authentication (Immediate Focus)
+- **Single Dedicated Test Case**: Configure `"Tell me about the helicopter racing league"` with Google Drive connector active (matching the Gemini Enterprise Web UI configuration).
+- **Authentication & Tool Routing**: Validate caller authentication and tool specification so that `StreamAssist` routes directly to the Google Drive connector without auth errors or ungrounded refusals.
+- **Assertions & Citations**: Assert non-empty responses, Google Drive document citation metadata presence, and semantic fulfillment via LLM judge.
 
-### 🤖 Phase 5: No-Code Agents & Agent Designer Probing (Near-Term)
-1. **Invoke Built No-Code Agents**:
-   - Probe execution of pre-configured, custom no-code enterprise agents in the Gemini Enterprise app.
-   - Verify tool dispatch, system prompt adherence, and response quality.
-2. **Agent Designer Conversational Creation Probe**:
-   - Probe the interactive chat interface of the **Agent Designer** to verify that an agent can be defined and created conversationally (e.g. prompt synthesis, tool binding, and draft generation).
+### 🔐 Phase 5: Microsoft SharePoint Online & 3P Federated Connectors (Near-Term)
+- **Headless EUC OAuth Token Brokering**: Implement Secret Manager Google OAuth refresh token exchange for synthetic user EUC tokens (`ya29...`) to enable `DataConnectorService` 3P token lookup.
+- **`AUTH_REQUIRED` Detection & Alerts**: Intercept `auth_required` stream states with dedicated runbook alerts for Microsoft re-consent.
+- **SharePoint Canary Site Probing**: Validate security-trimmed document retrieval from dedicated SharePoint sites (`/sites/CanaryProberSite`).
 
-### 🧠 Phase 6: Gemini Enterprise Memory & Personalization Probing (Near-Term)
-1. **Save to Memory Verification**:
-   - Probe the GE app memory feature by saving structured enterprise user profile attributes (e.g., *"I am a Customer Engineer at Google Cloud"*).
-2. **Recall & Context Utilization**:
-   - Probe subsequent queries to verify that stored user memory is correctly retrieved and incorporated into downstream reasoning and response generation.
-3. **Memory Update & Deletion**:
-   - Probe updating and purging stored memory entries to ensure data privacy and freshness.
+### 📓 Phase 6: NotebookLM Grounding & Trigger Verification (Near-Term)
+- Investigate payload configuration and prompt triggers for authentic enterprise NotebookLM assistant tool invocation.
+- Refine assertions, citation checks, and grounding metadata verifications for notebook sources.
 
-### 🔐 Phase 7: Identity, Access & Multi-Persona Probing (Near-Term)
-1. **Dynamic Token Lifecycle & Reusable TokenSource**:
-   - Transition from static one-shot token resolution to goroutine-safe, auto-refreshing `oauth2.TokenSource` for sustained probe executions.
-2. **Service Account Impersonation & Multi-Tenant Isolation**:
-   - Support CLI/config-driven service account impersonation (`--impersonate-service-account`) to probe access boundaries and tenant isolation across multiple GCP projects.
-3. **Document-Level Security & ACL Enforcement Probing**:
-   - Probe queries across distinct user personas (e.g. standard employee vs. privileged manager) to verify connector-level ACL filtering, SCIM identity mappings, and SharePoint/Drive security trimming.
+### 🤖 Phase 7: No-Code Agents & Agent Designer Probing (Near-Term)
+- Probe execution of pre-configured custom no-code enterprise agents.
+- Probe interactive chat interface of Agent Designer for conversational agent creation.
 
-### 🚀 Phase 8: Extended Observability & Webhook Dispatch (Future)
-- Native Google Chat & Slack webhook dispatch for immediate incident alerts.
-- BigQuery latency and TTFT telemetry streaming for Grafana/Looker Studio dashboards.
-- Multi-region synthetic prober execution (`us-central1`, `europe-west1`, `asia-southeast1`).
+### 🧠 Phase 8: Gemini Enterprise Memory & Personalization Probing (Near-Term)
+- Probe Save, Recall, Update, and Purge of user memory profile context.
+
+### 👥 Phase 9: Multi-Persona ACL Security Trimming & Identity Federation (Near-Term)
+- Multi-persona probing (Standard Employee vs. Privileged Manager) to verify connector ACL filtering.
+- Support for Workforce Identity Federation (WIF) and Microsoft Entra ID ROPC token exchange.
+
+### 🚀 Phase 10: Extended Observability & Webhook Dispatch (Future)
+- Native Google Chat & Slack webhook alerts, BigQuery telemetry export, and multi-region execution.
