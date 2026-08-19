@@ -1,0 +1,100 @@
+================================================================================
+🚀 GEMINI ENTERPRISE SYNTHETIC SMOKE TEST PROBER (Go)
+================================================================================
+🎯 Target Project : weizhong-project03
+📍 Location / Reg : global
+⚙️ Target Engine  : ge-global-prober_1786960389717
+📦 Smoke Probes   : 3 test cases
+⚡ Concurrency    : 4 parallel workers
+🔍 Verbose Stream : true
+⚖️ LLM Judge     : gemini-2.5-flash (enabled)
+================================================================================
+[3/3] 🔎 [web_search] smoke_web_grounding_03
+📜 Query: "What are the latest announced Google Cloud Singapore regional capabilities this year?"
+💬 Response:
+In 2026, Google Cloud introduced major advancements and localization capabilities specifically for the Singapore region. The key milestone was announced on **June 30, 2026**, bringing native residency and processing support to local enterprises.
+---
+### 🇸🇬 Singapore Regional Capabilities Overview
+| Capability | Scope & Availability | Key Details |
+|---|---|---|
+| **Data Residency (DRZ)** | Generally Available (GA) via **Allowlist** | Support for at-rest storage of Customer Data physically within the Singapore (**SG**) region. |
+| **Machine Learning Processing (MLP)** | Generally Available (GA) via **Allowlist** | Local in-region AI/ML processing (training, prediction, model tuning) to meet compliance and low-latency requirements. |
+| **Supported Applications** | **Gemini Enterprise** & **Gemini Notebook Enterprise** | Full assistant, core search infrastructure, document understanding, and notebook capabilities run natively in-region. |
+| **Regional Model Support** | **Gemini 3.5 Flash** | The latest Gemini 3.5 Flash model is fully integrated with in-region DRZ and MLP commitments. |
+---
+### ⚠️ Important Regional Limitations
+While the core capabilities are now live locally, some advanced features still route to the global multi-region:
+* **Model Exclusions:** The **Gemini 2.5 Pro** model is not offered in the Singapore region.
+* **Creative Features:** Image generation, video generation, and NotebookLM Content Studio (e.g., audio overviews, slide decks, infographics) are only supported in the global region.
+* **Web Grounding:** Local grounding with Google Search is not supported locally; it temporarily logs query data in the global region to execute searches.
+---
+### 🚀 How to Access
+Because these features are under **General Availability with an Allowlist**:
+1. You must contact your **Google Cloud account team** to have your project allowlisted.
+2. Once authorized, administrators can set up apps selecting the **SG** region to ensure local data boundaries are maintained.
+Let me know if you would like me to help draft a request to your account manager or if you'd like to dive into the technical steps for configuring local data stores!
+✅ Stream Done (TTFT: 16636.2 ms | Total: 16636.2 ms)
+⚖️ Judge Verdict: ✅ FULFILLED (Score: 5/5 | gemini-2.5-flash)
+   ↳ 💭 The response perfectly fulfills the user's objective by providing specific, factual regional capabilities for Google Cloud Singapore, including DRZ, MLP, Gemini Enterprise, and Gemini 3.5 Flash, along with relevant limitations and access details.
+[2/3] 🔎 [deep_research_agent] smoke_deep_research_02
+📜 Query: "Project management methodologies"
+💬 Response:
+Of course! I can help you with that. Here is a research plan about Project Management Methodologies. Please let me know if you have any suggestions for changes.## **Project Management Methodologies Research Plan**
+### **Introduction to Project Management Methodologies**
+I will start by defining what project management methodologies are and their significance in ensuring projects are delivered successfully. This part of the research will establish a solid foundation for understanding the topic.
+### **Traditional Project Management Methodologies**
+I will then move on to researching traditional project management methodologies. My main focus will be on the Waterfall model, and I will explain its sequential process, different phases, and where it is best applied. I will also look into other traditional methods, such as the Critical Path Method (CPM) and PRINCE2.
+### **Agile Project Management Methodologies**
+Next, I will explore Agile methodologies. This will involve a detailed examination of Scrum, including its roles, events, and artifacts. I will also cover Kanban, emphasizing its principles of visualizing workflow and limiting work in progress. Other Agile methods like Lean and Extreme Programming (XP) will also be part of my research.
+### **Hybrid Project Management Methodologies**
+I will research hybrid models that blend elements of both traditional and Agile approaches. I will investigate how these hybrid models aim to combine the strengths of both methodologies and the scenarios where they are most effective.
+### **Comparison of Popular Methodologies**
+I will conduct a comparative analysis of the most widely used methodologies. This will involve comparing them based on their flexibility, structure, communication, and suitability for various project types and industries.
+### **Choosing the Right Methodology**
+Finally, I will research the key factors to consider when selecting a project management methodology. This will cover aspects like the project's size and complexity, the team's size and experience, the industry, and the organizational culture.
+✅ Stream Done (TTFT: 28042.7 ms | Total: 28042.7 ms)
+⚖️ Judge Verdict: ✅ FULFILLED (Score: 5/5 | gemini-2.5-flash)
+   ↳ 💭 The response perfectly fulfills the semantic contract by generating a structured, comprehensive multi-step research plan that explicitly covers the requested project management methodologies in depth, avoiding shallow answers or refusals.
+[1/3] 🔎 [google_drive] smoke_gdrive_01
+📜 Query: "Tell me about the helicopter racing league"
+💬 Response:
+🚁 **Welcome to the high-stakes world of the Helicopter Racing League (HRL)!**
+If you've encountered this league, you are likely navigating the world of **Google Cloud certifications** (specifically the *Professional Machine Learning Engineer* exam) or working through Google Cloud architecture case studies.
+The Helicopter Racing League is a **fictional, highly detailed case study** created by Google to test real-world machine learning, data engineering, and cloud architecture skills.
+---
+### 📋 HRL Overview & Business Goals
+In this scenario, HRL is a global sports brand that broadcasts high-speed helicopter races. To stay competitive, increase fan engagement, and ensure pilot safety, they want to transition from traditional operations to a **cutting-edge, AI-driven sports entertainment platform**.
+| Business Goal | Technical Objective |
+|---|---|
+| **Boost Fan Engagement** | Introduce real-time telemetry, predictive stats (e.g., "probability of overtaking"), and instant video highlights. |
+| **Ensure Pilot Safety** | Implement real-time predictive maintenance to catch mechanical issues before they cause failures mid-race. |
+| **Optimize Race Operations** | Analyze flight paths, wind speeds, and pilot behavior to optimize race course design. |
+---
+### ⚙️ The Technical Challenge (The "How-To")
+To solve HRL's challenges, Google Cloud architects and ML engineers typically design a hybrid, real-time data pipeline. If you are designing this system or preparing for an exam, keep this blueprint in mind:
+#### 1. Real-Time Telemetry Pipeline (IoT)
+* **The Source:** Helicopters stream hundreds of sensor readings (rotor speed, temperature, altitude, vibration) per second.
+* **The Flow:** **Cloud Pub/Sub** ingests the high-throughput stream $\rightarrow$ **Cloud Dataflow** processes and cleans the data in real-time $\rightarrow$ **BigQuery** stores the historical data for analysis.
+#### 2. Machine Learning & Video Intelligence (Vertex AI)
+* **Predictive Maintenance:** An anomaly detection model trained on historical sensor data to flag parts needing service.
+* **Live Video Analysis:** Using **Vertex AI Custom Training** or **Video Intelligence API** to automatically track helicopters on screen, detect crashes/near-misses, and overlay pilot stats onto the live feed.
+---
+### ⚠️ Common Pitfalls to Watch Out For
+* **Latency Overload:** Delivering real-time overlays to millions of global viewers requires low-latency serving. Serving models via local edge devices or optimized Vertex AI endpoints with caching is critical.
+* **Data Drift:** Helicopter performance changes drastically depending on the host city's weather (e.g., racing in hot, humid Singapore vs. cold, dry London). Models must be monitored and continuously retrained to avoid "drift."
+---
+Are you currently studying for a Google Cloud certification exam, or are you working on a specific architecture design based on this case study? Let me know how I can help you ace it!
+✅ Stream Done (TTFT: 36407.4 ms | Total: 36407.4 ms)
+⚖️ Judge Verdict: ✅ FULFILLED (Score: 5/5 | gemini-2.5-flash)
+   ↳ 💭 The response perfectly fulfills the user's objective by accurately explaining that the 'Helicopter Racing League' is a fictional case study within Google Cloud certifications, providing detailed and relevant enterprise knowledge without refusal or error.
+================================================================================
+📊 TEST SUITE EXECUTION SUMMARY
+================================================================================
+Total Test Cases     : 3
+Functional Pass Rate : 3/3 (100.0%)
+Semantic Pass Rate   : 3/3 (100.0%)
+SLO Compliance Rate  : 3/3 (100.0%)
+Total Run Duration   : 38.74s
+Report Exported To   : smoke_prober_results.json
+================================================================================
+Container called exit(0).
