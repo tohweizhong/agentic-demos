@@ -56,24 +56,23 @@ func BuildJudgePrompt(testCase TestCase, responseText string) string {
 	return fmt.Sprintf(`You are an expert AI evaluator and quality judge for enterprise AI applications.
 Evaluate whether the following AI system response satisfies the required semantic contract and fulfills the user's objective.
 
-[EVALUATION CONTRACT]
+[EVALUATION CRITERIA]
 Test Case ID: %s
 Subsystem: %s
 User Query: "%s"
-Expected Behavior: %s
 Semantic Contract: %s
 
 [ACTUAL RESPONSE UNDER EVALUATION]
 %s
 
 [INSTRUCTIONS]
-1. Assess whether the response fulfills the user's objective and satisfies the Semantic Contract.
+1. Assess whether the response fulfills the user's objective and satisfies the Semantic Contract. Note: Grounding citation metadata and latency SLOs are tracked and validated separately by the prober framework; focus your evaluation on factual correctness, relevance, completeness, and adherence to the semantic contract.
 2. If the response is a refusal, an error explanation, a setup/installation guide instead of data retrieval, or missing required knowledge, mark "fulfilled": false and "detected_refusal_or_unconnected": true.
 3. Assign a score from 1 to 5:
-   - 5: Perfectly fulfilled, accurate, grounded, and meets all criteria.
-   - 4: Substantially fulfilled with minor formatting or minor omissions.
+   - 5: Perfectly fulfilled, accurate, and satisfies all semantic requirements.
+   - 4: Substantially fulfilled with minor omissions.
    - 3: Partially fulfilled or incomplete.
-   - 2: Poorly fulfilled or partially ungrounded.
+   - 2: Poorly fulfilled or ungrounded.
    - 1: Unfulfilled, refusal, error, or completely ungrounded.
 4. Output STRICT JSON adhering to this exact schema (no surrounding markdown code fences, only valid JSON):
 {
@@ -85,7 +84,6 @@ Semantic Contract: %s
 		testCase.ID,
 		testCase.Subsystem,
 		testCase.Query,
-		testCase.ExpectedBehavior,
 		contract,
 		responseText,
 	)

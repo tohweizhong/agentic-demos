@@ -6,7 +6,7 @@
     "title": "Google Drive Document Retrieval",
     "query": "Tell me about the helicopter racing league",
     "expected_behavior": "Must query 1P Google Drive connector, retrieve relevant enterprise documents regarding the helicopter racing league, and return a grounded response with source citations.",
-    "semantic_contract": "The response must synthesize and present factual information about the helicopter racing league retrieved from Google Drive documents. It must NOT be a refusal message, an error, or an ungrounded generic answer.",
+    "semantic_contract": "The response must synthesize and present accurate, detailed enterprise knowledge about the Helicopter Racing League (HRL) case study (such as business goals, telemetry ingestion, Pub/Sub, Dataflow, BigQuery, and architecture challenges). It must NOT be a refusal message, an error, or an ungrounded generic answer.",
     "grounding_type": "google_drive",
     "slo_targets": {
       "max_ttft_ms": 60000.0,
@@ -58,7 +58,7 @@
     "title": "Public Google Search Web Grounding",
     "query": "What are the latest announced Google Cloud Singapore regional capabilities this year?",
     "expected_behavior": "Must invoke Google Search web grounding spec and provide real-time facts with clickable web citations.",
-    "semantic_contract": "The response must provide specific, factual regional capabilities announced for Google Cloud Singapore (such as data residency, model availability, or regional ML processing) grounded with factual web search citations.",
+    "semantic_contract": "The response must provide specific, factual regional capabilities announced for Google Cloud Singapore (such as at-rest data residency DRZ, machine learning processing MLP, model availability, or Gemini Enterprise in Singapore). It must NOT be a refusal message, an error, or completely ungrounded.",
     "grounding_type": "web_search",
     "slo_targets": {
       "max_ttft_ms": 60000.0,
