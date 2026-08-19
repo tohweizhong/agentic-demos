@@ -32,5 +32,5 @@
 - [x] **Track: Vertex AI LLM-as-a-Judge Semantic Evaluation**
   *Link: [llm_as_a_judge_semantic_evaluation_20260819](./tracks/llm_as_a_judge_semantic_evaluation_20260819/index.md)*
 
-- [ ] **Track: Google Drive Connector Grounding & Authentication Probe**
+- [~] **Track: Google Drive Connector Grounding & Authentication Probe**
   *Link: [google_drive_connector_probe_20260819](./tracks/google_drive_connector_probe_20260819/index.md)*
