@@ -20,6 +20,9 @@ smoke_prober_results.json
 *.json.report
 scratch/
 tmp/
+logs/
+*.log
+!conductor/**/*.log
 
 # IDE, OS & Tooling logs
 .agents/
