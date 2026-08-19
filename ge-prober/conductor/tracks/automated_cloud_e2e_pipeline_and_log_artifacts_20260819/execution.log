@@ -1,0 +1,138 @@
+================================================================================
+🚀 GEMINI ENTERPRISE SYNTHETIC SMOKE TEST PROBER (Go)
+================================================================================
+🎯 Target Project : weizhong-project03
+📍 Location / Reg : global
+⚙️ Target Engine  : ge-global-prober_1786960389717
+📦 Smoke Probes   : 4 test cases
+⚡ Concurrency    : 4 parallel workers
+🔍 Verbose Stream : true
+================================================================================
+[3/4] 🔎 [gemini_notebook] smoke_notebooklm_03
+📜 Query: "What is Model Armor's overarching purpose and operational approach to AI protection?"
+💭 Thought:
+**Exploring Model Armor's Core**
+**Analyzing Model Armor's Functionality**
+💬 Response:
+### Model Armor: Overarching Purpose
+**Model Armor** is designed to provide a robust, centralized security layer for generative AI applications. Its overarching purpose is to safeguard both the AI models and the organizations deploying them by mitigating critical AI-specific risks, such as prompt injections, jailbreaks, data leakage, and toxic content generation. It essentially acts as a protective shield that ensures AI interactions remain safe, compliant, and aligned with organizational policies.
+---
+### Operational Approach to AI Protection
+Model Armor operates by sitting seamlessly between the user's application and the underlying Large Language Model (LLM). This interception model allows it to inspect and filter data in real-time before it reaches the model and before the model's response is returned to the user.
+Here is a breakdown of its core operational mechanics:
+| Operational Stage | Mechanism | Description |
+|---|---|---|
+| **Input (Prompt) Protection** | Pre-filtering | Scans incoming user prompts for malicious intent, such as prompt injection attacks or jailbreak attempts. If a threat is detected, the request is blocked before the LLM processes it. |
+| **Output (Response) Protection** | Post-filtering | Inspects the generated response from the LLM for violations. This includes checking for toxic content, hate speech, or hallucinations that violate safety guidelines. |
+| **Data Loss Prevention (DLP)** | Bidirectional Scanning | Continuously monitors both prompts and responses for Sensitive Data (e.g., PII, PHI, financial data). It can mask, redact, or block data to prevent accidental leakage or non-compliance. |
+| **Policy Enforcement** | Centralized Guardrails | Administrators define security and safety policies in a single location, which are then uniformly applied across all integrated AI models and applications, ensuring consistent governance. |
+| **Observability & Auditing** | Logging | Captures detailed logs of all interactions, blocked requests, and policy violations. This data is crucial for compliance reporting, threat analysis, and refining security guardrails over time. |
+**Key Takeaway:** If you are deploying enterprise AI, integrating a solution like Model Armor is critical for maintaining data sovereignty and mitigating the unique attack vectors introduced by LLMs.
+````````
+✅ Stream Done (TTFT: 16087.0 ms | Total: 16087.0 ms)
+[4/4] 🔎 [web_search] smoke_web_grounding_04
+📜 Query: "What are the latest announced Google Cloud Singapore regional capabilities this year?"
+💬 Response:
+### 🇸🇬 Google Cloud Singapore (SG) Regional Capabilities in 2026
+Google Cloud has introduced significant localized capabilities for **Singapore (SG)**, specifically tailored to **Gemini Enterprise** (Standard and Plus editions) and **Gemini Notebook Enterprise**. These additions are designed to help enterprises in Singapore meet stringent local compliance, data sovereignty, and performance standards.
+The key capabilities, models, and limitations announced for the Singapore region this year are outlined below:
+---
+### 🔒 Regional Data Sovereignty & Processing (GA with Allowlist)
+The Singapore (**SG**) region is available in **General Availability (GA) with an allowlist**. To activate these capabilities, organizations must contact their Google account team to be added to the regional allowlist. Once enabled, you gain access to:
+| Capability | Scope & Commitments |
+| :--- | :--- |
+| **Data Residency (at-rest DRZ)** | Ensures your primary customer data is stored securely at-rest within physical Google Cloud infrastructure in Singapore. |
+| **Local ML Processing (MLP)** | Guarantees that active AI workloads, model tuning, predictions, and training run within the Singapore regional boundaries. |
+---
+### 🧠 Model Availability in the Singapore Region
+Model support varies depending on your regional data commitments. The table below outlines which models are supported natively under Singapore's local DRZ and MLP commitments, and which require global routing:
+| Model | Local SG Support Status | Notes |
+| :--- | :--- | :--- |
+| **Gemini 3.5 Flash** | **Supported** | Full in-region at-rest DRZ and local MLP. |
+| **Gemini 2.5 Pro** | **Not Supported** | Not offered natively under local Singapore processing. |
+| **Gemini 3.6 Flash** | **Global Only** | Available only via global routing (requires administrators to accept a global traffic-routing warning). |
+| **Gemini 3.1 Pro** | **Not Supported** | Local DRZ and MLP are currently unavailable for this model in Singapore. |
+---
+### 🛠️ Locally Hosted Enterprise Tooling
+Singapore's regional infrastructure fully supports the core suite of Gemini Enterprise base features. The following capabilities run entirely within the region's compliance guardrails:
+*   **Workspace & Federated Search:** Secure search across your ingested or federated enterprise connectors.
+*   **Custom Agents & Workflows:** Building, hosting, and deploying custom AI agents using the **Agent Designer**, **Agent Engine**, and **Agent Registry**.
+*   **Canvas Integration:** Co-creating and editing AI-generated presentations or documents directly inside your regional chats.
+*   **Model Armor:** Local template support for proactive screening of inputs and outputs.
+⚠️ **Regional Watchouts:** Certain advanced generative features—such as **Image Generation**, **Video Generation**, **Grounding with Google Search**, and **Notebook Content Studio** (audio overviews/infographics)—cannot guarantee local processing and are routed globally.
+---
+### 💡 Recommendation
+If your organization **does not** have strict regulatory, legal, or government-mandated requirements to keep data within Singapore, Google recommends using the **Global region**. The Global region provides significantly faster response times, immediate access to the latest model versions (like Gemini 3.6 Flash and Gemini 3.1 Pro), and the newest features as they release.
+---
+Would you like assistance in drafting a regional deployment plan, or do you want to explore how to configure data connectors within the Singapore region?
+✅ Stream Done (TTFT: 19815.7 ms | Total: 19815.7 ms)
+[1/4] 🔎 [vertex_ai_search] smoke_m365_sharepoint_01
+📜 Query: "Find the workplace policy document in our SharePoint site."
+💭 Thought:
+**Searching for Documents**
+**Investigating SharePoint Connection**
+💬 Response:
+The request to find the workplace policy document in your SharePoint site cannot be completed directly at this moment because I do not have direct, active access to search your organization's Microsoft SharePoint environment.
+To search, view, and manage your SharePoint files natively through me, your Google Cloud administrator needs to first set up the **Microsoft SharePoint Online connector** in Gemini Enterprise.
+---
+### 📌 Recommended Action: Connect SharePoint to Gemini Enterprise
+Good call looking to access your policies directly here! To enable this capability, please share the following instructions with your workspace or Google Cloud administrator. Once the connector is configured, I will be able to search and retrieve any workplace policy document on your SharePoint sites.
+#### Step 1: Register Gemini Enterprise in Microsoft Entra ID
+Before starting in Google Cloud, your administrator must register Gemini Enterprise as an authorized application:
+1. Sign in to the **Microsoft Entra admin center** and go to **Identity > Applications > App registrations**.
+2. Click **New registration** and configure:
+   * **Name**: Enter a name (e.g., `Gemini Enterprise SharePoint`).
+   * **Supported account types**: Select **Accounts in this organizational directory only** (Single tenant).
+   * **Redirect URI**: Choose **Web** and enter:
+     `https://vertexaisearch.cloud.google.com/console/oauth/sharepoint_oauth.html`
+3. Click **Register**, then go to the **Authentication** tab and add a second redirect URI:
+   `https://vertexaisearch.cloud.google.com/oauth-redirect`
+4. Go to **Certificates & secrets**, create a **New client secret**, and copy the secret **Value** (you will also need the **Application (client) ID** and **Tenant ID** from the App Overview page).
+#### Step 2: Grant the Required API Permissions
+In your Entra ID app registration, click **API permissions** > **Add a permission** to grant the following Delegated permissions (which ensure I only find files that the signed-in user actually has access to):
+| API Category | Required Permission | Purpose |
+|---|---|---|
+| **Microsoft SharePoint** | `Sites.Search.All` (Delegated) | Allows running search queries on behalf of the signed-in user. |
+| **Microsoft SharePoint** | `AllSites.Read` (Delegated) | Allows reading documents and list items the user has access to. |
+| **Microsoft Graph (Optional)** | `Sites.ReadWrite.All`, `Files.ReadWrite` | Enable if you want to allow me to upload, move, or edit documents. |
+*Make sure your administrator clicks **Grant admin consent** after adding the permissions.*
+#### Step 3: Create the SharePoint Data Store in Google Cloud
+1. Go to the **Google Cloud console** and navigate to **Gemini Enterprise > Data stores**.
+2. Click **Create data store** and select **Microsoft SharePoint** as the source.
+3. Select **Federated search** (queries SharePoint in real-time) or **Data ingestion** (indexes files directly for deeper content search), then click **Continue**.
+4. Provide the **Client ID**, **Client Secret**, **Tenant ID**, and your SharePoint **Instance URI** (e.g., `https://{your-domain}.sharepoint.com`).
+5. Click **Login** to authorize the connection and complete the setup.
+---
+### 💡 Alternative Ways to Find the Document Now
+While the connector is being set up, you can manually locate your policy document using these steps:
+* **Check SharePoint Directly**: Navigate to your company's SharePoint home portal and search for terms like `workplace policy`, `employee handbook`, `safety guidelines`, or `HR policies` in the top search bar.
+* **Look in Local Downloads or Synced Drives**: If you have previously synced SharePoint libraries to your computer, check your local **OneDrive - [Company Name]** folders in your file explorer.
+Would you like me to draft an email that you can send to your IT or Cloud Administrator explaining how to enable this connector?
+✅ Stream Done (TTFT: 32789.9 ms | Total: 32790.0 ms)
+[2/4] 🔎 [deep_research_agent] smoke_deep_research_02
+📜 Query: "Project management methodologies"
+💬 Response:
+Hello! I have created a research plan for your request on project management methodologies. Please let me know if you have any suggestions for improvement.## **Research Plan: Project management methodologies**
+### **Introduction to Project Management Methodologies**
+I will start by defining what project management methodologies are and why they are important for successful project delivery. I will also provide a brief overview of the different categories of methodologies.
+### **Traditional Project Management Methodologies**
+I will research traditional, plan-driven methodologies. I will focus on the Waterfall model, explaining its phases, advantages, and disadvantages. I will also look for information on other traditional methodologies like PRINCE2.
+### **Agile Project Management Methodologies**
+I will then move to Agile methodologies, which are more flexible and iterative. I will research the Agile Manifesto and its principles. I will focus on popular Agile frameworks like Scrum and Kanban, detailing their roles, events, and artifacts.
+### **Hybrid Project Management Methodologies**
+I will research the concept of hybrid methodologies, which combine elements from both traditional and Agile approaches. I will look for examples of how companies are using hybrid models to suit their specific needs.
+### **Choosing the Right Methodology**
+I will research the factors that organizations should consider when selecting a project management methodology. This will include factors like project size and complexity, industry, team culture, and customer requirements.
+### **Comparison of Popular Methodologies**
+Finally, I will create a comparative analysis of the most popular methodologies. I will compare them based on their flexibility, risk management, customer involvement, and other key criteria.
+✅ Stream Done (TTFT: 41228.7 ms | Total: 41228.7 ms)
+================================================================================
+📊 TEST SUITE EXECUTION SUMMARY
+================================================================================
+Total Test Cases     : 4
+Functional Pass Rate : 4/4 (100.0%)
+SLO Compliance Rate  : 4/4 (100.0%)
+Total Run Duration   : 41.23s
+Report Exported To   : smoke_prober_results.json
+================================================================================
+Container called exit(0).
