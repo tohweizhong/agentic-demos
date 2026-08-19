@@ -234,7 +234,39 @@ The prober automatically manages authentication across environments:
 
 ---
 
-## 📊 Sample Execution Output
+## 🧪 End-to-End Testing & Cloud Verification
+
+`ge-prober` includes automated test harnesses for both local Go integration testing and full cloud verification pipelines:
+
+### 1. Local Go E2E Test Suite (Live Discovery Engine API)
+Execute the Go E2E test suite against the live Gemini Enterprise backend using local ADC credentials:
+```bash
+# Via convenience script:
+./scripts/test_e2e_local.sh
+
+# Or directly via Go test:
+go test -v -tags=e2e -run TestLiveE2E ./...
+```
+
+### 2. Automated Cloud Verification Pipeline
+Builds the container image via Cloud Build, deploys to Cloud Run, syncs Cloud Scheduler, triggers a live manual execution, and extracts the full execution logs to local audit files:
+```bash
+# Execute full cloud verification pipeline:
+./scripts/e2e_cloud_pipeline.sh
+
+# Target a specific track to save permanent audit log artifact:
+./scripts/e2e_cloud_pipeline.sh --track-id="automated_cloud_e2e_pipeline_and_log_artifacts_20260819"
+
+# Preview planned cloud commands (Dry Run):
+./scripts/e2e_cloud_pipeline.sh --dry-run
+```
+Execution logs are stored in:
+- `logs/executions/<timestamp>_<execution_id>.log` (local active logs)
+- `conductor/tracks/<track_id>/execution.log` (permanent track audit artifacts)
+
+---
+
+## 📊 Sample Execution Output (Verbose Stream Tracing)
 ```
 ================================================================================
 🚀 GEMINI ENTERPRISE SYNTHETIC SMOKE TEST PROBER (Go)
@@ -244,20 +276,49 @@ The prober automatically manages authentication across environments:
 ⚙️ Target Engine  : my-gemini-app
 📦 Smoke Probes   : 4 test cases
 ⚡ Concurrency    : 4 parallel workers
+🔍 Verbose Stream : true
 ================================================================================
 
-✅ [gemini_notebook] Gemini Notebook Knowledge Base Q&A     | TTFT: 14132.8ms | TTLT: 14132.8ms
-✅ [google_search] Public Google Search Web Grounding       | TTFT: 15118.3ms | TTLT: 15118.3ms
-✅ [deep_research] Deep Research Multi-Step Plan & Synthesis | TTFT: 37596.5ms | TTLT: 37596.5ms
-✅ [sharepoint] SharePoint Document Retrieval               | TTFT: 40138.1ms | TTLT: 40138.1ms
+[4/4] 🔎 [web_search] smoke_web_grounding_04
+📜 Query: "What are the latest announced Google Cloud Singapore regional capabilities this year?"
+💬 Response:
+This year, Google Cloud has officially announced and expanded several key regional capabilities for the **Singapore (SG)** region, focusing on data residency, machine learning compliance, and advanced AI services.
+...
+### 🇸🇬 Singapore Regional Capabilities Overview
+| Capability | Status | Key Features & Support |
+| :--- | :--- | :--- |
+| **In-Region Data Residency (DRZ)** | **GA (with allowlist)** | Supports at-rest data residency commitments directly within the Singapore (`SG`) region. |
+| **In-Region Machine Learning Processing (MLP)** | **GA (with allowlist)** | Ensures that machine learning processing of prompts and responses occurs locally within Singapore boundaries. |
+...
+✅ Stream Done (TTFT: 16382.9 ms | Total: 16383.0 ms)
+
+[3/4] 🔎 [gemini_notebook] smoke_notebooklm_03
+📜 Query: "What is Model Armor's overarching purpose and operational approach to AI protection?"
+💬 Response:
+...
+✅ Stream Done (TTFT: 22491.9 ms | Total: 22492.0 ms)
+
+[1/4] 🔎 [vertex_ai_search] smoke_m365_sharepoint_01
+📜 Query: "Find the workplace policy document in our SharePoint site."
+💬 Response:
+...
+*   **[Artificial Intelligence in the Workplace Policy (docx)](https://...)**
+...
+✅ Stream Done (TTFT: 30318.2 ms | Total: 30318.3 ms)
+
+[2/4] 🔎 [deep_research_agent] smoke_deep_research_02
+📜 Query: "Project management methodologies"
+💬 Response:
+...
+✅ Stream Done (TTFT: 39952.7 ms | Total: 39952.7 ms)
 
 ================================================================================
-📊 PROBER SUMMARY & HEALTH SCORE: 4/4 Passed (100.0%) | SLO: 4/4 (100.0%) | Duration: 40.14s | Details: [gemini_notebook: PASS (14133ms), google_search: PASS (15118ms), deep_research: PASS (37596ms), sharepoint: PASS (40138ms)]
+📊 TEST SUITE EXECUTION SUMMARY
 ================================================================================
-Total Duration       : 40.14s
+Total Test Cases     : 4
 Functional Pass Rate : 4/4 (100.0%)
 SLO Compliance Rate  : 4/4 (100.0%)
+Total Run Duration   : 39.95s
 Report Exported To   : smoke_prober_results.json
 ================================================================================
-Container called exit(0).
 ```
