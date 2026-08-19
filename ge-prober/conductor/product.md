@@ -109,18 +109,19 @@ Client / Prober (HTTP/gRPC) ──> ESF (IAM, Quota, Rate Limiting)
 - **Pure Semantic Evaluation**: 100% pure semantic evaluation via Vertex AI Gemini 2.5 Flash judge with zero brittle keyword assertions.
 - **Automated Cloud Run E2E Verification**: 100% Functional, Semantic, and SLO compliance across all probes in Cloud Run.
 
-### 🔐 Phase 5: Microsoft SharePoint Online & 3P Federated Connectors (Near-Term)
-- **Headless EUC OAuth Token Brokering**: Implement Secret Manager Google OAuth refresh token exchange for synthetic user EUC tokens (`ya29...`) to enable `DataConnectorService` 3P token lookup.
-- **BAP Standard Connector (MST) Integration**: Validate document search across SharePoint Online data stores (`vertexAiSearchSpec.dataStoreSpecs`).
-- **PKCE & `AUTH_REQUIRED` Interception**: Detect `auth_required` stream states and trigger automated runbook alerts for Microsoft OAuth re-consent.
+### 🤖 Phase 5: Custom No-Code Enterprise Agents & Agent Designer Probing (Immediate Next)
+- **`DirectAgentAssistantStrategy` Invariant Verification**: Probe execution of custom agents via `agentsSpec: [{agentId: "..."}]` and ensure data store / tool scoping constraints are enforced (agent tools are strictly a subset of assistant tools).
+- **Agent Designer Conversational Creation**: Probe the `create_conversational_agent` meta-tool used by the Agent Designer widget.
+- **Custom System Instruction & Persona Grounding**: Validate custom prompt objective evaluation and tool invocation via Vertex AI LLM Judge.
 
-### 📓 Phase 6: Gemini Notebook Enterprise (NotebookLM) Probing (Near-Term)
+### 📓 Phase 6: Gemini Notebook Enterprise (NotebookLM) Probing (Next)
 - **`QueryNotebookTool` Invocation**: Verify assistant tool routing to user-attached notebook knowledge bases.
 - **RAG Context Window & Chunk Grounding**: Validate citation metadata and source chunk assertions for notebook sources.
 
-### 🤖 Phase 7: Custom No-Code Enterprise Agents & Agent Designer Probing (Near-Term)
-- **`DirectAgentAssistantStrategy` Invariant Verification**: Probe execution of custom agents via `agentsSpec: [{agentId: "..."}]` and ensure data store / tool scoping constraints are enforced.
-- **Agent Designer Conversational Creation**: Probe the `create_conversational_agent` meta-tool.
+### 🔐 Phase 7: Microsoft SharePoint Online & 3P Federated Connectors (Subsequent)
+- **Headless EUC OAuth Token Brokering**: Implement Secret Manager Google OAuth refresh token exchange for synthetic user EUC tokens (`ya29...`) to enable `DataConnectorService` 3P token lookup.
+- **BAP Standard Connector (MST) Integration**: Validate document search across SharePoint Online data stores (`vertexAiSearchSpec.dataStoreSpecs`).
+- **PKCE & `AUTH_REQUIRED` Interception**: Detect `auth_required` stream states and trigger automated runbook alerts for Microsoft OAuth re-consent.
 
 ### ⚡ Phase 8: Quick Search Fast-Path & HITL Mutating Actions Probing (Near-Term)
 - **Quick Search Low-Latency Fast-Path**: Validate simple queries triggering `quick_search=True` (bypassing multi-turn reasoning loops for minimal latency).
