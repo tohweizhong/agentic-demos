@@ -34,3 +34,6 @@
 
 - [x] **Track: Google Drive Connector Grounding & Authentication Probe**
   *Link: [google_drive_connector_probe_20260819](./tracks/google_drive_connector_probe_20260819/index.md)*
+
+- [ ] **Track: Expand Prober Suite with Deep Research and Web Grounding**
+  *Link: [expand_suite_deep_research_and_web_grounding_20260819](./tracks/expand_suite_deep_research_and_web_grounding_20260819/index.md)*
