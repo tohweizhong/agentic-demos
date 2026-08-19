@@ -1,0 +1,50 @@
+================================================================================
+🚀 GEMINI ENTERPRISE SYNTHETIC SMOKE TEST PROBER (Go)
+================================================================================
+🎯 Target Project : weizhong-project03
+📍 Location / Reg : global
+⚙️ Target Engine  : ge-global-prober_1786960389717
+📦 Smoke Probes   : 1 test cases
+⚡ Concurrency    : 4 parallel workers
+🔍 Verbose Stream : true
+⚖️ LLM Judge     : gemini-2.5-flash (enabled)
+================================================================================
+[1/1] 🔎 [google_drive] smoke_gdrive_01
+📜 Query: "Tell me about the helicopter racing league"
+💬 Response:
+The **Helicopter Racing League (HRL)** is a professional sports organization dedicated to competitive helicopter racing. It has also famously served as a prominent **Google Cloud case study** used for developer training, certification exams, and demonstrating real-world cloud architecture solutions.
+Here is a breakdown of what the Helicopter Racing League is, its operational model, and how it is used to showcase modern cloud technologies.
+---
+### 🚁 What is the Helicopter Racing League?
+The Helicopter Racing League is a global sports franchise where pilots compete in high-speed, low-altitude helicopter races. Because of the extreme nature of the sport, the league relies heavily on cutting-edge technology to ensure safety, analyze performance, and engage fans worldwide.
+| Aspect | Description |
+|---|---|
+| **Core Product** | Live-streamed aerial races with telemetry data tracked in real-time. |
+| **Media & Broadcast** | High-definition (HD) and operational video feeds from onboard cameras, trackside cameras, and drones. |
+| **Fan Experience** | Real-time statistics, global video-on-demand (VOD), and interactive telemetry overlays for viewers. |
+---
+### ⚙️ The Cloud Architecture & Business Challenges
+In its capacity as a Google Cloud architecture scenario, the HRL is used to design solutions for specific business and technical challenges:
+*   **Real-Time Telemetry:** Over 100 sensors per helicopter transmit operational data (engine temperature, speed, rotor RPM, altitude) every fraction of a second. This requires a robust ingest pipeline like **Google Cloud Pub/Sub** and stream processing via **Dataflow**.
+*   **Video Processing & Distribution:** Racing video must be ingested, transcoded, and served globally with low latency. This leverages **Cloud CDN**, **Cloud Storage**, and **Media CDN**.
+*   **Predictive Analytics:** The league uses machine learning (ML) models built on **Vertex AI** to predict race outcomes, analyze pilot behavior, and monitor helicopter maintenance needs proactively to prevent mechanical failures.
+*   **Global Scalability:** Because races happen in remote locations around the world, the infrastructure must be hybrid-ready and capable of handling sudden spikes in traffic during live events.
+---
+### 📌 Key Takeaway
+> 💡 **Key Takeaway:** Whether viewed as an exciting sport or a complex cloud case study, the Helicopter Racing League represents the intersection of high-speed athletics and advanced telemetry, stream processing, and predictive AI analytics.
+---
+Would you like to explore the specific technical solutions, database choices, or machine learning pipelines typically proposed for the Helicopter Racing League scenario?
+✅ Stream Done (TTFT: 24717.7 ms | Total: 24717.7 ms)
+⚖️ Judge Verdict: ✅ FULFILLED (Score: 4/5 | gemini-2.5-flash)
+   ↳ 💭 The response provides highly detailed and relevant information about the Helicopter Racing League as a Google Cloud case study, clearly drawing from enterprise knowledge. It is well-synthesized and factual, but it omits explicit source citations as required by the contract.
+================================================================================
+📊 TEST SUITE EXECUTION SUMMARY
+================================================================================
+Total Test Cases     : 1
+Functional Pass Rate : 1/1 (100.0%)
+Semantic Pass Rate   : 1/1 (100.0%)
+SLO Compliance Rate  : 1/1 (100.0%)
+Total Run Duration   : 39.52s
+Report Exported To   : smoke_prober_results.json
+================================================================================
+Container called exit(0).
