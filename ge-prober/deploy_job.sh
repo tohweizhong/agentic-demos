@@ -364,9 +364,9 @@ if [[ "${ONLY_SCHEDULER}" == false && "${ONLY_ALERTING}" == false ]]; then
   # Step 2: Deploy Cloud Run Job
   # ==============================================================================
   echo "⚡ [2/4] Deploying Cloud Run Job ${JOB_NAME}..."
-  ENV_VARS="GCP_PROJECT_ID=${PROJECT_ID},GE_ENGINE_ID=${ENGINE_ID},GE_LOCATION=${LOCATION}"
+  ENV_VARS="^#^GCP_PROJECT_ID=${PROJECT_ID}#GE_ENGINE_ID=${ENGINE_ID}#GE_LOCATION=${LOCATION}"
   if [[ -n "${DATA_STORE_IDS}" ]]; then
-    ENV_VARS="${ENV_VARS},GE_DATA_STORE_IDS=${DATA_STORE_IDS}"
+    ENV_VARS="${ENV_VARS}#GE_DATA_STORE_IDS=${DATA_STORE_IDS}"
   fi
   gcloud run jobs deploy "${JOB_NAME}" \
     --project="${PROJECT_ID}" \
