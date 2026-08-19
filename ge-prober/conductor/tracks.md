@@ -23,7 +23,7 @@
 - [x] **Track: Implement Cloud Monitoring Alerting & Email Notifications**
   *Link: [cloud_monitoring_alerts_20260817](./tracks/cloud_monitoring_alerts_20260817/index.md)*
 
-- [ ] **Track: Verbose Cloud Logging & Real-Time Stream Tracing**
+- [~] **Track: Verbose Cloud Logging & Real-Time Stream Tracing**
   *Link: [verbose_cloud_logging_and_stream_tracing_20260819](./tracks/verbose_cloud_logging_and_stream_tracing_20260819/index.md)*
 
 
