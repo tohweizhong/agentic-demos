@@ -7,12 +7,12 @@
 - [x] Task: [TDD] Update `prober_test.go` and `config_test.go` to verify test case parsing and LLM Judge evaluation without keyword assertions. 5e40de8
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) 5e40de8
 
-## Phase 2: Authentication Resolution & Local Live Probing
-- [~] Task: Verify `auth.go` resolves user token (`admin@weizhongt.altostrat.com`) and configure `deploy_job.sh` to use dedicated SA `ge-regression-runner-sa@weizhong-project03.iam.gserviceaccount.com`.
-- [ ] Task: Execute `./ge-prober` locally to verify live Google Drive connector query, citation capture, and Vertex AI LLM Judge score.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: Authentication Resolution & Local Live Probing [checkpoint: 892d9d9]
+- [x] Task: Verify `auth.go` resolves user token (`admin@weizhongt.altostrat.com`) and configure `deploy_job.sh` to use dedicated SA `ge-regression-runner-sa@weizhong-project03.iam.gserviceaccount.com`. 892d9d9
+- [x] Task: Execute `./ge-prober` locally to verify live Google Drive connector query, citation capture, and Vertex AI LLM Judge score. 892d9d9
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) 892d9d9
 
 ## Phase 3: Cloud Run Deployment, E2E Pipeline & Log Artifacts
-- [ ] Task: Execute `scripts/e2e_cloud_pipeline.sh` with `--track-id google_drive_connector_probe_20260819` to build, deploy, execute in Cloud Run, and capture execution logs.
+- [~] Task: Execute `scripts/e2e_cloud_pipeline.sh` with `--track-id google_drive_connector_probe_20260819` to build, deploy, execute in Cloud Run, and capture execution logs.
 - [ ] Task: Verify Cloud Run execution logs confirm Google Drive document retrieval, citations, and LLM Judge verdict.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
