@@ -75,13 +75,26 @@ func EvaluateSLO(slo SLOTargets, ttftMs, totalLatencyMs float64) (bool, []string
 	return passed, reasons
 }
 
-// ExecuteProbe runs a single test case against StreamAssist, handling multi-turn sessions for Deep Research.
+// ExecuteProbe runs a single test case against StreamAssist.
 func ExecuteProbe(
 	ctx context.Context,
 	tc TestCase,
 	cfg *Config,
 	client *StreamAssistClient,
 	overrideURL string,
+) ProbeResult {
+	return ExecuteProbeWithLogger(ctx, 1, 1, tc, cfg, client, overrideURL, nil)
+}
+
+// ExecuteProbeWithLogger runs a single test case against StreamAssist with stream logging.
+func ExecuteProbeWithLogger(
+	ctx context.Context,
+	index, total int,
+	tc TestCase,
+	cfg *Config,
+	client *StreamAssistClient,
+	overrideURL string,
+	logger *StreamLogger,
 ) ProbeResult {
 	startTime := time.Now()
 	var (
@@ -93,7 +106,8 @@ func ExecuteProbe(
 		hasCitations bool
 	)
 
-	// --- Turn 1 ---
+	trace := NewProbeTrace(index, total, tc.GroundingType, tc.ID, tc.Query)
+
 	req1 := BuildStreamAssistRequest(tc, cfg, "")
 	var chunks []StreamAssistChunk
 	var err error
@@ -121,6 +135,9 @@ func ExecuteProbe(
 						ttfaMs = timeSinceMs(startTime)
 					}
 				}
+				if text != "" && thought {
+					trace.AddThought(text)
+				}
 				if len(reply.Citations) > 0 || len(reply.References) > 0 || reply.GroundedContent.GroundingMetadata != nil {
 					hasCitations = true
 				}
@@ -128,14 +145,19 @@ func ExecuteProbe(
 		}
 	}
 
-
-
 	totalLatencyMs := timeSinceMs(startTime)
 	if ttftMs < 0 {
 		ttftMs = totalLatencyMs
 	}
 	if ttfaMs < 0 {
 		ttfaMs = totalLatencyMs
+	}
+
+	trace.SetResponse(fullResponse)
+	trace.SetTimings(round1(ttftMs), round1(totalLatencyMs))
+
+	if logger != nil {
+		logger.EmitTrace(trace)
 	}
 
 	assertPassed, assertReasons := EvaluateAssertions(tc, statusCode, fullResponse, hasCitations, errorMsg)
@@ -175,7 +197,7 @@ func RunProberSuite(
 	cfg *Config,
 	client *StreamAssistClient,
 ) ProberReport {
-	return RunProberSuiteWithURL(ctx, "", cases, cfg, client)
+	return RunProberSuiteWithLogger(ctx, "", cases, cfg, client, nil)
 }
 
 // RunProberSuiteWithURL executes all test cases against an optional URL override.
@@ -186,16 +208,34 @@ func RunProberSuiteWithURL(
 	cfg *Config,
 	client *StreamAssistClient,
 ) ProberReport {
+	return RunProberSuiteWithLogger(ctx, overrideURL, cases, cfg, client, nil)
+}
+
+type indexedTask struct {
+	index int
+	tc    TestCase
+}
+
+// RunProberSuiteWithLogger executes all test cases concurrently using a worker pool and optional stream logger.
+func RunProberSuiteWithLogger(
+	ctx context.Context,
+	overrideURL string,
+	cases []TestCase,
+	cfg *Config,
+	client *StreamAssistClient,
+	logger *StreamLogger,
+) ProberReport {
 	concurrency := cfg.MaxConcurrency
 	if concurrency <= 0 {
 		concurrency = 4
 	}
 
-	taskChan := make(chan TestCase, len(cases))
-	resultChan := make(chan ProbeResult, len(cases))
+	total := len(cases)
+	taskChan := make(chan indexedTask, total)
+	resultChan := make(chan ProbeResult, total)
 
-	for _, tc := range cases {
-		taskChan <- tc
+	for i, tc := range cases {
+		taskChan <- indexedTask{index: i + 1, tc: tc}
 	}
 	close(taskChan)
 
@@ -204,8 +244,8 @@ func RunProberSuiteWithURL(
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for tc := range taskChan {
-				res := ExecuteProbe(ctx, tc, cfg, client, overrideURL)
+			for task := range taskChan {
+				res := ExecuteProbeWithLogger(ctx, task.index, total, task.tc, cfg, client, overrideURL, logger)
 				resultChan <- res
 			}
 		}()
