@@ -1,0 +1,1 @@
+Implemented e2e_test.go with //go:build e2e and test_e2e_local.sh runner
