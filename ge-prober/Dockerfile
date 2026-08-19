@@ -19,7 +19,7 @@ FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
 
 COPY --from=builder /ge-prober /app/ge-prober
-COPY config.json /app/config.json
+COPY config.example.json /app/config.json
 COPY test_cases /app/test_cases
 
 USER nonroot:nonroot
