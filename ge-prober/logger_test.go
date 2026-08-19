@@ -205,6 +205,7 @@ func TestFormatExecutionSummary(t *testing.T) {
 		TotalProbes:      4,
 		FunctionalPassed: 4,
 		SLOPassed:        4,
+		SemanticPassed:   4,
 	}
 	summary := FormatExecutionSummary(report, 20.015, "smoke_prober_results.json")
 	if !strings.Contains(summary, "TEST SUITE EXECUTION SUMMARY") {
@@ -213,7 +214,34 @@ func TestFormatExecutionSummary(t *testing.T) {
 	if !strings.Contains(summary, "Total Test Cases") || !strings.Contains(summary, "4") {
 		t.Errorf("missing total count in summary: %s", summary)
 	}
+	if !strings.Contains(summary, "Semantic Pass Rate") {
+		t.Errorf("missing semantic pass rate in summary: %s", summary)
+	}
 	if !strings.Contains(summary, "100.0%") {
 		t.Errorf("missing pass percentage: %s", summary)
+	}
+}
+
+func TestFormatJudgeVerdict(t *testing.T) {
+	fulfilledEval := &SemanticEvaluation{
+		JudgeModel: "gemini-2.5-flash",
+		Fulfilled:  true,
+		Score:      5,
+		Reasoning:  "Target policy found with valid links.",
+	}
+	out := FormatJudgeVerdict(fulfilledEval)
+	if !strings.Contains(out, "✅ FULFILLED") || !strings.Contains(out, "5/5") || !strings.Contains(out, "gemini-2.5-flash") {
+		t.Errorf("unexpected verdict output: %s", out)
+	}
+
+	unfulfilledEval := &SemanticEvaluation{
+		JudgeModel: "gemini-2.5-flash",
+		Fulfilled:  false,
+		Score:      1,
+		Reasoning:  "Connector setup instructions returned instead of document.",
+	}
+	out2 := FormatJudgeVerdict(unfulfilledEval)
+	if !strings.Contains(out2, "❌ UNFULFILLED") || !strings.Contains(out2, "1/5") || !strings.Contains(out2, "Connector setup instructions") {
+		t.Errorf("unexpected unfulfilled verdict output: %s", out2)
 	}
 }

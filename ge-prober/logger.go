@@ -41,6 +41,27 @@ func FormatResponseLines(rawResponse string) []string {
 	return lines
 }
 
+// FormatJudgeVerdict formats the LLM judge verdict line.
+func FormatJudgeVerdict(eval *SemanticEvaluation) string {
+	if eval == nil {
+		return ""
+	}
+	icon := "✅ FULFILLED"
+	if !eval.Fulfilled {
+		icon = "❌ UNFULFILLED"
+	}
+	modelStr := eval.JudgeModel
+	if modelStr == "" {
+		modelStr = "Vertex AI Judge"
+	}
+
+	res := fmt.Sprintf("⚖️ Judge Verdict: %s (Score: %d/5 | %s)", icon, eval.Score, modelStr)
+	if eval.Reasoning != "" {
+		res += fmt.Sprintf("\n   ↳ 💭 %s", eval.Reasoning)
+	}
+	return res
+}
+
 // ProbeTrace holds formatted log lines for a single test probe execution.
 type ProbeTrace struct {
 	Index          int
@@ -52,6 +73,7 @@ type ProbeTrace struct {
 	Response       string
 	TTFTMs         float64
 	TotalLatencyMs float64
+	SemanticEval   *SemanticEvaluation
 }
 
 // NewProbeTrace creates a new trace buffer.
@@ -83,6 +105,11 @@ func (pt *ProbeTrace) SetTimings(ttftMs, totalLatencyMs float64) {
 	pt.TotalLatencyMs = totalLatencyMs
 }
 
+// SetSemanticEval sets the judge evaluation.
+func (pt *ProbeTrace) SetSemanticEval(eval *SemanticEvaluation) {
+	pt.SemanticEval = eval
+}
+
 // EmitTo writes the formatted probe trace to an io.Writer.
 func (pt *ProbeTrace) EmitTo(w io.Writer) {
 	fmt.Fprintln(w, FormatProbeHeader(pt.Index, pt.Total, pt.GroundingType, pt.ID))
@@ -107,6 +134,10 @@ func (pt *ProbeTrace) EmitTo(w io.Writer) {
 	}
 
 	fmt.Fprintln(w, FormatStreamDone(pt.TTFTMs, pt.TotalLatencyMs))
+
+	if pt.SemanticEval != nil {
+		fmt.Fprintln(w, FormatJudgeVerdict(pt.SemanticEval))
+	}
 }
 
 // StreamLogger synchronizes trace printing across multiple concurrent workers.
@@ -142,9 +173,11 @@ func (sl *StreamLogger) EmitTrace(trace *ProbeTrace) {
 func FormatExecutionSummary(report ProberReport, totalDurationSec float64, outputFile string) string {
 	passRate := 0.0
 	sloRate := 0.0
+	semanticRate := 0.0
 	if report.TotalProbes > 0 {
 		passRate = float64(report.FunctionalPassed) / float64(report.TotalProbes) * 100.0
 		sloRate = float64(report.SLOPassed) / float64(report.TotalProbes) * 100.0
+		semanticRate = float64(report.SemanticPassed) / float64(report.TotalProbes) * 100.0
 	}
 
 	var sb strings.Builder
@@ -153,6 +186,7 @@ func FormatExecutionSummary(report ProberReport, totalDurationSec float64, outpu
 	sb.WriteString("================================================================================\n")
 	sb.WriteString(fmt.Sprintf("Total Test Cases     : %d\n", report.TotalProbes))
 	sb.WriteString(fmt.Sprintf("Functional Pass Rate : %d/%d (%.1f%%)\n", report.FunctionalPassed, report.TotalProbes, passRate))
+	sb.WriteString(fmt.Sprintf("Semantic Pass Rate   : %d/%d (%.1f%%)\n", report.SemanticPassed, report.TotalProbes, semanticRate))
 	sb.WriteString(fmt.Sprintf("SLO Compliance Rate  : %d/%d (%.1f%%)\n", report.SLOPassed, report.TotalProbes, sloRate))
 	sb.WriteString(fmt.Sprintf("Total Run Duration   : %.2fs\n", totalDurationSec))
 	if outputFile != "" {

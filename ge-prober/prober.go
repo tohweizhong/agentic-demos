@@ -96,6 +96,20 @@ func ExecuteProbeWithLogger(
 	overrideURL string,
 	logger *StreamLogger,
 ) ProbeResult {
+	return ExecuteProbeWithJudge(ctx, index, total, tc, cfg, client, overrideURL, logger, nil)
+}
+
+// ExecuteProbeWithJudge runs a single test case against StreamAssist with stream logging and LLM judging.
+func ExecuteProbeWithJudge(
+	ctx context.Context,
+	index, total int,
+	tc TestCase,
+	cfg *Config,
+	client *StreamAssistClient,
+	overrideURL string,
+	logger *StreamLogger,
+	judge JudgeClient,
+) ProbeResult {
 	startTime := time.Now()
 	var (
 		statusCode   int
@@ -156,6 +170,16 @@ func ExecuteProbeWithLogger(
 	trace.SetResponse(fullResponse)
 	trace.SetTimings(round1(ttftMs), round1(totalLatencyMs))
 
+	// Perform semantic judging if enabled and judge client is present
+	var semanticEval *SemanticEvaluation
+	if judge != nil && cfg.EnableJudge && fullResponse != "" && statusCode == 200 {
+		eval, err := judge.EvaluateResponse(ctx, tc, fullResponse)
+		if err == nil {
+			semanticEval = eval
+			trace.SetSemanticEval(eval)
+		}
+	}
+
 	if logger != nil {
 		logger.EmitTrace(trace)
 	}
@@ -186,6 +210,7 @@ func ExecuteProbeWithLogger(
 		HasCitations:    hasCitations,
 		FailureReasons:  allReasons,
 		ResponsePreview: strings.TrimSpace(preview),
+		SemanticEval:    semanticEval,
 		ExecutedAt:      time.Now().UTC(),
 	}
 }
@@ -197,7 +222,7 @@ func RunProberSuite(
 	cfg *Config,
 	client *StreamAssistClient,
 ) ProberReport {
-	return RunProberSuiteWithLogger(ctx, "", cases, cfg, client, nil)
+	return RunProberSuiteWithJudge(ctx, "", cases, cfg, client, nil, nil)
 }
 
 // RunProberSuiteWithURL executes all test cases against an optional URL override.
@@ -208,7 +233,7 @@ func RunProberSuiteWithURL(
 	cfg *Config,
 	client *StreamAssistClient,
 ) ProberReport {
-	return RunProberSuiteWithLogger(ctx, overrideURL, cases, cfg, client, nil)
+	return RunProberSuiteWithJudge(ctx, overrideURL, cases, cfg, client, nil, nil)
 }
 
 type indexedTask struct {
@@ -224,6 +249,19 @@ func RunProberSuiteWithLogger(
 	cfg *Config,
 	client *StreamAssistClient,
 	logger *StreamLogger,
+) ProberReport {
+	return RunProberSuiteWithJudge(ctx, overrideURL, cases, cfg, client, logger, nil)
+}
+
+// RunProberSuiteWithJudge executes all test cases concurrently with optional stream logger and LLM judge.
+func RunProberSuiteWithJudge(
+	ctx context.Context,
+	overrideURL string,
+	cases []TestCase,
+	cfg *Config,
+	client *StreamAssistClient,
+	logger *StreamLogger,
+	judge JudgeClient,
 ) ProberReport {
 	concurrency := cfg.MaxConcurrency
 	if concurrency <= 0 {
@@ -245,7 +283,7 @@ func RunProberSuiteWithLogger(
 		go func() {
 			defer wg.Done()
 			for task := range taskChan {
-				res := ExecuteProbeWithLogger(ctx, task.index, total, task.tc, cfg, client, overrideURL, logger)
+				res := ExecuteProbeWithJudge(ctx, task.index, total, task.tc, cfg, client, overrideURL, logger, judge)
 				resultChan <- res
 			}
 		}()
@@ -258,6 +296,7 @@ func RunProberSuiteWithLogger(
 		results          []ProbeResult
 		functionalPassed int
 		sloPassed        int
+		semanticPassed   int
 	)
 
 	for res := range resultChan {
@@ -267,6 +306,9 @@ func RunProberSuiteWithLogger(
 			if res.SLOPassed {
 				sloPassed++
 			}
+		}
+		if res.SemanticEval != nil && res.SemanticEval.Fulfilled {
+			semanticPassed++
 		}
 	}
 
@@ -278,6 +320,7 @@ func RunProberSuiteWithLogger(
 		TotalProbes:      len(results),
 		FunctionalPassed: functionalPassed,
 		SLOPassed:        sloPassed,
+		SemanticPassed:   semanticPassed,
 		Results:          results,
 	}
 }

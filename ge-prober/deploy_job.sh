@@ -16,6 +16,7 @@ TIME_ZONE="${TIME_ZONE:-Asia/Singapore}"
 SERVICE_ACCOUNT="${SCHEDULER_SA_EMAIL:-}"
 ALERT_EMAIL="${ALERT_EMAIL:-alerts@example.com}"
 ALERT_MODE="${ALERT_MODE:-all}"
+DATA_STORE_IDS="${GE_DATA_STORE_IDS:-}"
 DRY_RUN=false
 SKIP_BUILD=false
 ONLY_SCHEDULER=false
@@ -152,6 +153,14 @@ while [[ $# -gt 0 ]]; do
       ALERT_EMAIL="${1#*=}"
       shift
       ;;
+    -d|--datastores)
+      DATA_STORE_IDS="$2"
+      shift 2
+      ;;
+    --datastores=*)
+      DATA_STORE_IDS="${1#*=}"
+      shift
+      ;;
     --alert-mode)
       ALERT_MODE="$2"
       shift 2
@@ -220,6 +229,10 @@ if [[ -z "${SERVICE_ACCOUNT}" ]]; then
   fi
 fi
 
+if [[ -z "${DATA_STORE_IDS}" && -f "config.json" ]]; then
+  DATA_STORE_IDS=$(grep -o '"sharepoint-[^"]*"' config.json | tr '\n' ',' | sed 's/,$//' | tr -d '"' || true)
+fi
+
 IMAGE_TAG="gcr.io/${PROJECT_ID}/${JOB_NAME}:latest"
 URI="https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/${JOB_NAME}:run"
 
@@ -234,6 +247,7 @@ echo "Project ID         : ${PROJECT_ID}"
 echo "Region             : ${REGION}"
 echo "Engine ID          : ${ENGINE_ID}"
 echo "Location           : ${LOCATION}"
+echo "Data Store IDs     : ${DATA_STORE_IDS:-None}"
 echo "Job Name           : ${JOB_NAME}"
 echo "Image Tag          : ${IMAGE_TAG}"
 echo "Scheduler Name     : ${SCHEDULER_JOB}"
@@ -350,6 +364,10 @@ if [[ "${ONLY_SCHEDULER}" == false && "${ONLY_ALERTING}" == false ]]; then
   # Step 2: Deploy Cloud Run Job
   # ==============================================================================
   echo "⚡ [2/4] Deploying Cloud Run Job ${JOB_NAME}..."
+  ENV_VARS="GCP_PROJECT_ID=${PROJECT_ID},GE_ENGINE_ID=${ENGINE_ID},GE_LOCATION=${LOCATION}"
+  if [[ -n "${DATA_STORE_IDS}" ]]; then
+    ENV_VARS="${ENV_VARS},GE_DATA_STORE_IDS=${DATA_STORE_IDS}"
+  fi
   gcloud run jobs deploy "${JOB_NAME}" \
     --project="${PROJECT_ID}" \
     --region="${REGION}" \
@@ -359,7 +377,7 @@ if [[ "${ONLY_SCHEDULER}" == false && "${ONLY_ALERTING}" == false ]]; then
     --task-timeout=300s \
     --memory=1Gi \
     --cpu=2 \
-    --set-env-vars="GCP_PROJECT_ID=${PROJECT_ID},GE_ENGINE_ID=${ENGINE_ID},GE_LOCATION=${LOCATION}"
+    --set-env-vars="${ENV_VARS}"
 fi
 
 # ==============================================================================

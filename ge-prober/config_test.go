@@ -191,3 +191,52 @@ func TestResolveConfig_Verbose(t *testing.T) {
 		t.Errorf("expected CLI flag override to set verbose=true")
 	}
 }
+
+func TestResolveConfig_JudgeSettings(t *testing.T) {
+	// 1. Defaults
+	cfg, err := ResolveConfig("", CLIFlagOverrides{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.EnableJudge {
+		t.Errorf("expected default EnableJudge true, got false")
+	}
+	if cfg.JudgeModel != "gemini-2.5-flash" {
+		t.Errorf("expected default JudgeModel gemini-2.5-flash, got %s", cfg.JudgeModel)
+	}
+
+	// 2. Env override
+	os.Setenv("GE_ENABLE_JUDGE", "false")
+	os.Setenv("GE_JUDGE_MODEL", "gemini-2.0-flash")
+	defer func() {
+		os.Unsetenv("GE_ENABLE_JUDGE")
+		os.Unsetenv("GE_JUDGE_MODEL")
+	}()
+
+	cfgEnv, err := ResolveConfig("", CLIFlagOverrides{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfgEnv.EnableJudge {
+		t.Errorf("expected env GE_ENABLE_JUDGE=false to disable judge")
+	}
+	if cfgEnv.JudgeModel != "gemini-2.0-flash" {
+		t.Errorf("expected env GE_JUDGE_MODEL=gemini-2.0-flash, got %s", cfgEnv.JudgeModel)
+	}
+
+	// 3. CLI overrides
+	jTrue := true
+	cfgFlag, err := ResolveConfig("", CLIFlagOverrides{
+		EnableJudge: &jTrue,
+		JudgeModel:  "gemini-2.5-pro",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfgFlag.EnableJudge {
+		t.Errorf("expected CLI flag override to enable judge")
+	}
+	if cfgFlag.JudgeModel != "gemini-2.5-pro" {
+		t.Errorf("expected CLI flag model gemini-2.5-pro, got %s", cfgFlag.JudgeModel)
+	}
+}

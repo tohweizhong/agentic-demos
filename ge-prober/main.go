@@ -24,6 +24,8 @@ func main() {
 	outputJSONAlias := flag.String("output-json", "", "Alias for -output")
 	tokenFlag := flag.String("token", "", "GCP Access Token override (fallback to ADC/WIF)")
 	verboseFlag := flag.Bool("verbose", true, "Enable line-by-line verbose stream tracing")
+	judgeFlag := flag.Bool("judge", true, "Enable Vertex AI LLM-as-a-judge semantic evaluation")
+	judgeModelFlag := flag.String("judge-model", "", "Vertex AI judge model (default: 'gemini-2.5-flash')")
 	flag.Parse()
 
 	// Resolve aliases
@@ -37,9 +39,13 @@ func main() {
 	}
 
 	var explicitVerbose *bool
+	var explicitJudge *bool
 	flag.Visit(func(f *flag.Flag) {
 		if f.Name == "verbose" {
 			explicitVerbose = verboseFlag
+		}
+		if f.Name == "judge" {
+			explicitJudge = judgeFlag
 		}
 	})
 
@@ -55,6 +61,8 @@ func main() {
 		OutputFile:     outPath,
 		Token:          *tokenFlag,
 		Verbose:        explicitVerbose,
+		EnableJudge:    explicitJudge,
+		JudgeModel:     *judgeModelFlag,
 	}
 
 	// 12-factor configuration resolution
@@ -97,6 +105,11 @@ func main() {
 	client := NewStreamAssistClient(token, timeout)
 	streamLogger := NewStreamLogger(os.Stdout, cfg.Verbose)
 
+	var judge JudgeClient
+	if cfg.EnableJudge {
+		judge = NewVertexAIJudgeClient(cfg.ProjectID, cfg.Location, cfg.JudgeModel, token, 45*time.Second)
+	}
+
 	fmt.Println()
 	fmt.Println("================================================================================")
 	fmt.Println("🚀 GEMINI ENTERPRISE SYNTHETIC SMOKE TEST PROBER (Go)")
@@ -107,12 +120,17 @@ func main() {
 	fmt.Printf("📦 Smoke Probes   : %d test cases\n", len(cases))
 	fmt.Printf("⚡ Concurrency    : %d parallel workers\n", cfg.MaxConcurrency)
 	fmt.Printf("🔍 Verbose Stream : %t\n", cfg.Verbose)
+	if cfg.EnableJudge {
+		fmt.Printf("⚖️ LLM Judge     : %s (enabled)\n", cfg.JudgeModel)
+	} else {
+		fmt.Println("⚖️ LLM Judge     : disabled")
+	}
 	fmt.Println("================================================================================")
 	fmt.Println()
 
 	startTime := time.Now()
 	ctx := context.Background()
-	report := RunProberSuiteWithLogger(ctx, "", cases, cfg, client, streamLogger)
+	report := RunProberSuiteWithJudge(ctx, "", cases, cfg, client, streamLogger, judge)
 	totalDuration := time.Since(startTime).Seconds()
 
 	// Print summary report
