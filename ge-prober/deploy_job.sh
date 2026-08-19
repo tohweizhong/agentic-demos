@@ -218,9 +218,14 @@ if [[ -z "${SERVICE_ACCOUNT}" ]]; then
     if [[ "${ACCOUNT_VAL}" == *".gserviceaccount.com" ]]; then
       SERVICE_ACCOUNT="${ACCOUNT_VAL}"
     else
-      DEFAULT_SA="$(gcloud iam service-accounts list --project="${PROJECT_ID}" --filter="displayName:'Default compute service account' OR email:compute@developer.gserviceaccount.com" --format="value(email)" 2>/dev/null | head -n 1 || true)"
-      if [[ -n "${DEFAULT_SA}" ]]; then
-        SERVICE_ACCOUNT="${DEFAULT_SA}"
+      REGRESSION_SA="$(gcloud iam service-accounts list --project="${PROJECT_ID}" --filter="email:ge-regression-runner-sa@ OR displayName:'Gemini Enterprise Regression Test Runner SA'" --format="value(email)" 2>/dev/null | head -n 1 || true)"
+      if [[ -n "${REGRESSION_SA}" ]]; then
+        SERVICE_ACCOUNT="${REGRESSION_SA}"
+      else
+        DEFAULT_SA="$(gcloud iam service-accounts list --project="${PROJECT_ID}" --filter="displayName:'Default compute service account' OR email:compute@developer.gserviceaccount.com" --format="value(email)" 2>/dev/null | head -n 1 || true)"
+        if [[ -n "${DEFAULT_SA}" ]]; then
+          SERVICE_ACCOUNT="${DEFAULT_SA}"
+        fi
       fi
     fi
   fi
