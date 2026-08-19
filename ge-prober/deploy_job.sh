@@ -373,6 +373,9 @@ if [[ "${ONLY_SCHEDULER}" == false && "${ONLY_ALERTING}" == false ]]; then
   if [[ -n "${DATA_STORE_IDS}" ]]; then
     ENV_VARS="${ENV_VARS}#GE_DATA_STORE_IDS=${DATA_STORE_IDS}"
   fi
+  if [[ -n "${GCP_ACCESS_TOKEN:-}" ]]; then
+    ENV_VARS="${ENV_VARS}#GCP_ACCESS_TOKEN=${GCP_ACCESS_TOKEN}"
+  fi
   gcloud run jobs deploy "${JOB_NAME}" \
     --project="${PROJECT_ID}" \
     --region="${REGION}" \

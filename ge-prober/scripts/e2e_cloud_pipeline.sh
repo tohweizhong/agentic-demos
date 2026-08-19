@@ -121,6 +121,13 @@ if [ -z "${TRACK_ID}" ] && [ -f "conductor/tracks.md" ]; then
   TRACK_ID=$(grep -o 'tracks/[^/)]*' conductor/tracks.md | tail -n1 | sed 's|tracks/||' || true)
 fi
 
+if [ -z "${GCP_ACCESS_TOKEN:-}" ]; then
+  GCP_ACCESS_TOKEN=$(gcloud auth application-default print-access-token 2>/dev/null || gcloud auth print-access-token 2>/dev/null || true)
+  if [ -n "${GCP_ACCESS_TOKEN}" ]; then
+    export GCP_ACCESS_TOKEN
+  fi
+fi
+
 TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
 EXEC_LOG_DIR="${ROOT_DIR}/logs/executions"
 mkdir -p "${EXEC_LOG_DIR}"
