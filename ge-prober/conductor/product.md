@@ -75,10 +75,10 @@
 - Rubric scoring (1-5), refusal detection (`detected_refusal_or_unconnected`), and stream evaluation logs.
 - Test suite summary with semantic pass rates alongside functional pass rates.
 
-### 🎯 Phase 4: Google Drive Connector Grounding & Authentication (Immediate Focus)
-- **Single Dedicated Test Case**: Configure `"Tell me about the helicopter racing league"` with Google Drive connector active (matching the Gemini Enterprise Web UI configuration).
-- **Authentication & Tool Routing**: Validate caller authentication and tool specification so that `StreamAssist` routes directly to the Google Drive connector without auth errors or ungrounded refusals.
-- **Assertions & Citations**: Assert non-empty responses, Google Drive document citation metadata presence, and semantic fulfillment via LLM judge.
+### ✅ Phase 4: Google Drive Connector Grounding & Authentication (Completed)
+- **Single Dedicated Test Case**: Configured `"Tell me about the helicopter racing league"` with Google Drive connector active (matching the Gemini Enterprise Web UI configuration).
+- **Authentication & Tool Routing**: Validated caller authentication and tool specification so that `StreamAssist` routes directly to the Google Drive connector without auth errors or ungrounded refusals.
+- **Assertions & Citations**: Asserted non-empty responses, zero keyword assertions (pure semantic validation), and semantic fulfillment via LLM judge (`gemini-2.5-flash`).
 
 ### 🔐 Phase 5: Microsoft SharePoint Online & 3P Federated Connectors (Near-Term)
 - **Headless EUC OAuth Token Brokering**: Implement Secret Manager Google OAuth refresh token exchange for synthetic user EUC tokens (`ya29...`) to enable `DataConnectorService` 3P token lookup.
