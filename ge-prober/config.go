@@ -22,6 +22,8 @@ type CLIFlagOverrides struct {
 	OutputFile     string
 	Token          string
 	Verbose        *bool
+	EnableJudge    *bool
+	JudgeModel     string
 }
 
 // LoadDotEnv parses a local .env file if it exists, without external dependencies.
@@ -69,6 +71,8 @@ func DefaultConfig() *Config {
 		MaxConcurrency: 4,
 		DataStoreIDs:   []string{},
 		Verbose:        true,
+		EnableJudge:    true,
+		JudgeModel:     "gemini-2.5-flash",
 	}
 }
 
@@ -158,6 +162,17 @@ func ResolveConfig(configFilePath string, flags CLIFlagOverrides) (*Config, erro
 			cfg.Verbose = true
 		}
 	}
+	if envJudge := getFirstEnv("GE_ENABLE_JUDGE", "ENABLE_JUDGE", "JUDGE"); envJudge != "" {
+		lower := strings.ToLower(envJudge)
+		if lower == "false" || lower == "0" || lower == "no" {
+			cfg.EnableJudge = false
+		} else if lower == "true" || lower == "1" || lower == "yes" {
+			cfg.EnableJudge = true
+		}
+	}
+	if envJudgeModel := getFirstEnv("GE_JUDGE_MODEL", "JUDGE_MODEL"); envJudgeModel != "" {
+		cfg.JudgeModel = envJudgeModel
+	}
 
 	// 5. CLI flag overrides (Priority 1 - highest)
 	if flags.ProjectID != "" {
@@ -183,6 +198,12 @@ func ResolveConfig(configFilePath string, flags CLIFlagOverrides) (*Config, erro
 	}
 	if flags.Verbose != nil {
 		cfg.Verbose = *flags.Verbose
+	}
+	if flags.EnableJudge != nil {
+		cfg.EnableJudge = *flags.EnableJudge
+	}
+	if flags.JudgeModel != "" {
+		cfg.JudgeModel = flags.JudgeModel
 	}
 
 	return cfg, nil

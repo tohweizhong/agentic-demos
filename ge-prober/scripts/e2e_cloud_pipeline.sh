@@ -17,6 +17,7 @@ PROJECT_ID=""
 REGION=""
 JOB_NAME="ge-prober-daily"
 ENGINE_ID=""
+DATA_STORE_IDS=""
 TRACK_ID=""
 SKIP_BUILD=false
 DRY_RUN=false
@@ -35,6 +36,7 @@ Options:
   --region=REGION             Target Google Cloud Region (default: asia-southeast1)
   --job-name=JOB_NAME         Cloud Run Job name (default: ge-prober-daily)
   --engine-id=ENGINE_ID       Target Discovery Engine App / Engine ID
+  --datastores=DATA_STORE_IDS Comma-separated list of Data Store IDs
   --track-id=TRACK_ID         Conductor track ID to attach audit execution.log artifact
   --alert-email=EMAIL         Email address for Cloud Monitoring alerts
   --skip-build                Skip Cloud Build container compilation (reuse existing image)
@@ -62,6 +64,9 @@ for arg in "$@"; do
       ;;
     --engine-id=*)
       ENGINE_ID="${arg#*=}"
+      ;;
+    --datastores=*)
+      DATA_STORE_IDS="${arg#*=}"
       ;;
     --track-id=*)
       TRACK_ID="${arg#*=}"
@@ -162,6 +167,9 @@ echo "▶️ [Step 1/3] Deploying Cloud Run Job and updating Cloud Scheduler..."
 DEPLOY_CMD="bash deploy_job.sh --project=${PROJECT_ID} --region=${REGION} --job-name=${JOB_NAME}"
 if [ -n "${ENGINE_ID}" ]; then
   DEPLOY_CMD="${DEPLOY_CMD} --engine-id=${ENGINE_ID}"
+fi
+if [ -n "${DATA_STORE_IDS}" ]; then
+  DEPLOY_CMD="${DEPLOY_CMD} --datastores=${DATA_STORE_IDS}"
 fi
 if [ "${SKIP_BUILD}" = "true" ]; then
   DEPLOY_CMD="${DEPLOY_CMD} --skip-build"

@@ -136,3 +136,83 @@ func TestRunProberSuite_Concurrent(t *testing.T) {
 		t.Errorf("expected 2 HTTP requests dispatched, got %d", requestCount)
 	}
 }
+
+type mockJudgeClient struct {
+	fulfilled bool
+	score     int
+	reasoning string
+}
+
+func (m *mockJudgeClient) EvaluateResponse(ctx context.Context, tc TestCase, responseText string) (*SemanticEvaluation, error) {
+	return &SemanticEvaluation{
+		JudgeModel:                   "gemini-2.5-flash",
+		Fulfilled:                    m.fulfilled,
+		Score:                        m.score,
+		Reasoning:                    m.reasoning,
+		DetectedRefusalOrUnconnected: !m.fulfilled,
+		EvaluationLatencyMs:          15.0,
+	}, nil
+}
+
+func TestRunProberSuiteWithJudge_SemanticScoring(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		chunks := []StreamAssistChunk{
+			{
+				Answer: AssistAnswer{
+					Replies: []ReplyPart{
+						{
+							GroundedContent: GroundedContent{
+								Content: ContentPart{
+									Text: "Document found with policy.",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(chunks)
+	}))
+	defer server.Close()
+
+	cases := []TestCase{
+		{
+			ID:               "case-1",
+			Title:            "SharePoint",
+			Subsystem:        "sharepoint",
+			Query:            "Find policy",
+			GroundingType:    "vertex_ai_search",
+			SemanticContract: "Must return policy document",
+			SLOTargets:       SLOTargets{MaxTTFTMs: 5000, MaxTTLT: 10000},
+			Assertions:       Assertions{MustContainKeywords: []string{"policy"}},
+		},
+	}
+
+	cfg := &Config{
+		ProjectID:      "test-proj",
+		Location:       "us-central1",
+		EngineID:       "test-engine",
+		MaxConcurrency: 1,
+		TimeoutSeconds: 5,
+		EnableJudge:    true,
+		JudgeModel:     "gemini-2.5-flash",
+	}
+
+	client := NewStreamAssistClient("test-token", 5*time.Second)
+	judge := &mockJudgeClient{fulfilled: true, score: 5, reasoning: "Grounded policy found"}
+
+	report := RunProberSuiteWithJudge(context.Background(), server.URL, cases, cfg, client, nil, judge)
+	if report.TotalProbes != 1 {
+		t.Fatalf("expected 1 probe, got %d", report.TotalProbes)
+	}
+	if report.SemanticPassed != 1 {
+		t.Errorf("expected 1 semantic pass, got %d", report.SemanticPassed)
+	}
+	if report.Results[0].SemanticEval == nil {
+		t.Fatalf("expected semantic eval attached to result, got nil")
+	}
+	if !report.Results[0].SemanticEval.Fulfilled || report.Results[0].SemanticEval.Score != 5 {
+		t.Errorf("unexpected semantic evaluation: %+v", report.Results[0].SemanticEval)
+	}
+}
