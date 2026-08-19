@@ -81,6 +81,8 @@ func BuildStreamAssistRequest(tc TestCase, cfg *Config, sessionID string) Stream
 		req.ToolsSpec = &ToolsSpec{
 			WebGroundingSpec: map[string]interface{}{},
 		}
+	case "google_drive", "gdrive":
+		// Direct query routing to 1P Google Workspace Google Drive Connector without injecting web search or 3P data stores
 	case "gemini_notebook", "notebooklm":
 		// Direct query against notebook knowledge base without injecting external data stores
 	}

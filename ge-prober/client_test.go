@@ -46,6 +46,32 @@ func TestBuildStreamAssistRequest_WebGrounding(t *testing.T) {
 	}
 }
 
+func TestBuildStreamAssistRequest_GoogleDrive(t *testing.T) {
+	tc := TestCase{
+		Query:         "Tell me about the helicopter racing league",
+		GroundingType: "google_drive",
+	}
+	cfg := &Config{
+		ProjectID: "proj-123",
+		Location:  "global",
+		DataStoreIDs: []string{"sharepoint-ds"}, // SharePoint data store should NOT be attached
+	}
+
+	req := BuildStreamAssistRequest(tc, cfg, "")
+	if req.Query.Text != "Tell me about the helicopter racing league" {
+		t.Errorf("expected query 'Tell me about the helicopter racing league', got '%s'", req.Query.Text)
+	}
+	if req.AgentsSpec != nil {
+		t.Errorf("expected agentsSpec to be nil for google_drive, got %v", req.AgentsSpec)
+	}
+	if req.ToolsSpec != nil && req.ToolsSpec.VertexAISearchSpec != nil {
+		t.Errorf("expected vertexAiSearchSpec to be nil for google_drive, got %v", req.ToolsSpec.VertexAISearchSpec)
+	}
+	if req.ToolsSpec != nil && req.ToolsSpec.WebGroundingSpec != nil {
+		t.Errorf("expected webGroundingSpec to be nil for google_drive, got %v", req.ToolsSpec.WebGroundingSpec)
+	}
+}
+
 func TestBuildStreamAssistRequest_DeepResearch(t *testing.T) {
 	tc := TestCase{
 		Query:         "Research MCP protocol adoption",
