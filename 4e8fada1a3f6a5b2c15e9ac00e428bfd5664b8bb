@@ -1,0 +1,1 @@
+Integrated VertexAIJudgeClient in prober.go, main.go, logger.go, config.go, deploy_job.sh, and e2e_cloud_pipeline.sh with 100% passing tests.
