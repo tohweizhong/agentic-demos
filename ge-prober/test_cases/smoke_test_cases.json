@@ -6,7 +6,7 @@
     "title": "Google Drive Document Retrieval",
     "query": "Tell me about the helicopter racing league",
     "expected_behavior": "Must query 1P Google Drive connector, retrieve relevant enterprise documents regarding the helicopter racing league, and return a grounded response with source citations.",
-    "semantic_contract": "The response must synthesize and present accurate, detailed enterprise knowledge about the Helicopter Racing League (HRL) case study (such as business goals, telemetry ingestion, Pub/Sub, Dataflow, BigQuery, and architecture challenges). It must NOT be a refusal message, an error, or an ungrounded generic answer.",
+    "semantic_contract": "The response must synthesize and present accurate information about the helicopter racing league retrieved from enterprise knowledge. It must NOT be a refusal message, an error, or an ungrounded generic non-answer.",
     "grounding_type": "google_drive",
     "slo_targets": {
       "max_ttft_ms": 60000.0,

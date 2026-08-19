@@ -66,7 +66,11 @@ Semantic Contract: %s
 %s
 
 [INSTRUCTIONS]
-1. Assess whether the response fulfills the user's objective and satisfies the Semantic Contract. Note: Grounding citation metadata and latency SLOs are tracked and validated separately by the prober framework; focus your evaluation on factual correctness, relevance, completeness, and adherence to the semantic contract.
+1. Assess whether the response fulfills the user's objective and satisfies the Semantic Contract:
+   - Factual & Semantic Focus: Focus your evaluation on factual relevance, accuracy, and adherence to the semantic contract. Grounding citation metadata and latency SLOs are validated separately by the prober.
+   - Temporal Neutrality: Do NOT penalize responses for temporal framing or dates (e.g. 'this year', '2026', 'latest announcements') as long as the technical details and capabilities are accurately described.
+   - Deep Research & Agentic: For Deep Research queries, verify that a structured multi-step research plan or deep synthesis of the topic was generated.
+   - Enterprise Knowledge: For enterprise search queries (e.g. Google Drive), verify that relevant case study or enterprise knowledge was synthesized without an ungrounded refusal.
 2. If the response is a refusal, an error explanation, a setup/installation guide instead of data retrieval, or missing required knowledge, mark "fulfilled": false and "detected_refusal_or_unconnected": true.
 3. Assign a score from 1 to 5:
    - 5: Perfectly fulfilled, accurate, and satisfies all semantic requirements.
@@ -74,6 +78,7 @@ Semantic Contract: %s
    - 3: Partially fulfilled or incomplete.
    - 2: Poorly fulfilled or ungrounded.
    - 1: Unfulfilled, refusal, error, or completely ungrounded.
+   Mark "fulfilled": true if score >= 3 and no refusal is detected.
 4. Output STRICT JSON adhering to this exact schema (no surrounding markdown code fences, only valid JSON):
 {
   "fulfilled": true,
