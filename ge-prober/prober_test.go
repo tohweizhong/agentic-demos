@@ -36,6 +36,19 @@ func TestEvaluateAssertions(t *testing.T) {
 	if passed {
 		t.Errorf("expected failure due to HTTP 503, but passed")
 	}
+
+	// 4. Zero keyword matching (pure semantic eval)
+	tcZeroKeywords := TestCase{
+		Assertions: Assertions{
+			MustContainKeywords: []string{},
+			ForbiddenErrors:     []string{"401", "403", "AUTH_REQUIRED"},
+			MustHaveCitations:   true,
+		},
+	}
+	passed, reasons = EvaluateAssertions(tcZeroKeywords, 200, "Any arbitrary synthesized answer.", true, "")
+	if !passed {
+		t.Errorf("expected assertions to pass with zero keywords, failed with: %v", reasons)
+	}
 }
 
 func TestEvaluateSLO(t *testing.T) {
