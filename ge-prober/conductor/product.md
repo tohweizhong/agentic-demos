@@ -75,10 +75,11 @@
 - Rubric scoring (1-5), refusal detection (`detected_refusal_or_unconnected`), and stream evaluation logs.
 - Test suite summary with semantic pass rates alongside functional pass rates.
 
-### ✅ Phase 4: Google Drive Connector Grounding & Authentication (Completed)
-- **Single Dedicated Test Case**: Configured `"Tell me about the helicopter racing league"` with Google Drive connector active (matching the Gemini Enterprise Web UI configuration).
-- **Authentication & Tool Routing**: Validated caller authentication and tool specification so that `StreamAssist` routes directly to the Google Drive connector without auth errors or ungrounded refusals.
-- **Assertions & Citations**: Asserted non-empty responses, zero keyword assertions (pure semantic validation), and semantic fulfillment via LLM judge (`gemini-2.5-flash`).
+### ✅ Phase 4: Expanded Multi-Probe Suite: Google Drive, Deep Research & Web Grounding (Completed)
+- **Multi-Probe Test Catalog**: Configured authentic queries for 1P Google Drive (`"Tell me about the helicopter racing league"`), Deep Research Agent (`"Project management methodologies"`), and Web Grounding (`"What are the latest announced Google Cloud Singapore regional capabilities this year?"`).
+- **Authentication & Tool Routing**: Validated caller EUC token resolution, service account discovery (`ge-regression-runner-sa`), and appropriate tool/agent routing.
+- **Pure Semantic Evaluation**: 100% pure semantic evaluation via Vertex AI Gemini 2.5 Flash judge (zero brittle keyword assertions) with robust prompt instructions for temporal neutrality and separation of API citation metadata vs synthesized text.
+- **Automated Cloud Run E2E Verification**: 100% Functional, Semantic, and SLO compliance across all probes in Cloud Run.
 
 ### 🔐 Phase 5: Microsoft SharePoint Online & 3P Federated Connectors (Near-Term)
 - **Headless EUC OAuth Token Brokering**: Implement Secret Manager Google OAuth refresh token exchange for synthetic user EUC tokens (`ya29...`) to enable `DataConnectorService` 3P token lookup.
