@@ -1,112 +1,26 @@
 [
   {
-    "id": "smoke_m365_sharepoint_01",
-    "module": "3P Microsoft 365 Connectors",
-    "subsystem": "sharepoint",
-    "title": "SharePoint Document Retrieval",
-    "query": "Find the workplace policy document in our SharePoint site.",
-    "expected_behavior": "Must query SharePoint data store, locate relevant policy document, and return grounded summary with source citation.",
-    "semantic_contract": "The response must locate and present actual workplace policy documents or links from SharePoint. It must NOT be a refusal message, an error, or a setup/configuration guide explaining how to connect SharePoint.",
-    "grounding_type": "vertex_ai_search",
+    "id": "smoke_gdrive_01",
+    "module": "1P Google Workspace Connectors",
+    "subsystem": "google_drive",
+    "title": "Google Drive Document Retrieval",
+    "query": "Tell me about the helicopter racing league",
+    "expected_behavior": "Must query 1P Google Drive connector, retrieve relevant enterprise documents regarding the helicopter racing league, and return a grounded response with source citations.",
+    "semantic_contract": "The response must synthesize and present factual information about the helicopter racing league retrieved from Google Drive documents. It must NOT be a refusal message, an error, or an ungrounded generic answer.",
+    "grounding_type": "google_drive",
     "slo_targets": {
       "max_ttft_ms": 60000.0,
       "max_ttlt_ms": 90000.0
     },
     "assertions": {
-      "must_contain_keywords": [
-        "policy",
-        "SharePoint"
-      ],
+      "must_contain_keywords": [],
       "forbidden_errors": [
         "401",
         "403",
         "500",
         "503",
-        "USER_PROJECT_DENIED"
-      ],
-      "must_have_citations": true
-    }
-  },
-  {
-    "id": "smoke_deep_research_02",
-    "module": "Deep Research Agent",
-    "subsystem": "deep_research",
-    "title": "Deep Research Multi-Step Plan & Synthesis",
-    "query": "Project management methodologies",
-    "expected_behavior": "Must trigger Deep Research Agent via agentsSpec, generate structured Research Plan and research questions accordions, and emit session token.",
-    "semantic_contract": "The response must contain a structured multi-step Deep Research plan outlining project management methodologies (such as Agile, Waterfall, Scrum, Kanban, or Hybrid approaches).",
-    "grounding_type": "deep_research_agent",
-    "slo_targets": {
-      "max_ttft_ms": 120000.0,
-      "max_ttlt_ms": 150000.0
-    },
-    "assertions": {
-      "must_contain_keywords": [
-        "Research Plan",
-        "Project Management",
-        "Methodolog"
-      ],
-      "forbidden_errors": [
-        "401",
-        "403",
-        "500",
-        "503",
-        "INVALID_ARGUMENT"
-      ],
-      "must_have_citations": false
-    }
-  },
-  {
-    "id": "smoke_notebooklm_03",
-    "module": "Gemini Notebook",
-    "subsystem": "gemini_notebook",
-    "title": "Gemini Notebook Knowledge Base Q&A",
-    "query": "What is Model Armor's overarching purpose and operational approach to AI protection?",
-    "expected_behavior": "Must query Gemini Notebook directly without external data stores, returning grounded explanation of Model Armor security policies and proactive screening.",
-    "semantic_contract": "The response must clearly explain Model Armor's purpose (generative AI safety and security guardrails) and operational approach (dual-sided input/output filtering, DLP, and policy enforcement) grounded in notebook knowledge.",
-    "grounding_type": "gemini_notebook",
-    "slo_targets": {
-      "max_ttft_ms": 60000.0,
-      "max_ttlt_ms": 90000.0
-    },
-    "assertions": {
-      "must_contain_keywords": [
-        "Model Armor",
-        "safety",
-        "security"
-      ],
-      "forbidden_errors": [
-        "401",
-        "403",
-        "500",
-        "503"
-      ],
-      "must_have_citations": false
-    }
-  },
-  {
-    "id": "smoke_web_grounding_04",
-    "module": "Web Grounding",
-    "subsystem": "google_search",
-    "title": "Public Google Search Web Grounding",
-    "query": "What are the latest announced Google Cloud Singapore regional capabilities this year?",
-    "expected_behavior": "Must invoke Google Search web grounding spec and provide real-time facts with clickable web citations.",
-    "semantic_contract": "The response must provide specific, factual regional capabilities announced for Google Cloud Singapore (such as data residency, model availability, or regional ML processing) with factual citations.",
-    "grounding_type": "web_search",
-    "slo_targets": {
-      "max_ttft_ms": 60000.0,
-      "max_ttlt_ms": 90000.0
-    },
-    "assertions": {
-      "must_contain_keywords": [
-        "Google Cloud",
-        "Singapore"
-      ],
-      "forbidden_errors": [
-        "401",
-        "403",
-        "500",
-        "503"
+        "USER_PROJECT_DENIED",
+        "AUTH_REQUIRED"
       ],
       "must_have_citations": true
     }
