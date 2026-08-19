@@ -160,6 +160,26 @@ func TestLoadTestCases_Valid(t *testing.T) {
 	}
 }
 
+func TestLoadSmokeTestCases_DefaultSuite(t *testing.T) {
+	cases, err := LoadTestCases("test_cases/smoke_test_cases.json")
+	if err != nil {
+		t.Fatalf("failed to load default smoke test cases: %v", err)
+	}
+	if len(cases) != 3 {
+		t.Fatalf("expected 3 smoke test cases, got %d", len(cases))
+	}
+
+	expectedIDs := []string{"smoke_gdrive_01", "smoke_deep_research_02", "smoke_web_grounding_03"}
+	for i, expID := range expectedIDs {
+		if cases[i].ID != expID {
+			t.Errorf("expected test case %d ID '%s', got '%s'", i, expID, cases[i].ID)
+		}
+		if cases[i].SemanticContract == "" {
+			t.Errorf("expected non-empty semantic contract for '%s'", expID)
+		}
+	}
+}
+
 func TestResolveConfig_Verbose(t *testing.T) {
 	// 1. Default is true
 	cfg, err := ResolveConfig("", CLIFlagOverrides{})
