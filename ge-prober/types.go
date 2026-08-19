@@ -14,12 +14,14 @@ type Config struct {
 	MaxConcurrency int      `json:"max_concurrency"`
 	DataStoreIDs   []string `json:"data_store_ids"`
 	Verbose        bool     `json:"verbose"`
+	EnableJudge    bool     `json:"enable_judge"`
+	JudgeModel     string   `json:"judge_model"`
 }
 
 // SLOTargets defines latency thresholds for a probe test case.
 type SLOTargets struct {
 	MaxTTFTMs float64 `json:"max_ttft_ms"`
-	MaxTTFA float64 `json:"max_ttfa_ms,omitempty"`
+	MaxTTFA   float64 `json:"max_ttfa_ms,omitempty"`
 	MaxTTLT   float64 `json:"max_ttlt_ms"`
 }
 
@@ -38,27 +40,39 @@ type TestCase struct {
 	Title            string     `json:"title"`
 	Query            string     `json:"query"`
 	ExpectedBehavior string     `json:"expected_behavior"`
+	SemanticContract string     `json:"semantic_contract,omitempty"`
 	GroundingType    string     `json:"grounding_type"`
 	SLOTargets       SLOTargets `json:"slo_targets"`
 	Assertions       Assertions `json:"assertions"`
 }
 
+// SemanticEvaluation represents the assessment from an LLM-as-a-judge model.
+type SemanticEvaluation struct {
+	JudgeModel                   string  `json:"judge_model"`
+	Fulfilled                    bool    `json:"fulfilled"`
+	Score                        int     `json:"score"`
+	Reasoning                    string  `json:"reasoning"`
+	DetectedRefusalOrUnconnected bool    `json:"detected_refusal_or_unconnected"`
+	EvaluationLatencyMs          float64 `json:"evaluation_latency_ms"`
+}
+
 // ProbeResult encapsulates the outcome and telemetry of an executed probe.
 type ProbeResult struct {
-	ID              string        `json:"id"`
-	Title           string        `json:"title"`
-	Subsystem       string        `json:"subsystem"`
-	Query           string        `json:"query"`
-	Passed          bool          `json:"passed"`
-	SLOPassed       bool          `json:"slo_passed"`
-	StatusCode      int           `json:"status_code"`
-	TTFTMs          float64       `json:"ttft_ms"`
-	TTFAMs          float64       `json:"ttfa_ms"`
-	TotalLatencyMs  float64       `json:"total_latency_ms"`
-	HasCitations    bool          `json:"has_citations"`
-	FailureReasons  []string      `json:"failure_reasons"`
-	ResponsePreview string        `json:"response_preview"`
-	ExecutedAt      time.Time     `json:"executed_at"`
+	ID              string              `json:"id"`
+	Title           string              `json:"title"`
+	Subsystem       string              `json:"subsystem"`
+	Query           string              `json:"query"`
+	Passed          bool                `json:"passed"`
+	SLOPassed       bool                `json:"slo_passed"`
+	StatusCode      int                 `json:"status_code"`
+	TTFTMs          float64             `json:"ttft_ms"`
+	TTFAMs          float64             `json:"ttfa_ms"`
+	TotalLatencyMs  float64             `json:"total_latency_ms"`
+	HasCitations    bool                `json:"has_citations"`
+	FailureReasons  []string            `json:"failure_reasons"`
+	ResponsePreview string              `json:"response_preview"`
+	SemanticEval    *SemanticEvaluation `json:"semantic_eval,omitempty"`
+	ExecutedAt      time.Time           `json:"executed_at"`
 }
 
 // ProberReport represents the aggregated JSON report exported by ge-prober.
@@ -70,6 +84,7 @@ type ProberReport struct {
 	TotalProbes      int           `json:"total_probes"`
 	FunctionalPassed int           `json:"functional_passed"`
 	SLOPassed        int           `json:"slo_passed"`
+	SemanticPassed   int           `json:"semantic_passed"`
 	Results          []ProbeResult `json:"results"`
 }
 
