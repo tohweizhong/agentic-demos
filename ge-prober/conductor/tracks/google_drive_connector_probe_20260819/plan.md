@@ -12,7 +12,7 @@
 - [x] Task: Execute `./ge-prober` locally to verify live Google Drive connector query, citation capture, and Vertex AI LLM Judge score. 892d9d9
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) 892d9d9
 
-## Phase 3: Cloud Run Deployment, E2E Pipeline & Log Artifacts
-- [~] Task: Execute `scripts/e2e_cloud_pipeline.sh` with `--track-id google_drive_connector_probe_20260819` to build, deploy, execute in Cloud Run, and capture execution logs.
-- [ ] Task: Verify Cloud Run execution logs confirm Google Drive document retrieval, citations, and LLM Judge verdict.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 3: Cloud Run Deployment, E2E Pipeline & Log Artifacts [checkpoint: 0365965]
+- [x] Task: Execute `scripts/e2e_cloud_pipeline.sh` with `--track-id google_drive_connector_probe_20260819` to build, deploy, execute in Cloud Run, and capture execution logs. 0365965
+- [x] Task: Verify Cloud Run execution logs confirm Google Drive document retrieval, citations, and LLM Judge verdict. 0365965
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) 0365965
