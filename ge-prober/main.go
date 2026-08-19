@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -24,6 +23,7 @@ func main() {
 	outputJSON := flag.String("output", "smoke_prober_results.json", "Path to export results JSON report")
 	outputJSONAlias := flag.String("output-json", "", "Alias for -output")
 	tokenFlag := flag.String("token", "", "GCP Access Token override (fallback to ADC/WIF)")
+	verboseFlag := flag.Bool("verbose", true, "Enable line-by-line verbose stream tracing")
 	flag.Parse()
 
 	// Resolve aliases
@@ -36,6 +36,13 @@ func main() {
 		outPath = *outputJSONAlias
 	}
 
+	var explicitVerbose *bool
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "verbose" {
+			explicitVerbose = verboseFlag
+		}
+	})
+
 	flags := CLIFlagOverrides{
 		ProjectID:      *projectID,
 		Location:       loc,
@@ -47,6 +54,7 @@ func main() {
 		TestCasesPath:  *testCasesPath,
 		OutputFile:     outPath,
 		Token:          *tokenFlag,
+		Verbose:        explicitVerbose,
 	}
 
 	// 12-factor configuration resolution
@@ -87,6 +95,7 @@ func main() {
 		timeout = 180 * time.Second
 	}
 	client := NewStreamAssistClient(token, timeout)
+	streamLogger := NewStreamLogger(os.Stdout, cfg.Verbose)
 
 	fmt.Println()
 	fmt.Println("================================================================================")
@@ -97,58 +106,18 @@ func main() {
 	fmt.Printf("⚙️ Target Engine  : %s\n", cfg.EngineID)
 	fmt.Printf("📦 Smoke Probes   : %d test cases\n", len(cases))
 	fmt.Printf("⚡ Concurrency    : %d parallel workers\n", cfg.MaxConcurrency)
+	fmt.Printf("🔍 Verbose Stream : %t\n", cfg.Verbose)
 	fmt.Println("================================================================================")
 	fmt.Println()
 
 	startTime := time.Now()
 	ctx := context.Background()
-	report := RunProberSuite(ctx, cases, cfg, client)
+	report := RunProberSuiteWithLogger(ctx, "", cases, cfg, client, streamLogger)
 	totalDuration := time.Since(startTime).Seconds()
 
-	// Print individual probe results
-	for _, res := range report.Results {
-		icon := "✅"
-		if !res.Passed {
-			icon = "❌"
-		} else if !res.SLOPassed {
-			icon = "⚠️"
-		}
-
-		fmt.Printf("%s [%s] %s | TTFT: %.1fms | TTLT: %.1fms\n",
-			icon, res.Subsystem, res.Title, res.TTFTMs, res.TotalLatencyMs)
-
-		if len(res.FailureReasons) > 0 {
-			for _, reason := range res.FailureReasons {
-				fmt.Printf("   ↳ ⚠️ %s\n", reason)
-			}
-		}
-	}
-
-	passRate := float64(report.FunctionalPassed) / float64(report.TotalProbes) * 100.0
-	sloRate := float64(report.SLOPassed) / float64(report.TotalProbes) * 100.0
-
-	var probeDetails []string
-	for _, res := range report.Results {
-		status := "PASS"
-		if !res.Passed {
-			status = "FAIL"
-		}
-		probeDetails = append(probeDetails, fmt.Sprintf("%s: %s (%.0fms)", res.Subsystem, status, res.TotalLatencyMs))
-	}
-
+	// Print summary report
 	fmt.Println()
-	fmt.Printf("📊 PROBER SUMMARY & HEALTH SCORE: %d/%d Passed (%.1f%%) | SLO: %d/%d (%.1f%%) | Duration: %.2fs | Details: [%s]\n",
-		report.FunctionalPassed, report.TotalProbes, passRate,
-		report.SLOPassed, report.TotalProbes, sloRate,
-		totalDuration,
-		strings.Join(probeDetails, ", "),
-	)
-	fmt.Println("================================================================================")
-	fmt.Printf("Total Duration       : %.2fs\n", totalDuration)
-	fmt.Printf("Functional Pass Rate : %d/%d (%.1f%%)\n", report.FunctionalPassed, report.TotalProbes, passRate)
-	fmt.Printf("SLO Compliance Rate  : %d/%d (%.1f%%)\n", report.SLOPassed, report.TotalProbes, sloRate)
-	fmt.Printf("Report Exported To   : %s\n", outPath)
-	fmt.Println("================================================================================")
+	fmt.Println(FormatExecutionSummary(report, totalDuration, outPath))
 	fmt.Println()
 
 	// Export JSON report

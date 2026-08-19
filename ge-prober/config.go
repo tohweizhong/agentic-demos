@@ -21,6 +21,7 @@ type CLIFlagOverrides struct {
 	TestCasesPath  string
 	OutputFile     string
 	Token          string
+	Verbose        *bool
 }
 
 // LoadDotEnv parses a local .env file if it exists, without external dependencies.
@@ -67,6 +68,7 @@ func DefaultConfig() *Config {
 		TimeoutSeconds: 180,
 		MaxConcurrency: 4,
 		DataStoreIDs:   []string{},
+		Verbose:        true,
 	}
 }
 
@@ -148,6 +150,14 @@ func ResolveConfig(configFilePath string, flags CLIFlagOverrides) (*Config, erro
 			cfg.TimeoutSeconds = n
 		}
 	}
+	if envVerbose := getFirstEnv("GE_VERBOSE", "VERBOSE"); envVerbose != "" {
+		lower := strings.ToLower(envVerbose)
+		if lower == "false" || lower == "0" || lower == "no" {
+			cfg.Verbose = false
+		} else if lower == "true" || lower == "1" || lower == "yes" {
+			cfg.Verbose = true
+		}
+	}
 
 	// 5. CLI flag overrides (Priority 1 - highest)
 	if flags.ProjectID != "" {
@@ -170,6 +180,9 @@ func ResolveConfig(configFilePath string, flags CLIFlagOverrides) (*Config, erro
 	}
 	if flags.TimeoutSeconds > 0 {
 		cfg.TimeoutSeconds = flags.TimeoutSeconds
+	}
+	if flags.Verbose != nil {
+		cfg.Verbose = *flags.Verbose
 	}
 
 	return cfg, nil
