@@ -29,7 +29,7 @@
 - Automated Cloud Monitoring log-metric alerting with email dispatch.
 - Fully parameterized bash deployment scripts (`deploy_job.sh`).
 
-### 📊 Phase 2: Verbose Cloud Logging & Real-Time Stream Tracing (Immediate / In Progress)
+### ✅ Phase 2: Verbose Cloud Logging & Real-Time Stream Tracing (Completed)
 - **Formatted Probe Header & Query**: Output clear probe markers for each test case matching Cloud Run task logs:
   - Probe Header: `[X/N] 🔎 [<grounding_type>] <test_case_id>` (e.g. `[4/4] 🔎 [sharepoint] sharepoint_01`)
   - Query Display: `📜 Query: "<query_text>"` (e.g. `📜 Query: "Search for files about FormSG in our SharePoint site."`)
@@ -41,11 +41,12 @@
 - **Execution Suite Summary**:
   - Clean, formatted execution summary table (`📊 TEST SUITE EXECUTION SUMMARY`) at the conclusion of the probe run.
 
-### 🤖 Phase 3: Vertex AI LLM-as-a-Judge Semantic Evaluation (Near-Term)
+### ✅ Phase 3: Vertex AI LLM-as-a-Judge Semantic Evaluation (Completed)
 1. **Automated Semantic & Faithfulness Evaluation**:
-   - Integrate Vertex AI Gemini (e.g., `gemini-2.5-flash`) as an automated judge to evaluate probe response quality, hallucination detection, and grounding faithfulness beyond deterministic keyword matching.
+   - Integrated Vertex AI Gemini (`gemini-2.5-flash`) as an automated judge to evaluate probe response quality, refusal/unconnected states, and semantic contract fulfillment beyond deterministic keyword matching.
 2. **Structured Scoring & Cloud Telemetry**:
-   - Provide rubric scoring (answer relevance, grounding fidelity, citation precision) and stream evaluation logs (`⚖️ Evaluating N test results with Vertex AI LLM Judge (gemini-2.5-flash)...`) into Cloud Run logs and JSON reports.
+   - Provide rubric scoring (1-5), refusal detection (`detected_refusal_or_unconnected`), and stream evaluation logs (`⚖️ Judge Verdict: ✅ FULFILLED (Score: 5/5 | gemini-2.5-flash)`) into Cloud Run logs and JSON reports.
+   - Summarize test suite semantic pass rate alongside functional pass rate.
 
 ### 🎯 Phase 4: NotebookLM Grounding & Trigger Verification (Near-Term)
 - **Investigate & Resolve Payload Configuration**: Investigate and resolve the NotebookLM probe payload configuration so that the enterprise NotebookLM knowledge base and assistant service are authentically triggered and grounded, rather than falling back to generic ungrounded completions.
