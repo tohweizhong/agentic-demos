@@ -29,7 +29,7 @@
 - [x] **Track: Automated Cloud E2E Pipeline & Log Artifacts**
   *Link: [automated_cloud_e2e_pipeline_and_log_artifacts_20260819](./tracks/automated_cloud_e2e_pipeline_and_log_artifacts_20260819/index.md)*
 
-- [ ] **Track: Vertex AI LLM-as-a-Judge Semantic Evaluation**
+- [~] **Track: Vertex AI LLM-as-a-Judge Semantic Evaluation**
   *Link: [llm_as_a_judge_semantic_evaluation_20260819](./tracks/llm_as_a_judge_semantic_evaluation_20260819/index.md)*
 
 
