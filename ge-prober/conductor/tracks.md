@@ -26,4 +26,8 @@
 - [x] **Track: Verbose Cloud Logging & Real-Time Stream Tracing**
   *Link: [verbose_cloud_logging_and_stream_tracing_20260819](./tracks/verbose_cloud_logging_and_stream_tracing_20260819/index.md)*
 
+- [ ] **Track: Automated Cloud E2E Pipeline & Log Artifacts**
+  *Link: [automated_cloud_e2e_pipeline_and_log_artifacts_20260819](./tracks/automated_cloud_e2e_pipeline_and_log_artifacts_20260819/index.md)*
+
+
 
