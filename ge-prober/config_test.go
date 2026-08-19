@@ -159,3 +159,35 @@ func TestLoadTestCases_Valid(t *testing.T) {
 		t.Errorf("expected ID 'smoke_01', got '%s'", cases[0].ID)
 	}
 }
+
+func TestResolveConfig_Verbose(t *testing.T) {
+	// 1. Default is true
+	cfg, err := ResolveConfig("", CLIFlagOverrides{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Verbose {
+		t.Errorf("expected default verbose to be true, got false")
+	}
+
+	// 2. Env override
+	os.Setenv("GE_VERBOSE", "false")
+	defer os.Unsetenv("GE_VERBOSE")
+	cfgEnv, err := ResolveConfig("", CLIFlagOverrides{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfgEnv.Verbose {
+		t.Errorf("expected env GE_VERBOSE=false to set verbose=false")
+	}
+
+	// 3. CLI flag override
+	vTrue := true
+	cfgFlag, err := ResolveConfig("", CLIFlagOverrides{Verbose: &vTrue})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfgFlag.Verbose {
+		t.Errorf("expected CLI flag override to set verbose=true")
+	}
+}

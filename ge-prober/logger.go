@@ -137,3 +137,28 @@ func (sl *StreamLogger) EmitTrace(trace *ProbeTrace) {
 	trace.EmitTo(sl.writer)
 	fmt.Fprintln(sl.writer)
 }
+
+// FormatExecutionSummary formats the end-of-run summary banner.
+func FormatExecutionSummary(report ProberReport, totalDurationSec float64, outputFile string) string {
+	passRate := 0.0
+	sloRate := 0.0
+	if report.TotalProbes > 0 {
+		passRate = float64(report.FunctionalPassed) / float64(report.TotalProbes) * 100.0
+		sloRate = float64(report.SLOPassed) / float64(report.TotalProbes) * 100.0
+	}
+
+	var sb strings.Builder
+	sb.WriteString("================================================================================\n")
+	sb.WriteString("📊 TEST SUITE EXECUTION SUMMARY\n")
+	sb.WriteString("================================================================================\n")
+	sb.WriteString(fmt.Sprintf("Total Test Cases     : %d\n", report.TotalProbes))
+	sb.WriteString(fmt.Sprintf("Functional Pass Rate : %d/%d (%.1f%%)\n", report.FunctionalPassed, report.TotalProbes, passRate))
+	sb.WriteString(fmt.Sprintf("SLO Compliance Rate  : %d/%d (%.1f%%)\n", report.SLOPassed, report.TotalProbes, sloRate))
+	sb.WriteString(fmt.Sprintf("Total Run Duration   : %.2fs\n", totalDurationSec))
+	if outputFile != "" {
+		sb.WriteString(fmt.Sprintf("Report Exported To   : %s\n", outputFile))
+	}
+	sb.WriteString("================================================================================")
+	return sb.String()
+}
+

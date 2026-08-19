@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -169,5 +171,49 @@ func TestRunProberSuiteWithLogger_VerboseOutput(t *testing.T) {
 	}
 	if !strings.Contains(out, "✅ Stream Done (TTFT:") {
 		t.Errorf("missing stream done banner in verbose log: %s", out)
+	}
+}
+
+func TestStreamLogger_ConcurrencySafety(t *testing.T) {
+	var buf bytes.Buffer
+	logger := NewStreamLogger(&buf, true)
+
+	var wg sync.WaitGroup
+	for i := 1; i <= 10; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			trace := NewProbeTrace(idx, 10, "subsystem", fmt.Sprintf("case_%d", idx), fmt.Sprintf("Query %d", idx))
+			trace.SetResponse(fmt.Sprintf("Line 1 from %d\nLine 2 from %d", idx, idx))
+			trace.SetTimings(float64(idx*100), float64(idx*200))
+			logger.EmitTrace(trace)
+		}(i)
+	}
+	wg.Wait()
+
+	out := buf.String()
+	for i := 1; i <= 10; i++ {
+		expectedHeader := fmt.Sprintf("[%d/10] 🔎 [subsystem] case_%d", i, i)
+		if !strings.Contains(out, expectedHeader) {
+			t.Errorf("missing header for probe %d", i)
+		}
+	}
+}
+
+func TestFormatExecutionSummary(t *testing.T) {
+	report := ProberReport{
+		TotalProbes:      4,
+		FunctionalPassed: 4,
+		SLOPassed:        4,
+	}
+	summary := FormatExecutionSummary(report, 20.015, "smoke_prober_results.json")
+	if !strings.Contains(summary, "TEST SUITE EXECUTION SUMMARY") {
+		t.Errorf("missing summary banner: %s", summary)
+	}
+	if !strings.Contains(summary, "Total Test Cases") || !strings.Contains(summary, "4") {
+		t.Errorf("missing total count in summary: %s", summary)
+	}
+	if !strings.Contains(summary, "100.0%") {
+		t.Errorf("missing pass percentage: %s", summary)
 	}
 }

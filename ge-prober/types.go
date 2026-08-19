@@ -13,6 +13,7 @@ type Config struct {
 	TimeoutSeconds int      `json:"timeout_seconds"`
 	MaxConcurrency int      `json:"max_concurrency"`
 	DataStoreIDs   []string `json:"data_store_ids"`
+	Verbose        bool     `json:"verbose"`
 }
 
 // SLOTargets defines latency thresholds for a probe test case.
