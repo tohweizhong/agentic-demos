@@ -221,7 +221,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 # Demos
-nca_demos/
+nus-agy-workshop/
 
 # System files
 .DS_Store
