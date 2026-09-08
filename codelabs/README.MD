@@ -4,3 +4,4 @@ Collection of Codelabs
 - [ADK, A2A, MCP on Google Cloud](https://codelabs.developers.google.com/instavibe-adk-multi-agents/instructions#0)
 - [Hands-on with Gemini CLI](https://codelabs.developers.google.com/gemini-cli-hands-on#0)
 - [Getting Started with Agent2Agent (A2A) Protocol](https://codelabs.developers.google.com/intro-a2a-purchasing-concierge#1) - good base set of code for working with A2A
+- [Build NUS Campus Transit Hub with Antigravity](https://codelabs.developers.google.com/build-nus-transit-hub-antigravity#1)
