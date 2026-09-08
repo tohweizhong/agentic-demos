@@ -1,0 +1,12 @@
+{
+  "project_id": "YOUR_GCP_PROJECT_ID",
+  "location": "global",
+  "engine_id": "YOUR_GEMINI_ENTERPRISE_ENGINE_ID",
+  "assistant_id": "default_assistant",
+  "timeout_seconds": 180,
+  "max_concurrency": 4,
+  "data_store_ids": [
+    "YOUR_DATA_STORE_ID_1",
+    "YOUR_DATA_STORE_ID_2"
+  ]
+}

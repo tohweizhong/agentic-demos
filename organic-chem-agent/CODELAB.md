@@ -1,72 +1,52 @@
-# Google Codelab: Build a Parallel Multi-Agent Organic Chemistry Safety & Research Assistant with ADK & MCP
+id: build-parallel-multi-agent-chemistry-assistant
+summary: Build a parallel multi-agent organic chemistry safety & research assistant with Antigravity, agents-cli, ADK & MCP.
+authors: Weizhong Toh
+keywords: docType:Codelab,category:AiAndMachineLearning,category:Cloud,product:Antigravity,product:GoogleCloud,product:VertexAi,product:Gemini,product:AgentPlatform,product:CloudRun,language:Python
+layout: scrolling
 
-## 1. Overview
-In this Codelab, you will build a **Multi-Agent Laboratory Synthesis & Safety Companion**. This assistant helps chemistry students research compound history (via Wikipedia) and check laboratory reagent stock availability, physical storage locations, and synthesis procedures (via a local SQLite database).
+
+
+
+# Build a Multi-Agent Organic Chemistry Safety & Research Assistant with Antigravity, agents-cli, ADK & MCP
+
+
+## Overview & Objectives
+Duration: 0:02:00
+
+In this codelab, you will build a **Multi-Agent Laboratory Synthesis & Safety Companion**. This assistant helps chemistry students research compound history (via Wikipedia) and check laboratory reagent stock availability, physical storage locations, and synthesis procedures (via a local SQLite database).
 
 To make execution highly efficient, you will build a **parallel multi-agent workflow** that runs both research and inventory lookups **concurrently** before combining them into a final laboratory sheet.
 
 ### Codelab Workflow & Tooling Layout
 This diagram illustrates the lifecycle of developer tooling used in the Codelab:
-```mermaid
-graph TD
-    subgraph Local Developer Environment [User Machine]
-        IDE["Antigravity 2.0 Chat UI"] -- Prompt Instructions /Goal --> Developer["Student / Developer"]
-        Developer -- Executes Command --> CLI["agents-cli (CLI Tool)"]
-        CLI -- Controls & Runs --> ADK["google-adk Framework"]
-        ADK -- Launches Subprocess --> FastMCP["FastMCP server (mcp_sqlite_server.py)"]
-        FastMCP -- Local DB Queries --> SQLite[("lab_inventory.db (SQLite)")]
-    end
-    
-    subgraph Cloud & Remote Web Services
-        ADK -- Native REST API --> Wiki["Wikipedia REST API"]
-        ADK -- LLM Inference --> Gemini["Gemini Flash (Vertex AI / Google AI Studio)"]
-    end
-```
+
+![Codelab Workflow & Tooling Layout](images/tooling_layout.png)
 
 ### Multi-Agent Parallel Orchestration Architecture
 This diagram illustrates how incoming student queries are processed concurrently across specialized researchers before being synthesized into a safe, comprehensive laboratory guide sheet:
-```mermaid
-graph TD
-    User([Student Prompt]) --> Parser["chemical_parser (ADK Agent)"]
-    Parser --> |Extracts target chemical| Parallel{"ParallelAgent"}
-    
-    subgraph Parallel Researchers
-        Parallel --> WikiAgent["wikipedia_specialist (Agent)"]
-        Parallel --> InvAgent["lab_inventory_specialist (Agent)"]
-    end
-    
-    WikiAgent --> |Native REST Tool| WikiTool["search_wikipedia"]
-    InvAgent --> |FastMCP Stdio Server| MCPTool["search_inventory / get_synthesis_procedure"]
-    
-    WikiAgent --> |State: wiki_result| Assembler["report_assembler (Agent)"]
-    InvAgent --> |State: inventory_result| Assembler
-    
-    Assembler --> Report([Consolidated Laboratory Sheet])
-```
 
----
+![Multi-Agent Parallel Orchestration Architecture](images/agent_orchestration.png)
 
-### 🚀 The Antigravity 2.0 Way: Agentic Software Engineering
-Traditionally, software tutorials involve manual reading, typing, and copy-pasting. 
-**Not this one.**
+### 🚀 The Antigravity Way: Agentic Software Engineering
+Traditionally, software tutorials involve manual reading, typing, and copy-pasting. In this codelab, you will pair-program with the **Antigravity Agent**. Instead of copy-pasting code blocks, you will write **prompts** to guide the agent in building, testing, and evaluating the multi-agent system.
 
-In this Codelab, you will pair-program with the **Antigravity 2.0 Agent**. Instead of copy-pasting code blocks, you will write **prompts** to guide the agent in building, testing, and evaluating the multi-agent system. Each section includes:
-1.  **🤖 The Agentic Prompt**: The exact instruction to feed to your Antigravity 2.0 chat panel.
+Each section includes:
+1.  **🤖 The Agentic Prompt**: The exact instruction to feed to your Antigravity chat panel.
 2.  **📄 Expected Reference Code**: The target structure you can use to review, verify, or double-check what your agent generates.
 
----
-
 ### What You Will Learn
-*   How to build code agentically inside **Antigravity 2.0** using natural language prompts.
-*   How to scaffold and manage agent projects using `agents-cli`.
-*   How to build native Python-decorated ADK `FunctionTools`.
-*   How to create and run an external **MCP (Model Context Protocol)** SQLite tool server using Python's high-level `FastMCP` framework.
-*   How to orchestrate multiple specialist agents concurrently using `ParallelAgent` and `SequentialAgent`.
-*   How to evaluate your agents using LLM-graded metrics in `agents-cli eval`.
+* How to build code agentically inside the Antigravity IDE using natural language prompts.
+* How to scaffold and manage agent projects using `agents-cli`.
+* How to build native Python-decorated ADK `FunctionTools`.
+* How to create and run an external **MCP (Model Context Protocol)** SQLite tool server using Python's high-level `FastMCP` framework.
+* How to orchestrate multiple specialist agents concurrently using `ParallelAgent` and `SequentialAgent`.
+* How to evaluate your agents using LLM-graded metrics in `agents-cli eval`.
 
 ---
 
-## 2. Environment Setup & Scaffolding
+## Environment Setup & Scaffolding
+Duration: 0:05:00
+
 We will use Google's `google-agents-cli` and `uv` (a fast Python package installer and lock manager) to manage the project environment.
 
 ### Workspace Directory Setup
@@ -88,17 +68,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # 2. Install google-agents-cli
 uv tool install google-agents-cli
 
-# 3. Scaffold the project in your current directory (~/antigravity/)
+# 3. Authenticate Application Default Credentials (ADC) to access Vertex AI Gemini APIs
+gcloud auth application-default login
+
+# 4. Scaffold the project in your current directory (~/antigravity/)
 agents-cli create organic-chem-agent --adk --output-dir . --yes
 
-# 4. Step into the newly created folder
+# 5. Step into the newly created folder
 cd organic-chem-agent
 
-# 5. Open the folder in VS Code or your favorite IDE
+# 6. Open the folder in VS Code or your favorite IDE
 code .
 
-# 6. Limit the target environments to macOS and Linux (prevents Windows-dependency build failures)
+# 7. Limit the target environments to macOS and Linux (prevents Windows-dependency build failures)
 cat <<EOF >> pyproject.toml
+
 
 [tool.uv]
 environments = [
@@ -114,19 +98,24 @@ uv lock --default-index https://pypi.org/simple
 
 ---
 
-## 3. Seed the Laboratory Database
+## Seed the Laboratory Database
+Duration: 0:05:00
+
 We will represent our university chemistry lab inventory and procedures inside a local SQLite database (`lab_inventory.db`).
 
-### 🤖 The Agentic Prompt (Antigravity 2.0)
-Open the **Antigravity 2.0 Chat Interface** and type the following prompt to ask your developer agent to create and run the seed script:
+### 🤖 The Agentic Prompt (Antigravity)
+Open the **Antigravity Chat Interface** and type the following prompt to ask your developer agent to create and run the seed script:
 
 ```text
 Create a python script named init_db.py that initializes a local SQLite database lab_inventory.db with two tables: inventory (storing compound_name, formula, cas_number, quantity_g, purity, location, hazard_ghs) and synthesis_procedures (storing target_compound, reagents_required, procedure_steps, safety_precautions). Seed it with salicylic acid, acetic anhydride, p-aminophenol, aspirin, acetaminophen, and synthesis procedures for aspirin and acetaminophen. Then, run the script to initialize the DB.
 ```
 
----
+Here is what it looks like when you input the prompt and the agent generates and runs the database seed script:
+
+![Antigravity Agent Seeding Database](images/agent_seeding_db.png)
 
 ### 📄 Expected Reference Code
+
 If you want to review what your agent generated, here is the reference code for `init_db.py`:
 
 ```python
@@ -204,19 +193,19 @@ if __name__ == "__main__":
 
 ---
 
-## 4. Implement the Native Wikipedia Search Tool
+## Implement Wikipedia Search Tool
+Duration: 0:05:00
+
 The first tool is a **native ADK tool** that queries Wikipedia's REST API. In ADK, any standard Python function can act as a tool as long as it has:
 1.  A descriptive docstring (sent to the LLM to explain when and how to call it).
 2.  Clear, strong type annotations.
 
-### 🤖 The Agentic Prompt (Antigravity 2.0)
+### 🤖 The Agentic Prompt (Antigravity)
 Ask your agent to write the scraping tool:
 
 ```text
 Create a python file named wikipedia_tool.py. In it, write a function search_wikipedia(query: str) -> dict that uses the `requests` library to fetch the chemical compound's summary from Wikipedia's REST API (https://en.wikipedia.org/api/rest_v1/page/summary/{query}). Ensure the function has rich docstrings explaining its purpose, parameters, and return format so that ADK's model can discover it automatically.
 ```
-
----
 
 ### 📄 Expected Reference Code
 Here is what the agent should produce inside `wikipedia_tool.py`:
@@ -251,12 +240,14 @@ def search_wikipedia(query: str) -> dict:
 
 ---
 
-## 5. Build the SQLite FastMCP Server
+## Build SQLite FastMCP Server
+Duration: 0:08:00
+
 Next, we want to build a local tool server using **Model Context Protocol (MCP)**. This server will connect to our `lab_inventory.db` SQLite database and expose tools to query chemical inventory levels and synthetic procedures.
 
 We will use `FastMCP`, which leverages Python decorators to turn database query functions into standard MCP tools.
 
-### 🤖 The Agentic Prompt (Antigravity 2.0)
+### 🤖 The Agentic Prompt (Antigravity)
 Prompt your agent to create the MCP server:
 
 ```text
@@ -265,8 +256,6 @@ Create mcp_sqlite_server.py. Use FastMCP from the `mcp` library to instantiate a
 2. get_synthesis_procedure(target_compound: str) -> str: Queries lab_inventory.db and returns required reagents, procedure steps, and safety precautions.
 Ensure standard print statements are redirected to sys.stderr so standard output (stdio) transport is reserved exclusively for MCP JSON-RPC protocol messages.
 ```
-
----
 
 ### 📄 Expected Reference Code
 Here is the target code for `mcp_sqlite_server.py`:
@@ -358,9 +347,17 @@ if __name__ == "__main__":
     mcp.run(transport="stdio")
 ```
 
+When you launch the FastMCP server, it will display the server name, active transport type, and startup logs in your terminal. Note that later, when we execute the ADK pipeline agent, the framework will automatically launch this FastMCP server as a background subprocess to resolve inventory tool queries:
+
+![FastMCP Server Startup Logs](images/fastmcp_server.png)
+
+
 ---
 
-## 6. Assemble the Multi-Agent System (ADK Orchestration)
+
+## Assemble the Multi-Agent System (ADK Orchestration)
+Duration: 0:10:00
+
 Now, we want to construct the multi-agent system. To maximize efficiency, we will parallelize research:
 1.  **`chemical_parser`**: Extracts the target compound name.
 2.  **`wikipedia_specialist`**: Resolves historical facts concurrently using our Wikipedia tool.
@@ -382,9 +379,12 @@ We need:
 Ensure you export this pipeline as 'app' to be loaded by agents-cli."
 ```
 
----
+When your developer agent successfully completes the re-architecture of the `app/agent.py` file, it will output a verification message:
+
+![Antigravity Agent Verification Output](images/agent_verification.png)
 
 ### 📄 Expected Reference Code
+
 Your agent will rewrite `app/agent.py` to match this target:
 
 ```python
@@ -523,12 +523,16 @@ app = App(
 
 ---
 
-## 7. Interactive Testing & Playgrounds
+
+## Testing the Pipeline
+Duration: 0:05:00
 
 Now you can test your pipeline!
 
+
 ### Local Terminal Test (Smoke Test)
 Execute the pipeline with a single query using the `agents-cli run` command (ensure you are inside the directory containing `agents-cli-manifest.yaml`):
+
 ```bash
 # Step into the project directory
 cd organic-chem-agent
@@ -536,6 +540,7 @@ cd organic-chem-agent
 # Run the smoke test
 agents-cli run "aspirin" -v
 ```
+
 The `-v` (verbose) flag prints out the raw trace events. In the output, observe how:
 *   `chemical_parser` runs first and saves `"aspirin"` as `target_chemical`.
 *   Both `wikipedia_specialist` and `lab_inventory_specialist` run **concurrently** (you'll see overlapping logs in the terminal).
@@ -543,24 +548,33 @@ The `-v` (verbose) flag prints out the raw trace events. In the output, observe 
 
 ### Interactive Web UI Playground
 ADK comes with a high-fidelity playground UI. Start it by running:
+
 ```bash
 agents-cli playground
 ```
+
 This starts a local FastAPI server and automatically opens a sleek chat window in your web browser (usually at `http://localhost:8000`).
 
-> [!IMPORTANT]
-> **Select the Right Application:**
-> Once the ADK Web UI loads, look at the top navigation bar and ensure that **`app`** is selected in the application/agent dropdown. Selecting **`app`** loads our parallel organic chemistry pipeline orchestration.
+<aside class="warning">
+<b>Select the Right Application</b>: Once the ADK Web UI loads, look at the top navigation bar and ensure that <code>app</code> is selected in the application/agent dropdown. Selecting <code>app</code> loads our parallel organic chemistry pipeline orchestration.
+</aside>
 
 Once selected, type `aspirin` or `acetaminophen` in the chat bar to talk to your organic chemistry assistant, witness concurrent multi-agent transfers in real time, and view the structured laboratory sheets!
 
-> [!TIP]
-> **Stopping the Playground Server:**
-> The playground runs a persistent local server that locks your terminal window. To stop the playground server and return to your terminal shell, press **`Ctrl + C`** in your active terminal. You must do this to release the port before running other commands (like the evaluations in Section 8)!
+Here is what the ADK Playground interface looks like, highlighting the multi-agent graph layout and interactive agent trace log:
+
+![ADK Playground Web Interface](images/adk_playground.png)
+
+<aside class="special">
+<b>Stopping the Playground Server</b>: The playground runs a persistent local server that locks your terminal window. To stop the playground server and return to your terminal shell, press <code>Ctrl + C</code> in your active terminal. You must do this to release the port before running other commands (like the evaluations in Section 8)!
+</aside>
+
 
 ---
 
-## 8. Agentic Evaluation (LLM-as-a-Judge)
+## Agentic Evaluation
+Duration: 0:08:00
+
 To prove that our agent meets both **accuracy** and **safety compliance** thresholds, we will write a local evaluation suite.
 
 ### 🤖 The Agentic Prompt (Antigravity 2.0)
@@ -569,8 +583,6 @@ Ask your agent to create the evaluation files:
 ```text
 Create tests/eval/datasets/chemistry_dataset.json with 3 evaluation cases testing stock level queries, history lookups, and procedure safety. Then, create tests/eval/eval_config.yaml defining correctness and safety_compliance custom metrics graded by LLM-as-a-judge (Gemini).
 ```
-
----
 
 ### 📄 Expected Reference Code
 
@@ -635,9 +647,108 @@ agents-cli eval run --dataset tests/eval/datasets/chemistry_dataset.json
 ```
 The CLI will execute your agent over all three chemistry test cases, record traces, invoke Gemini as a judge to grade the responses based on your correctness and safety rubrics, and print a consolidated score sheet!
 
+When the evaluations complete, the terminal will print a summary table grading each metric:
+
+![Evaluation Metrics Summary Table](images/evaluation_summary.png)
+
 ---
 
-## 9. Conclusion
+## Challenge: Deploying to Google Cloud
+Duration: 0:10:00
+
+Now that your multi-agent chemistry assistant is working and verified locally, the ultimate goal is to transition it to a production-grade cloud setup.
+
+Your challenge is to deploy both your **FastMCP tool server** and your **ADK orchestrator** to Google Cloud Run!
+
+### Deployment Challenge Blueprint
+
+Here is the high-level roadmap and architectural overview to guide you:
+![Cloud Deployment Architecture](images/cloud_deployment_architecture.png)
+
+
+### 💡 Challenge Hints & Guidance
+
+#### Hint 1: Leverage Antigravity for Automation
+Do not perform these deployment and code modification steps manually! Just like in the previous sections, open the **Antigravity Chat Interface** and prompt your agent to automate these tasks for you. For example:
+> "Write a Dockerfile for the FastMCP server, modify the python script to run on SSE transport using the environment port, and write a script to deploy it to Cloud Run."
+
+#### Hint 2: Adapt FastMCP to SSE (Server-Sent Events)
+
+By default, your FastMCP server runs on `stdio` transport. Cloud Run is a web service and requires an HTTP-compatible transport. Update the entrypoint in `mcp_sqlite_server.py` to use `sse`:
+```python
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    mcp.run(transport="sse", host="0.0.0.0", port=port)
+```
+
+#### Hint 3: Containerize the MCP Server
+Create a `Dockerfile` for the tool server that copies your `lab_inventory.db` and dependencies:
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY pyproject.toml .
+RUN pip install .
+COPY mcp_sqlite_server.py lab_inventory.db ./
+EXPOSE 8080
+CMD ["python", "mcp_sqlite_server.py"]
+```
+Deploy the container:
+```bash
+gcloud run deploy lab-inventory-mcp --source . --allow-unauthenticated
+```
+
+#### Hint 4: Update ADK to use the Deployed Cloud Tool Server
+Once your tool server is live on Cloud Run, copy its service URL (e.g. `https://<service-name>-<hash>-<region>.a.run.app`). Update the tool definition in `app/agent.py` to use the remote HTTP endpoint instead of a local stdio subprocess:
+```python
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset, SseConnectionParams
+
+sqlite_mcp_tools = McpToolset(
+    connection_params=SseConnectionParams(
+        url="<full url to cloud run instance>/sse"
+    )
+)
+```
+
+#### Hint 5: Deploy the ADK Agent App to Cloud Run (Via CLI or gcloud)
+Finally, you can deploy your ADK orchestrator agent. Because ADK applications are packaged with a built-in web playground server, deploying your project source to Cloud Run will automatically serve the **ADK Web Playground UI** at the root URL of your service!
+
+You can perform the deployment in two ways:
+
+##### Option A: Native ADK CLI Deployment (Recommended)
+You can configure and deploy the project directly using `agents-cli`:
+1. Add the Cloud Run deployment configurations to your project:
+   ```bash
+   agents-cli scaffold enhance --deployment-target cloud_run --yes
+   ```
+2. Deploy the agent:
+   ```bash
+   agents-cli deploy --project YOUR_PROJECT_ID --region YOUR_REGION
+   ```
+
+##### Option B: Direct gcloud Deployment
+Alternatively, deploy your agent repository source directory directly using `gcloud`:
+```bash
+gcloud run deploy organic-chem-agent \
+  --source . \
+  --allow-unauthenticated \
+  --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=True"
+```
+
+Once the deployment completes, open the output service URL in your browser. The embedded **ADK Web UI** will load, allowing you to query your chemistry agent, view real-time parallel execution traces, and inspect the final compiled laboratory sheet!
+
+---
+
+## Summary & Next Steps
+Duration: 0:02:00
+
+
 Congratulations! You have successfully built, parallelized, and evaluated a multi-agent laboratory research assistant using Google ADK and MCP. 
 
 In a real enterprise setting, this exact architecture can be adapted to connect agents to internal knowledge bases, supply chain inventory APIs, and real-time monitoring servers in parallel.
+
+### What was covered:
+* Configured local environment with `uv` and `google-agents-cli`.
+* Exposed SQL inventory queries via a local FastMCP tool server.
+* Orchestrated specialists parallelly using `ParallelAgent`.
+* Set up a test suite with custom safety metrics evaluated by LLM-as-a-Judge.

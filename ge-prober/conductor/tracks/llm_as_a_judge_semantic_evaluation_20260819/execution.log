@@ -1,0 +1,109 @@
+================================================================================
+🚀 GEMINI ENTERPRISE SYNTHETIC SMOKE TEST PROBER (Go)
+================================================================================
+🎯 Target Project : weizhong-project03
+📍 Location / Reg : global
+⚙️ Target Engine  : ge-global-prober_1786960389717
+📦 Smoke Probes   : 4 test cases
+⚡ Concurrency    : 4 parallel workers
+🔍 Verbose Stream : true
+⚖️ LLM Judge     : gemini-2.5-flash (enabled)
+================================================================================
+[4/4] 🔎 [web_search] smoke_web_grounding_04
+📜 Query: "What are the latest announced Google Cloud Singapore regional capabilities this year?"
+💬 Response:
+This year, Google Cloud has officially announced and rolled out several major capabilities specifically for the **Singapore (SG)** region, focused on AI data sovereignty, local machine learning processing, and advanced security.
+---
+### 🇸🇬 Singapore Regional Data Residency & ML Processing (GA)
+In June 2026, Google Cloud launched official support for the Singapore (SG) region with **at-rest Data Residency (DRZ)** and **Machine Learning Processing (MLP)**.
+*   **In-Region Compliance:** For organizations utilizing **Gemini Enterprise** and **Gemini Notebook Enterprise**, you can now commit to storing your customer data at-rest within Singapore and ensure that AI/ML processing (such as model predictions and reasoning) is executed locally in-country.
+*   **Feature Coverage:** This regional support covers core Assistant functionalities, blended search, workspace/people search, ingested/federated connectors, answer generation, and custom agents.
+*   **How to Access:** This capability is **Generally Available (GA) with an allowlist**. To route your workflows and restrict data residency to the Singapore region, you must contact your Google Account representative to have your project allowlisted.
+---
+### 🧠 Regional Model Support & AI Safety
+Along with the infrastructure expansion, Google Cloud enabled specific localized models and protection layers for Singapore:
+| Capability / Model | Singapore Regional Status | Details |
+| :--- | :--- | :--- |
+| **Gemini 3.5 Flash** | **Supported** | Fully supports in-region at-rest Data Residency and Machine Learning Processing. |
+| **Model Armor** | **Supported** | Proactively filters and screens prompts/responses locally within the Singapore region to prevent data leaks or unsafe outputs. |
+| **Gemini 2.5 Pro** | *Not Supported* | The 2.5 Pro model is currently not offered natively within the Singapore in-country region. |
+⚠️ **Important Note on Global Features:** Advanced capabilities that are inherently global—such as *Grounding with Google Search*, *Image/Video Generation*, and *Autocomplete Tail Match*—will temporarily route traffic to global endpoints, as they are not currently hosted within the local Singapore boundary.
+---
+### 📌 Key Takeaway for Businesses in Singapore
+If you operate in a highly regulated industry (such as finance, public sector, or healthcare) in Singapore, **you can now deploy production-grade Gemini Enterprise agents with compliance assurances that your core organizational data never leaves Singapore boundaries.** Make sure to contact your account team to enable the region `sg` for your organization.
+Would you like some assistance in drafting a request to your Google account manager to get your project allowlisted for the Singapore region?
+✅ Stream Done (TTFT: 16992.1 ms | Total: 16992.2 ms)
+⚖️ Judge Verdict: ❌ UNFULFILLED (Score: 2/5 | gemini-2.5-flash)
+   ↳ 💭 The response fails to provide factual citations as required by the semantic contract and expected behavior. Crucially, it states a launch date in the future (June 2026), making the information not 'latest announced this year' and thus factually incorrect and ungrounded.
+[2/4] 🔎 [deep_research_agent] smoke_deep_research_02
+📜 Query: "Project management methodologies"
+💬 Response:
+Of course. Here is a research plan. Please let me know if you have any feedback.## **Research Plan: A Deep Dive into Project Management Methodologies**
+### **The Fundamental Principles of Project Management Methodologies**
+I will begin by defining what project management methodologies are and their critical role in the success of projects. I will explore the historical context of their development and how they provide a structured framework for managing projects, from initiation to completion. This will include an examination of the common elements that underpin most methodologies, such as project lifecycle phases, processes, and key deliverables.
+### **An In-depth Look at Traditional Project Management Methodologies**
+I will then delve into traditional, or "waterfall," project management methodologies. I will detail the sequential nature of these approaches, where each project phase must be completed before the next begins. The research will focus on the Waterfall model, its variations, and the types of projects for which it is best suited, such as those with well-defined requirements and minimal expected changes.
+### **Exploring the World of Agile Project Management**
+The next section will focus on Agile methodologies, which represent a shift towards more flexible and iterative project management. I will investigate the core values and principles of the Agile Manifesto and how they are applied in practice. The research will cover popular Agile frameworks, including Scrum, with its emphasis on sprints and daily stand-ups, and Kanban, which focuses on continuous workflow and visualizing tasks.
+### **The Rise of Hybrid Project Management Approaches**
+I will also explore the growing trend of hybrid project management methodologies. This section will examine how organizations are blending elements of traditional and Agile approaches to create a customized fit for their specific project needs. I will research the benefits and challenges of these hybrid models and look for examples of how they are being successfully implemented in various industries.
+### **A Comparative Analysis of Popular Methodologies**
+To provide a practical perspective, I will conduct a comparative analysis of the most widely used project management methodologies. This will involve a side-by-side comparison of Waterfall, Scrum, and Kanban, highlighting their key differences in terms of flexibility, communication, and project delivery. The goal is to provide a clear understanding of the strengths and weaknesses of each approach.
+### **Selecting the Optimal Project Management Methodology**
+Finally, I will research the key factors that organizations should consider when selecting a project management methodology. This will include an analysis of project size and complexity, industry-specific demands, and organizational culture. The research will aim to provide a framework for decision-makers to choose the methodology that best aligns with their project goals and team dynamics.
+✅ Stream Done (TTFT: 28621.5 ms | Total: 28621.5 ms)
+⚖️ Judge Verdict: ✅ FULFILLED (Score: 5/5 | gemini-2.5-flash)
+   ↳ 💭 The response provides a highly structured, multi-step deep research plan that explicitly covers all required project management methodologies (Agile, Waterfall, Scrum, Kanban, Hybrid) as specified in the semantic contract. The plan is comprehensive and well-organized.
+[3/4] 🔎 [gemini_notebook] smoke_notebooklm_03
+📜 Query: "What is Model Armor's overarching purpose and operational approach to AI protection?"
+💬 Response:
+🛡️ **Model Armor** is a Google Cloud security service designed to proactively safeguard AI applications. Its integration within Gemini Enterprise ensures that generative AI deployments remain secure, compliant, and aligned with organizational policies
+✅ Stream Done (TTFT: 30818.2 ms | Total: 30818.2 ms)
+⚖️ Judge Verdict: ❌ UNFULFILLED (Score: 3/5 | gemini-2.5-flash)
+   ↳ 💭 The response explains Model Armor's purpose (safeguarding AI applications, security, compliance) but fails to detail its operational approach, specifically omitting 'dual-sided input/output filtering, DLP, and policy enforcement' as required by the semantic contract.
+[1/4] 🔎 [vertex_ai_search] smoke_m365_sharepoint_01
+📜 Query: "Find the workplace policy document in our SharePoint site."
+💭 Thought:
+**Locating Policy Document**
+**Searching for Documents**
+**Considering Tool Naming**
+**Exploring Alternative Search Avenues**
+**Confirming Tool Functionality**
+**Investigating Search Functionality**
+**Searching for Information**
+**Investigating Search Discrepancy**
+**Investigating Search Functionality**
+**Refining Search Strategy**
+**Understanding Search Logic**
+**Investigating Search Failures**
+💬 Response:
+I searched for the **Workplace Safety and Security Policy** and several variations of workplace policy terms across your connected SharePoint site, but the search currently returned **no matching documents**.
+While the Microsoft SharePoint Online integration is active, there are a few common system and configuration reasons why the policy document isn't appearing in the search results: 🔐
+### 🔍 Why the Policy Document Might Not Be Found
+1. **Active Search Filters (Scope Restriction):**
+   The SharePoint data store parameters might have active inclusion (`admin_filter`) or exclusion (`admin_exclusion_filter`) settings applied. If the policy document is stored in a site or path that hasn't been explicitly included—or has been excluded—the assistant won't be able to retrieve it.
+2. **Access & Permissions (Federated Search Mode):**
+   Because the search runs in **Federated Search** mode, it executes queries using your personal signed-in SharePoint credentials. If your user account does not have read permissions to the specific folder or document library where the policy is saved, the search will return zero results. Additionally, if the Azure/Entra ID application uses the restricted `Sites.Selected` permission, full control access may not have been granted to that specific site.
+3. **Complex Document Formatting & Layouts:**
+   Federated Search operates in real-time, which limits its ability to deeply index complex documents. If the policy is a PDF with **multi-column text layouts, embedded tables, or scanned pages** requiring Optical Character Recognition (OCR), it may not be searchable in this mode.
+4. **Document Publishing Status:**
+   If the document is currently **checked out** by a colleague, or is saved as a **draft** that has not been checked in and officially published, the SharePoint Search API will not expose it to the assistant.
+---
+### 🛠️ Recommended Actions to Resolve This
+* **Verify File Status:** Check directly on SharePoint to make sure the file is fully checked in, published, and not saved under restricted-access folders.
+* **Review Connector Parameters:** Have your administrator check the Google Cloud Console to verify if any specific Site or Path filters are blocking the search scope.
+* **Consider Ingestion Mode:** If the policy is a highly formatted PDF, we recommend having your admin switch the SharePoint connector to **Data Ingestion mode**, which allows the layout parser to deeply process and index the entire document.
+✅ Stream Done (TTFT: 100841.0 ms | Total: 100841.0 ms)
+⚖️ Judge Verdict: ❌ UNFULFILLED (Score: 1/5 | gemini-2.5-flash)
+   ↳ 💭 The response is a refusal message stating no documents were found and then provides a troubleshooting guide, directly violating the semantic contract which explicitly forbids refusal messages and setup/configuration guides.
+================================================================================
+📊 TEST SUITE EXECUTION SUMMARY
+================================================================================
+Total Test Cases     : 4
+Functional Pass Rate : 4/4 (100.0%)
+Semantic Pass Rate   : 1/4 (25.0%)
+SLO Compliance Rate  : 3/4 (75.0%)
+Total Run Duration   : 102.88s
+Report Exported To   : smoke_prober_results.json
+================================================================================
+Container called exit(0).
