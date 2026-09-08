@@ -1,0 +1,7 @@
+# Docker ignore for ge-prober
+ge-prober
+*.log
+*.jsonl
+smoke_prober_results.json
+conductor/
+.git/

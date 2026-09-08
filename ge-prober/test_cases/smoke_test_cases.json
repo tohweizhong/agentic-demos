@@ -1,0 +1,78 @@
+[
+  {
+    "id": "smoke_gdrive_01",
+    "module": "1P Google Workspace Connectors",
+    "subsystem": "google_drive",
+    "title": "Google Drive Document Retrieval",
+    "query": "Tell me about the helicopter racing league",
+    "expected_behavior": "Must query 1P Google Drive connector, retrieve relevant enterprise documents regarding the helicopter racing league, and return a grounded response with source citations.",
+    "semantic_contract": "The response must synthesize and present accurate information about the helicopter racing league retrieved from enterprise knowledge. It must NOT be a refusal message, an error, or an ungrounded generic non-answer.",
+    "grounding_type": "google_drive",
+    "slo_targets": {
+      "max_ttft_ms": 60000.0,
+      "max_ttlt_ms": 90000.0
+    },
+    "assertions": {
+      "must_contain_keywords": [],
+      "forbidden_errors": [
+        "401",
+        "403",
+        "500",
+        "503",
+        "USER_PROJECT_DENIED",
+        "AUTH_REQUIRED"
+      ],
+      "must_have_citations": true
+    }
+  },
+  {
+    "id": "smoke_deep_research_02",
+    "module": "Deep Research Agent",
+    "subsystem": "deep_research",
+    "title": "Deep Research Multi-Step Plan & Synthesis",
+    "query": "Project management methodologies",
+    "expected_behavior": "Must trigger Deep Research Agent via agentsSpec, generate structured Research Plan and research questions accordions, and emit session token.",
+    "semantic_contract": "The response must demonstrate authentic execution of the Deep Research Agent by generating a structured, comprehensive multi-step research plan and in-depth synthesis exploring project management methodologies (such as Agile, Waterfall, Scrum, Kanban, Lean). It must NOT be a shallow one-paragraph answer, a refusal message, or a planner/turns error.",
+    "grounding_type": "deep_research_agent",
+    "slo_targets": {
+      "max_ttft_ms": 120000.0,
+      "max_ttlt_ms": 150000.0
+    },
+    "assertions": {
+      "must_contain_keywords": [],
+      "forbidden_errors": [
+        "401",
+        "403",
+        "500",
+        "503",
+        "INVALID_ARGUMENT",
+        "PLANNER_TURNS_EXCEEDED"
+      ],
+      "must_have_citations": false
+    }
+  },
+  {
+    "id": "smoke_web_grounding_03",
+    "module": "Web Grounding",
+    "subsystem": "google_search",
+    "title": "Public Google Search Web Grounding",
+    "query": "What are the latest announced Google Cloud Singapore regional capabilities this year?",
+    "expected_behavior": "Must invoke Google Search web grounding spec and provide real-time facts with clickable web citations.",
+    "semantic_contract": "The response must provide specific, factual regional capabilities announced for Google Cloud Singapore (such as at-rest data residency DRZ, machine learning processing MLP, model availability, or Gemini Enterprise in Singapore). It must NOT be a refusal message, an error, or completely ungrounded.",
+    "grounding_type": "web_search",
+    "slo_targets": {
+      "max_ttft_ms": 60000.0,
+      "max_ttlt_ms": 90000.0
+    },
+    "assertions": {
+      "must_contain_keywords": [],
+      "forbidden_errors": [
+        "401",
+        "403",
+        "500",
+        "503"
+      ],
+      "must_have_citations": true
+    }
+  }
+]

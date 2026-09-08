@@ -1,0 +1,39 @@
+# Tracks Registry
+
+---
+
+- [x] **Track: Implement Go Synthetic Prober**
+  *Link: [implement_go_prober_20260817](./tracks/implement_go_prober_20260817/index.md)*
+
+- [x] **Track: Fix Docker Go Version Mismatch**
+  *Link: [fix_docker_go_version_mismatch_20260817](./tracks/fix_docker_go_version_mismatch_20260817/index.md)*
+
+- [x] **Track: Update Deep Research and Gemini Notebook Probes**
+  *Link: [update_deep_research_and_notebooklm_probes_20260817](./tracks/update_deep_research_and_notebooklm_probes_20260817/index.md)*
+
+- [x] **Track: Fix Deep Research PLANNER_TURNS_EXCEEDED Error**
+  *Link: [fix_deep_research_planner_turns_exceeded_20260817](./tracks/fix_deep_research_planner_turns_exceeded_20260817/index.md)*
+
+- [x] **Track: Generalize Gemini Enterprise Prober Configuration**
+  *Link: [generalize_ge_prober_configuration_20260817](./tracks/generalize_ge_prober_configuration_20260817/index.md)*
+
+- [x] **Track: Parameterize Cloud Scheduler and Deployment**
+  *Link: [parameterize_cloud_scheduler_20260817](./tracks/parameterize_cloud_scheduler_20260817/index.md)*
+
+- [x] **Track: Implement Cloud Monitoring Alerting & Email Notifications**
+  *Link: [cloud_monitoring_alerts_20260817](./tracks/cloud_monitoring_alerts_20260817/index.md)*
+
+- [x] **Track: Verbose Cloud Logging & Real-Time Stream Tracing**
+  *Link: [verbose_cloud_logging_and_stream_tracing_20260819](./tracks/verbose_cloud_logging_and_stream_tracing_20260819/index.md)*
+
+- [x] **Track: Automated Cloud E2E Pipeline & Log Artifacts**
+  *Link: [automated_cloud_e2e_pipeline_and_log_artifacts_20260819](./tracks/automated_cloud_e2e_pipeline_and_log_artifacts_20260819/index.md)*
+
+- [x] **Track: Vertex AI LLM-as-a-Judge Semantic Evaluation**
+  *Link: [llm_as_a_judge_semantic_evaluation_20260819](./tracks/llm_as_a_judge_semantic_evaluation_20260819/index.md)*
+
+- [x] **Track: Google Drive Connector Grounding & Authentication Probe**
+  *Link: [google_drive_connector_probe_20260819](./tracks/google_drive_connector_probe_20260819/index.md)*
+
+- [x] **Track: Expand Prober Suite with Deep Research and Web Grounding**
+  *Link: [expand_suite_deep_research_and_web_grounding_20260819](./tracks/expand_suite_deep_research_and_web_grounding_20260819/index.md)*

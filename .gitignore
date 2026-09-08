@@ -221,8 +221,17 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 # Demos
-nca_demos/
+nus-agy-workshop/
 
 # System files
 .DS_Store
 Thumbs.db
+
+# ADK local storage
+.adk/
+
+
+# Go binaries and local prober artifacts
+ge-prober/ge-prober
+smoke_prober_results.json
+.agents/
