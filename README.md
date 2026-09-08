@@ -19,7 +19,7 @@
 * [ge_list_agents](./ge_list_agents/): Gemini Enterprise Agent Lister & Identity Resolver
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
-* [nus-transit-hub](./nus-transit-hub/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
+* [nus-transit-hub](./nus-transit-hub/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY ([Google Codelab](https://codelabs.developers.google.com/build-nus-transit-hub-antigravity#1))
 * [organic-chem-agent](./organic-chem-agent/): Organic Chemistry parallel multi-agent research & lab inventory companion
 * [sdp_content_policy](./sdp_content_policy/): Scripts for managing SDP content policies on data stores
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI
