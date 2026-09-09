@@ -21,6 +21,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!nus-transit-hub/lib/
 lib64/
 parts/
 sdist/
