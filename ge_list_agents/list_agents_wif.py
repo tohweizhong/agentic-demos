@@ -10,6 +10,7 @@ import argparse
 import csv
 import sys
 import os
+import time
 from datetime import datetime, timedelta
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
@@ -43,15 +44,29 @@ def list_engines(session, project_id, location, timeout=30):
         try:
             response = session.get(engines_url, params=params, timeout=timeout)
             if response.status_code in [403, 404]:
+                # Report this. A silent break makes a wrong project ID, a missing
+                # role and an empty location all look like "0 agents found".
+                print(
+                    f"Warning: cannot list engines in '{location}' (HTTP {response.status_code}). "
+                    f"Check the project ID, the IAM roles, and that the Discovery Engine "
+                    f"API is enabled.",
+                    file=sys.stderr,
+                )
                 break
             if response.status_code != 200:
+                print(
+                    f"Warning: engine list failed in '{location}' "
+                    f"(HTTP {response.status_code}): {response.text[:200]}",
+                    file=sys.stderr,
+                )
                 break
             data = response.json()
             engines.extend(data.get("engines", []))
             next_page_token = data.get("nextPageToken")
             if not next_page_token:
                 break
-        except Exception:
+        except Exception as e:
+            print(f"Warning: engine list failed in '{location}': {e}", file=sys.stderr)
             break
     return engines
 
@@ -67,54 +82,59 @@ def list_agents(session, project_id, location, engine_id, timeout=30):
         try:
             response = session.get(agents_url, params=params, timeout=timeout)
             if response.status_code != 200:
+                print(
+                    f"Warning: agent list failed for engine '{engine_id}' in '{location}' "
+                    f"(HTTP {response.status_code}): {response.text[:200]}",
+                    file=sys.stderr,
+                )
                 break
             data = response.json()
             agents.extend(data.get("agents", []))
             next_page_token = data.get("nextPageToken")
             if not next_page_token:
                 break
-        except Exception:
+        except Exception as e:
+            print(
+                f"Warning: agent list failed for engine '{engine_id}' in '{location}': {e}",
+                file=sys.stderr,
+            )
             break
     return agents
 
-def extract_creator_identity(auth_info):
-    """Extracts the best identification string for the creator from authenticationInfo (supports WIF)."""
-    email = auth_info.get("principalEmail")
-    if email:
-        return email
-        
-    subject = auth_info.get("principalSubject")
-    if subject:
-        # If it's a workforce pool federated identity:
-        # e.g., principal://iam.googleapis.com/locations/global/workforcePools/pool-id/subject/user-id
-        if subject.startswith("principal://"):
-            parts = subject.split("/")
-            if len(parts) > 0:
-                return parts[-1]
-        # If it's a service account identity:
-        # e.g., serviceAccount:email@project.iam.gserviceaccount.com
-        elif subject.startswith("serviceAccount:"):
-            return subject.split(":")[-1]
-        return subject
-    return None
+LOGGING_URL = "https://logging.googleapis.com/v2/entries:list"
 
-def get_agent_creators(session, project_id, agent_ids, min_create_time=None, timeout=30):
-    """Retrieves agent creator emails or identities from Cloud Audit Logs for specific agent IDs."""
-    if not agent_ids:
-        return {}
+# Number of log entries requested for each page.
+LOG_PAGE_SIZE = 1000
+# Stop the log scan after this many pages.
+DEFAULT_MAX_LOG_PAGES = 200
+# Stop the log scan after this many seconds.
+DEFAULT_LOG_TIME_BUDGET = 300
+# Number of attempts for one page when the server fails.
+MAX_LOG_ATTEMPTS = 5
+# Seconds to wait before the first retry. The wait doubles after each attempt.
+FIRST_RETRY_DELAY = 2
 
-    logging_url = "https://logging.googleapis.com/v2/entries:list"
-    creators = {}
-    
-    # Construct targeted filter matching only the unresolved agent IDs
-    id_filter_str = " OR ".join(f'"{aid}"' for aid in agent_ids)
-    log_filter = (
-        'protoPayload.serviceName="discoveryengine.googleapis.com" AND '
-        'protoPayload.methodName:"AgentService.CreateAgent" AND '
-        f'(protoPayload.response.name:({id_filter_str}) OR protoPayload.resourceName:({id_filter_str}))'
-    )
 
-    # Add timestamp filter to prevent long scans in large projects
+def build_creator_log_filter(project_id, min_create_time=None):
+    """Builds the Cloud Logging filter for CreateAgent audit entries.
+
+    The filter names no agent ID, for two measured reasons. First, a clause on
+    an agent ID is not indexed, so it does not reduce the bytes the backend
+    reads. Second, it makes the result sparser, and a sparse result raises the
+    risk of the backend error "timed out getting cursor token". The caller
+    matches the agent IDs in Python instead.
+
+    The logName and timestamp clauses use indexed fields. They let the backend
+    skip whole storage blocks. They are the only real speed control here.
+    """
+    activity_log = f"projects/{project_id}/logs/cloudaudit.googleapis.com%2Factivity"
+    clauses = [
+        f'logName="{activity_log}"',
+        'protoPayload.serviceName="discoveryengine.googleapis.com"',
+        'protoPayload.methodName:"AgentService.CreateAgent"',
+    ]
+
+    # Add a timestamp bound to prevent long scans in large projects
     if min_create_time:
         try:
             # Parse creation time (e.g. 2026-08-01T12:34:56.789Z) and apply a 1-hour buffer
@@ -122,47 +142,142 @@ def get_agent_creators(session, project_id, agent_ids, min_create_time=None, tim
             dt = datetime.strptime(main_part, "%Y-%m-%dT%H:%M:%S")
             dt_buffered = dt - timedelta(hours=1)
             timestamp_filter = dt_buffered.strftime("%Y-%m-%dT%H:%M:%SZ")
-            log_filter += f' AND timestamp >= "{timestamp_filter}"'
+            clauses.append(f'timestamp >= "{timestamp_filter}"')
         except Exception as e:
             print(f"Warning: Could not parse min_create_time '{min_create_time}': {e}", file=sys.stderr)
 
+    return " AND ".join(clauses)
+
+
+def fetch_log_page(session, payload, timeout=30):
+    """Sends one entries.list request and returns the parsed body.
+
+    Retries on HTTP 5xx and on a network error, with an exponential wait. A
+    Cloud Logging scan over a sparse result set can return HTTP 500 with the
+    message "timed out getting cursor token". That error is transient.
+
+    Returns None when the request failed for good.
+    """
+    delay = FIRST_RETRY_DELAY
+    for attempt in range(1, MAX_LOG_ATTEMPTS + 1):
+        try:
+            response = session.post(LOGGING_URL, json=payload, timeout=timeout)
+            if response.status_code == 200:
+                return response.json()
+            if response.status_code < 500:
+                # A client error will not improve on a retry
+                print(
+                    f"Error fetching logs (HTTP {response.status_code}): {response.text}",
+                    file=sys.stderr,
+                )
+                return None
+            error = f"HTTP {response.status_code}"
+        except Exception as e:
+            error = str(e)
+
+        if attempt < MAX_LOG_ATTEMPTS:
+            print(
+                f"  Log request failed ({error}). Waiting {delay}s, "
+                f"then attempt {attempt + 1} of {MAX_LOG_ATTEMPTS}...",
+                file=sys.stderr,
+            )
+            time.sleep(delay)
+            delay *= 2
+        else:
+            print(
+                f"Error: log request failed after {MAX_LOG_ATTEMPTS} attempts. "
+                f"Last error: {error}",
+                file=sys.stderr,
+            )
+    return None
+
+
+def get_agent_creators(session, project_id, agent_ids, min_create_time=None, timeout=30,
+                       max_pages=DEFAULT_MAX_LOG_PAGES,
+                       time_budget=DEFAULT_LOG_TIME_BUDGET):
+    """Retrieves agent creator emails or identities from Cloud Audit Logs.
+
+    The scan stops on the first of these conditions: every agent is resolved,
+    the log history ends, the page limit is reached, or the time budget is
+    spent. The last two guards matter because an agent created outside the
+    400-day audit log retention never resolves. Without them the scan runs to
+    the end of the time window.
+    """
+    if not agent_ids:
+        return {}
+
+    wanted_ids = set(agent_ids)
+    creators = {}
+    log_filter = build_creator_log_filter(project_id, min_create_time)
+
+    started = time.monotonic()
     next_page_token = ""
+    page_count = 0
+    stop_reason = "the log history ended"
+
     while True:
+        if page_count >= max_pages:
+            stop_reason = f"the page limit of {max_pages} pages was reached"
+            break
+        if time.monotonic() - started >= time_budget:
+            stop_reason = f"the time budget of {time_budget}s was spent"
+            break
+
         payload = {
             "resourceNames": [f"projects/{project_id}"],
             "filter": log_filter,
-            "pageSize": 1000,
+            "pageSize": LOG_PAGE_SIZE,
             "orderBy": "timestamp desc"  # Scan newest logs first
         }
         if next_page_token:
             payload["pageToken"] = next_page_token
-        try:
-            response = session.post(logging_url, json=payload, timeout=timeout)
-            if response.status_code != 200:
-                print(f"Error fetching logs (HTTP {response.status_code}): {response.text}", file=sys.stderr)
-                break
-            data = response.json()
-            entries = data.get("entries", [])
-            for entry in entries:
-                proto_payload = entry.get("protoPayload", {})
-                response_obj = proto_payload.get("response", {})
-                agent_name = response_obj.get("name") if response_obj else None
-                if not agent_name:
-                    agent_name = proto_payload.get("resourceName", "")
-                auth_info = proto_payload.get("authenticationInfo", {})
-                creator = extract_creator_identity(auth_info)
-                if agent_name and creator:
-                     # Match by agent ID (last part of resource name path)
-                     agent_id = agent_name.split("/")[-1]
-                     if agent_id and agent_id != "default_assistant" and agent_id not in creators:
-                         creators[agent_id] = creator
-            next_page_token = data.get("nextPageToken")
-            if not next_page_token:
-                break
-        except Exception as e:
-            print(f"Exception while fetching logs: {e}", file=sys.stderr)
+
+        data = fetch_log_page(session, payload, timeout=timeout)
+        if data is None:
+            stop_reason = "the log query failed"
             break
+
+        page_count += 1
+        for entry in data.get("entries", []):
+            proto_payload = entry.get("protoPayload", {})
+            # Only response.name carries the new agent ID. resourceName names the
+            # parent assistant, so it never identifies the agent that was created.
+            response_obj = proto_payload.get("response") or {}
+            agent_name = response_obj.get("name", "")
+            if not agent_name:
+                continue
+            auth_info = proto_payload.get("authenticationInfo", {})
+            creator = extract_creator_identity(auth_info)
+            if not creator:
+                continue
+            # Match by agent ID (last part of resource name path)
+            agent_id = agent_name.split("/")[-1]
+            if agent_id in wanted_ids and agent_id not in creators:
+                creators[agent_id] = creator
+
+        print(
+            f"  Page {page_count}: resolved {len(creators)} of {len(wanted_ids)} agents "
+            f"({time.monotonic() - started:.0f}s elapsed).",
+            file=sys.stderr,
+        )
+
+        # Stop as soon as every agent ID has a creator
+        if len(creators) >= len(wanted_ids):
+            stop_reason = "every agent was resolved"
+            break
+
+        next_page_token = data.get("nextPageToken")
+        if not next_page_token:
+            break
+
+    print(
+        f"Log scan stopped because {stop_reason}. "
+        f"{len(creators)} resolved, {len(wanted_ids) - len(creators)} unresolved, "
+        f"{page_count} pages, {time.monotonic() - started:.0f}s.",
+        file=sys.stderr,
+    )
     return creators
+
 
 def get_agent_type(agent):
     """Determines the type of the agent based on its definition field."""
@@ -232,6 +347,10 @@ def main():
     parser.add_argument("--format", choices=["table", "csv"], default="table", help="Output format (default: table).")
     parser.add_argument("--location", help="Comma-separated list of GCP locations to scan. Overrides default/env.")
     parser.add_argument("--output_uuids", default="unresolved_uuids.txt", help="Path to write unresolved WIF user UUIDs (default: unresolved_uuids.txt).")
+    parser.add_argument("--log_max_pages", type=int, default=DEFAULT_MAX_LOG_PAGES,
+                        help=f"Maximum Cloud Logging pages to read when resolving creators (default: {DEFAULT_MAX_LOG_PAGES}).")
+    parser.add_argument("--log_time_budget", type=int, default=DEFAULT_LOG_TIME_BUDGET,
+                        help=f"Maximum seconds to spend resolving creators from logs (default: {DEFAULT_LOG_TIME_BUDGET}).")
     args = parser.parse_args()
 
     # Determine locations to scan
@@ -310,7 +429,14 @@ def main():
     if unresolved_agent_ids:
         print(f"Resolving {len(unresolved_agent_ids)} creator emails from Cloud Audit Logs...", file=sys.stderr)
         min_create_time = min(unresolved_agent_create_times) if unresolved_agent_create_times else None
-        creators_map = get_agent_creators(session, project_id, unresolved_agent_ids, min_create_time=min_create_time)
+        creators_map = get_agent_creators(
+            session,
+            project_id,
+            unresolved_agent_ids,
+            min_create_time=min_create_time,
+            max_pages=args.log_max_pages,
+            time_budget=args.log_time_budget,
+        )
         for info in all_agents_info:
             if not info["creator"]:
                 info["creator"] = creators_map.get(info["agent_id"], "N/A (No log entry found)")
