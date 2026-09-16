@@ -36,7 +36,7 @@ There are two separate execution paths depending on how your users authenticate 
 ## Prerequisites
 
 ### Google Cloud Platform (GCP)
-* **Cloud Audit Logs**: Ensure that **Admin Activity** and **Data Access** audit logs are enabled in your Google Cloud Project for `discoveryengine.googleapis.com`.
+* **Cloud Audit Logs**: No action needed. `CreateAgent` is a metadata write, so Google Cloud records it in the **Admin Activity** audit log. That log is always on and you cannot disable it. **Data Access** logs are not used.
 * **GCP Roles**: The identity running the scanning scripts needs:
   * `roles/discoveryengine.viewer` (or `roles/discoveryengine.admin`)
   * `roles/logging.viewer` (to read creation events from logs)
@@ -46,7 +46,7 @@ There are two separate execution paths depending on how your users authenticate 
   ```
 
 > [!IMPORTANT]
-> **Audit Logs Requirement**: The creator resolution relies entirely on Cloud Logging data. If **Data Access** logs were not enabled at the time the agents were created, the scripts will not find creation events and will label the creator as `N/A (No log entry found)`.
+> **Audit log retention**: Admin Activity logs stay for 400 days. The period is fixed. An agent created before that window has no log entry. The scripts then report the creator as `N/A (No log entry found)`. Low-Code, No-Code, Workflow, Agent Designer and Skill agents often carry the owner in the agent definition. Those agents are not affected.
 
 ### Microsoft Entra ID (Azure AD)
 For the WIF identity resolver utility (`resolve_entra_users.py`) to successfully resolve user UUIDs, your App Registration must have:
@@ -63,6 +63,10 @@ pip install requests google-auth
 
 ## Setup & Configuration
 
+> [!IMPORTANT]
+> Run every command from inside this folder. The scripts read `.env` from the current
+> working directory. They do not search parent folders.
+
 1. Copy the example environment file:
    ```bash
    cp .env.example .env
@@ -74,6 +78,18 @@ pip install requests google-auth
      * `AZURE_TENANT_ID`
      * `AZURE_CLIENT_ID`
      * `AZURE_CLIENT_SECRET`
+
+### Which project does a run use?
+
+The scripts take the first value they find, in this order:
+
+1. The `--project_id` flag.
+2. The `GOOGLE_CLOUD_PROJECT` environment variable.
+3. The `PROJECT_ID` value in `.env`.
+4. The project attached to your Application Default Credentials.
+
+Every run prints the project it chose on the first line. Check that line.
+
 
 ---
 
@@ -116,7 +132,114 @@ Run the Entra resolver script pointing to the text file generated in Step 1:
 *   **Outputs**: Resolves the UUIDs using Microsoft Graph API client credentials and writes them line-by-line into `resolved_emails.txt`.
 *   *Note: You can override the output file name using `--output <path>`.*
 
+---
+
+## How creator resolution works
+
+Listing the agents is fast. Resolving the creators is the slow part, and it is the part
+that can fail. Read this before you run against a large project.
+
+The scripts read the `CreateAgent` entries in the Admin Activity audit log. Cloud Logging
+does not index the audit payload fields, so the backend must scan the time window. The
+scan returns small, uneven pages. Each page costs a few seconds.
+
+The scripts print one line for each page:
+
+```
+Resolving 14 creator emails from Cloud Audit Logs...
+  Page 1: resolved 0 of 14 agents (6s elapsed).
+  Page 3: resolved 3 of 14 agents (18s elapsed).
+  Page 16: resolved 14 of 14 agents (91s elapsed).
+Log scan stopped because every agent was resolved. 14 resolved, 0 unresolved, 16 pages, 91s.
+```
+
+An early page with zero matches is normal. Do not stop the run.
+
+The scan stops on the first of four conditions.
+
+| Stop reason | Meaning |
+|---|---|
+| every agent was resolved | Best case. The scan ended early. |
+| the log history ended | The window holds no more entries. Any remaining agent has no log entry. |
+| the page limit of N pages was reached | The `--log_max_pages` guard fired. |
+| the time budget of Ns was spent | The `--log_time_budget` guard fired. |
+
+The last two guards exist because the scan cannot always finish. An agent created before
+the 400-day retention window has no log entry, so the early exit never fires.
+
+### Scan guard flags
+
+| Flag | Default | Use |
+|---|---|---|
+| `--log_max_pages` | 200 | Raise it for a project with thousands of agents. Lower it for a quick look. |
+| `--log_time_budget` | 300 | Seconds. Raise it when the scan stops before every agent resolves. |
+
+Example for a large project:
+
+```bash
+python3 list_agents.py --format csv --location global \
+  --log_max_pages 2000 --log_time_budget 3600 > list_agents.csv
+```
+
+A partial result is still useful. Every agent that did not resolve carries
+`N/A (No log entry found)`.
+
+---
+
+## Troubleshooting
+
+### `Found 0 no-code/low-code agents.`
+
+Look for a warning line above it. The scripts now report the reason.
+
+```
+Warning: cannot list engines in 'global' (HTTP 403). Check the project ID, the IAM
+roles, and that the Discovery Engine API is enabled.
+```
+
+Common causes, in order:
+
+1. The credentials are wrong. On a Compute Engine instance or a cloudtop, Application
+   Default Credentials use the machine service account, which usually has no access. Run
+   `gcloud auth application-default login`.
+2. The project has no agent in that location. Try `--location global,us,eu`.
+3. The Discovery Engine API is off in that project.
+
+### `Filter cannot be longer than 20000 characters.`
+
+You are running an old copy of the script. The current version never names an agent ID in
+the filter, so the filter length does not grow with the agent count. Update the script.
+
+### `Internal error encountered` with `timed out getting cursor token`
+
+This is a transient Cloud Logging error on a sparse scan. The current version retries five
+times with an exponential wait. If it still fails, lower the scan cost by giving a
+narrower location list, or accept a partial result with a smaller `--log_time_budget`.
+
+### The run appears to hang
+
+Check the per-page progress lines. If you piped `stderr` into another command, the shell
+may hold the output in a buffer. Run without a pipe to watch the progress.
+
+### `UserWarning: ... without a quota project`
+
+Harmless. To remove it, run:
+
+```bash
+gcloud auth application-default set-quota-project YOUR_PROJECT_ID
+```
+
+### Every creator shows `N/A (No log entry found)`
+
+Two possible causes:
+
+1. The agents are older than the 400-day Admin Activity retention window.
+2. The scan stopped early. Read the stop reason and raise the guard that fired.
+
+---
+
 ## Output Formats & Examples
+
 
 ### 1. CSV Agent Export (`list_agents.csv`)
 The CSV output contains the following 8 columns:

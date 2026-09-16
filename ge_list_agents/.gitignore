@@ -15,3 +15,7 @@ __pycache__/
 shell/
 obsolete/
 
+# Local working memory. Holds customer names and real project IDs.
+# This repository is public. Do not commit this file.
+MEMORY.md
+
