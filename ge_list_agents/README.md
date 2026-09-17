@@ -4,6 +4,14 @@ This repository provides tools to list and report on **no-code / low-code / work
 
 Since the standard Discovery Engine API metadata does not directly output creator email addresses, these scripts resolve creator identities by scanning **Cloud Audit Logs** (specifically `CreateAgent` log entries).
 
+### Which script do I run?
+
+| Your login type | Script | Notes |
+|---|---|---|
+| Cloud Identity or Google Workspace | `list_agents_fast.py` | Recommended. Same setup and same output as `list_agents.py`, but faster. |
+| Cloud Identity or Google Workspace | `list_agents.py` | The original. Use it if the fast script leaves agents unresolved. |
+| Workforce Identity Federation (WIF) | `list_agents_wif.py` | The only script that handles external UUID subjects. No fast variant exists. |
+
 ---
 
 ## Architecture Overview
@@ -108,6 +116,64 @@ Use this if your creators login using standard Google Accounts.
    ```bash
    python3 list_agents.py --format csv > list_agents.csv
    ```
+
+---
+
+### Option A-fast: Standard Flow, faster (Non-WIF)
+
+`list_agents_fast.py` is a drop-in replacement for `list_agents.py`.
+
+> [!IMPORTANT]
+> This script supports Cloud Identity accounts only. It does not support Workforce
+> Identity Federation. For WIF, use `list_agents_wif.py` in Option B.
+
+Nothing in your setup changes. The script reads the same `.env` file, uses the same
+credentials, and needs the same Python packages. Only the script name changes.
+
+```bash
+python3 list_agents_fast.py --format table
+python3 list_agents_fast.py --format csv > list_agents.csv
+```
+
+The output columns are identical to Option A. A test on a 14-agent project produced the
+same rows and the same creator for every agent.
+
+**Why it is faster.** `list_agents.py` scans the whole audit log history from the oldest
+agent to now. `list_agents_fast.py` reads the `createTime` that the agent list already
+returns. It then builds a narrow log window around each creation time, and it reads only
+those windows. On the same 14-agent project the full scan took 91 seconds. The windowed
+run took 12 seconds.
+
+The script prints the plan and the progress:
+
+```
+Found 14 no-code/low-code agents in 2s.
+Resolving 14 creator email(s) from Cloud Audit Logs...
+Planned 9 log window(s) covering 18.0 hours, from an agent age span of 4,997.0 hours.
+  Window 1/9 [2026-01-23T06:49:27Z to 2026-01-23T08:49:27Z] found 1 of 1. Total 1 of 14 (1s).
+  ...
+Creator lookup stopped because every window was read. 14 resolved, 0 unresolved, 9 window(s), 9 page(s), 9s.
+Total run time: 12s.
+```
+
+Every progress line and the `Total run time` line go to stderr. A CSV redirect captures
+stdout only, so the CSV file stays clean and the timing stays on your screen.
+
+#### Window flags
+
+These flags replace `--log_max_pages` and `--log_time_budget` from Option A.
+
+| Flag | Default | Use |
+|---|---|---|
+| `--log_window_gap_hours` | 24 | Two agents created less than this far apart share one window. Raise it to make fewer and wider windows. |
+| `--log_window_buffer_hours` | 1 | Padding on each side of a window. Raise it if agents stay unresolved. |
+| `--log_max_windows` | 400 | Hard ceiling. The script merges the nearest windows until the count fits. |
+| `--log_max_pages_per_window` | 20 | Page guard for one window. |
+| `--log_time_budget` | 900 | Seconds for the whole creator lookup. |
+
+The window count cannot grow without limit. A new window starts only when two creation
+times differ by more than the gap. Over the 400-day retention period, a 24-hour gap
+allows at most 401 windows, whatever the agent count.
 
 ---
 
@@ -298,6 +364,7 @@ alice@yourdomain.com
 ## File Structure
 
 *   `list_agents.py`: Scanning script for standard Workspace Google accounts.
+*   `list_agents_fast.py`: Faster drop-in replacement for `list_agents.py`. Cloud Identity only. No WIF support.
 *   `list_agents_wif.py`: Scanning script for Workforce Identity Federation (WIF) setups.
 *   `resolve_entra_users.py`: Entra ID/Azure AD identity resolver utility.
 *   `.env`: Local environment configurations (ignored by git).
