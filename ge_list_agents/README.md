@@ -188,7 +188,29 @@ A partial result is still useful. Every agent that did not resolve carries
 
 ## Troubleshooting
 
+### `Failed to resolve 'global%20...'` or `is not a valid location`
+
+Your `.env` holds a comment on the same line as the value:
+
+```
+LOCATION=global #or e.g. global, us     <- wrong
+```
+
+The whole text after `=` became the location, so it became part of the hostname. Write the
+comment on its own line:
+
+```
+# or e.g. global,us
+LOCATION=global                          <- correct
+```
+
+Current versions strip an inline comment and reject an invalid location with a clear
+message. Older copies of `.env.example` shipped the wrong line. Copy the template again.
+
+To keep a `#` inside a value, put the value in quotes.
+
 ### `Found 0 no-code/low-code agents.`
+
 
 Look for a warning line above it. The scripts now report the reason.
 

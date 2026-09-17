@@ -10,20 +10,43 @@ import argparse
 import csv
 import sys
 import os
+import re
 import time
 from datetime import datetime, timedelta
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
 
 def load_env_file(filepath=".env"):
-    """Loads environment variables from a .env file if it exists."""
-    if os.path.isfile(filepath):
-        with open(filepath, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ[key.strip()] = value.strip().strip('"').strip("'")
+    """Loads environment variables from a .env file if it exists.
+
+    An unquoted value ends at an inline comment. The line
+    `LOCATION=global # or us` therefore gives the value `global`.
+    To keep a `#` inside a value, put the whole value in quotes.
+    """
+    if not os.path.isfile(filepath):
+        return
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            value = value.strip()
+            if value[:1] in ('"', "'"):
+                # A quoted value ends at the matching quote. Every character
+                # inside the quotes is kept, including a #.
+                quote = value[0]
+                end = value.find(quote, 1)
+                value = value[1:end] if end > 0 else value[1:]
+            elif value.startswith("#"):
+                value = ""
+            else:
+                # An unquoted value ends at the first inline comment
+                for marker in (" #", "\t#"):
+                    if marker in value:
+                        value = value.split(marker, 1)[0]
+                value = value.strip()
+            os.environ[key.strip()] = value
 
 # Load environment from local .env file
 load_env_file()
@@ -340,6 +363,44 @@ def format_datetime(dt_str):
     except Exception:
         return dt_str
 
+# A location becomes part of a hostname, so only these characters are valid.
+LOCATION_PATTERN = re.compile(r"^[a-z0-9-]+$")
+
+
+def parse_locations(raw_value, source):
+    """Splits a comma-separated location list and rejects an invalid entry.
+
+    A location becomes part of the API hostname. An invalid value gives a DNS
+    error that hides the real cause, so the script stops here instead.
+    """
+    locations = []
+    for item in raw_value.split(","):
+        location = item.strip()
+        if not location:
+            continue
+        if not LOCATION_PATTERN.match(location):
+            print(
+                f"Error: '{location}' from {source} is not a valid location.",
+                file=sys.stderr,
+            )
+            print(
+                "A location uses lower case letters, digits and hyphens only, "
+                "for example 'global' or 'us'.",
+                file=sys.stderr,
+            )
+            print(
+                "Check for an inline comment or a stray space. Write the comment "
+                "on its own line.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        locations.append(location)
+    if not locations:
+        print(f"Error: {source} holds no location.", file=sys.stderr)
+        sys.exit(1)
+    return locations
+
+
 def main():
     parser = argparse.ArgumentParser(description="List Gemini Enterprise agents and their creator emails.")
     parser.add_argument("--project_id", help="Google Cloud Project ID. Defaults to detecting from environment.")
@@ -353,11 +414,11 @@ def main():
 
     # Determine locations to scan
     if args.location:
-        locations = [loc.strip() for loc in args.location.split(",") if loc.strip()]
+        locations = parse_locations(args.location, "the --location flag")
     else:
         env_locations = os.getenv("LOCATION") or os.getenv("LOCATIONS")
         if env_locations:
-            locations = [loc.strip() for loc in env_locations.split(",") if loc.strip()]
+            locations = parse_locations(env_locations, "LOCATION in the .env file")
         else:
             locations = ["global", "us", "eu"]  # Broader default to scan common locations
 

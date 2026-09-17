@@ -11,14 +11,36 @@ import requests
 import os
 
 def load_env_file(filepath=".env"):
-    """Loads environment variables from a .env file if it exists."""
-    if os.path.isfile(filepath):
-        with open(filepath, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ[key.strip()] = value.strip().strip('"').strip("'")
+    """Loads environment variables from a .env file if it exists.
+
+    An unquoted value ends at an inline comment. The line
+    `LOCATION=global # or us` therefore gives the value `global`.
+    To keep a `#` inside a value, put the whole value in quotes.
+    """
+    if not os.path.isfile(filepath):
+        return
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            value = value.strip()
+            if value[:1] in ('"', "'"):
+                # A quoted value ends at the matching quote. Every character
+                # inside the quotes is kept, including a #.
+                quote = value[0]
+                end = value.find(quote, 1)
+                value = value[1:end] if end > 0 else value[1:]
+            elif value.startswith("#"):
+                value = ""
+            else:
+                # An unquoted value ends at the first inline comment
+                for marker in (" #", "\t#"):
+                    if marker in value:
+                        value = value.split(marker, 1)[0]
+                value = value.strip()
+            os.environ[key.strip()] = value
 
 # Load environment from local .env file
 load_env_file()
