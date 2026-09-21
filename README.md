@@ -11,6 +11,7 @@
 * [ae_ge_publish](./ae_ge_publish/): ADK -> Agent Engine -> Gemini Enterprise (Agentspace) integration
 * [agents_cli](./agents_cli/): Agents generated or managed via agents-cli (e.g. hr-onboarding-agent)
 * [agentspace_stream_assist](./agentspace_stream_assist/): Invoking Gemini Enterprise agents using the streamAssist API
+* [agy-im8-agent](./agy-im8-agent/): Autonomous IM8 compliance checking and remediation agent built with Antigravity
 * [codelabs](./codelabs/): Collection of Codelabs related to MCP, ADK, and A2A
 * [deep_research](./deep_research/): Prototyping Gemini Deep Research / Interactions API
 * [doc_ai](./doc_ai/): Sample scripts and notebooks using Vertex AI Document AI
