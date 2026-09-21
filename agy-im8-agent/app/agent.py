@@ -21,7 +21,12 @@ except Exception:
 
 # Ensure parent directory is in path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from app.tools import audit_code_security, audit_infra_security, generate_cio_report
+from app.tools import (
+    audit_code_security,
+    audit_infra_security,
+    generate_cio_report,
+    get_assessment_timestamp,
+)
 
 # Shared model config
 model_config = Gemini(
@@ -100,13 +105,15 @@ assembler_agent = Agent(
     - Infrastructure Security Audit: {infra_audit_result}
     
     Tasks:
-    1. Determine overall status (COMPLIANT or NON-COMPLIANT).
-    2. Compile a formal markdown report with an executive summary, findings matrix, and attestation block.
-    3. Use the `generate_cio_report` tool to save the report to IM8_COMPLIANCE_REPORT.md.
-    4. Return an executive summary of the assessment.
+    1. Call `get_assessment_timestamp` to read the real assessment date. Never guess a date.
+    2. Determine the overall status. Write COMPLIANT only when every rule reports COMPLIANT or REMEDIATED.
+    3. Write NON-COMPLIANT when any rule reports a violation or a failed remediation.
+    4. Compile a markdown report with an executive summary, a findings matrix, and an attestation block.
+    5. Call `generate_cio_report` to save the report to IM8_COMPLIANCE_REPORT.md.
+    6. Return an executive summary of the assessment.
     """,
     output_key="cio_report",
-    tools=[generate_cio_report]
+    tools=[generate_cio_report, get_assessment_timestamp]
 )
 
 # --- COMPLETE SEQUENTIAL PIPELINE ---
