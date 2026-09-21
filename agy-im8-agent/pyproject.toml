@@ -3,7 +3,7 @@ name = "agy-im8-agent"
 version = "0.1.0"
 description = "Autonomous Multi-Agent IM8 Compliance Checking and Remediation Companion"
 authors = [
-    {name = "Google Singapore CE Team", email = "singapore-ce@google.com"},
+    {name = "Weizhong Toh"},
 ]
 
 dependencies = [

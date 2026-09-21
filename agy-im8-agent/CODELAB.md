@@ -3,7 +3,7 @@ summary: Build an autonomous parallel multi-agent IM8 compliance and remediation
 categories: AI, Cloud, Security, Government
 environments: Web
 status: Draft
-authors: Google Singapore CE Team
+authors: Weizhong Toh
 tags: Antigravity, ADK, MCP, Gemini, IM8, GovTech
 
 # Build an Autonomous IM8 Compliance & Remediation Companion with Antigravity, ADK & MCP
