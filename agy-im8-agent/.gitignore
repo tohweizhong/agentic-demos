@@ -5,5 +5,4 @@ venv/
 *.egg-info/
 IM8_COMPLIANCE_REPORT.md
 im8_policies.db
-MEMORY.md
 scratch/
