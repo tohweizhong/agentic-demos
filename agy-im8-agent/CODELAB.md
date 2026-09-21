@@ -44,16 +44,18 @@ graph TD
 ### 🚀 The Antigravity Way: Agentic Software Engineering
 Traditionally, software tutorials require manual typing and copy-pasting code blocks. In this codelab, you pair-program with the **Antigravity Agent**. You write **prompts** to guide the agent in building, testing, and verifying the multi-agent system.
 
-Each step includes:
-1. 🤖 **The Agentic Prompt (Antigravity)**: The exact prompt to type into the Antigravity chat panel.
-2. 📄 **Expected Reference Code**: The target structure you can review to verify what the agent generated.
+The lab has two phases.
+
+1. **Build phase (steps 3 to 6)**: You prompt Antigravity to write the policy database, the FastMCP server, the audit tools, and the agent pipeline. Each build step gives you the exact prompt and the reference code to check against.
+2. **Run phase (steps 7 to 10)**: You start the ADK web interface, then drive the audit and the repair from its chat panel. You watch each agent step and each tool call as it happens.
 
 ### What You Will Learn
 * How to pair-program with Antigravity 2.0 using natural language prompts.
 * How to seed and query an SQLite policy catalog using a FastMCP server.
 * How to build concurrent security auditors with Google ADK `ParallelAgent`.
 * How to synthesize multi-agent findings using a sequential `cio_report_assembler`.
-* How to interact with the multi-agent system using the visual ADK Web Interface (`adk web`).
+* How to run and inspect the pipeline in the visual ADK web interface (`adk web`).
+* How to make a repair tool prove its work instead of assuming success.
 
 ---
 
@@ -265,59 +267,13 @@ app = App(root_agent=root_agent, name="app")
 
 ---
 
-## 7. Audit Target Repository in Scan Mode
+## 7. Launch the ADK Web Interface
 Duration: 0:04:00
 
-Now test the multi-agent pipeline in audit-only mode.
-
-### 🤖 The Agentic Prompt (Antigravity)
-In the Antigravity chat panel, prompt your agent:
-
-```text
-Run the im8_pipeline in audit mode against sample_target_repo. Do not remediate any files yet. Report all discovered compliance violations across code and infrastructure.
-```
-
-### Observed Findings
-The parallel auditors discover all four non-compliant issues:
-* **IM8 Sec-01**: Hardcoded APEX secret in `service/config.yaml`.
-* **IM8 Data-02**: Unmasked citizen NRIC logged in `service/app.py`.
-* **IM8 App-04**: Unauthenticated `/api/v1/debug/dump-records` endpoint in `service/app.py`.
-* **IM8 Infra-03**: Public bucket configuration in `infra/terraform/storage.tf`.
-
----
-
-## 8. Remediate Violations Autonomously
-Duration: 0:04:00
-
-Instruct Antigravity to trigger automated remediation across both security domains concurrently.
-
-### 🤖 The Agentic Prompt (Antigravity)
-In the Antigravity chat panel, prompt your agent:
-
-```text
-Run the im8_pipeline against sample_target_repo with remediation enabled. Repair all violations in code, configuration, and infrastructure files. Generate the final CIO attestation report.
-```
-
-### Verification
-Ask Antigravity to run the audit again in scan mode. Every rule must now report COMPLIANT.
-
-Once Antigravity completes the repair:
-1. `service/config.yaml`: The hardcoded key is replaced by `${APEX_SERVICE_KEY}`.
-2. `service/app.py`: Citizen NRIC and phone numbers are masked before logging.
-3. `service/app.py`: The public debug endpoint is removed.
-4. `infra/terraform/storage.tf`: Bucket access is set to `enforced` and `allUsers` is removed.
-
-Negative : Do not trust the REMEDIATED message on its own. Open each file and read it. A codelab teaches you to verify, not to assume.
-
----
-
-## 9. Launch the ADK Web Interface
-Duration: 0:05:00
-
-Google ADK includes a visual web interface to interact with your agents and inspect tool executions live.
+Google ADK includes a visual web interface. It shows each agent step and each tool call as the pipeline runs. You will drive the audit and the repair from this interface.
 
 ### Launch Command
-In your terminal, start the ADK web server:
+In your terminal, start the local ADK web server from the project root:
 
 ```bash
 adk web
@@ -328,14 +284,75 @@ Open your browser at:
 http://localhost:8000
 ```
 
-### Web UI Workflow
-1. Select the `app` agent in the navigation menu.
-2. Type an audit query in the chat input:
-   ```text
-   Audit sample_target_repo and summarize our IM8 compliance posture for the Agency CIO.
-   ```
-3. Watch both `code_security_specialist` and `infra_security_specialist` execute concurrently in the tool call inspector.
-4. View the final attestation output returned by `cio_report_assembler`.
+### Select the Agent
+In the navigation menu on the left, select the `app` agent. The chat input appears on the right.
+
+Negative : Start `adk web` from the project root, not from inside `app/`. The audit tools resolve `sample_target_repo` against the working directory of the server process.
+
+Positive : Keep the terminal open. The FastMCP policy server starts as a child process of the web server. Its errors print in that terminal.
+
+---
+
+## 8. Audit the Target Repository in Scan Mode
+Duration: 0:04:00
+
+First run the pipeline in audit-only mode. Nothing is modified in this step.
+
+### Prompt in the ADK Web Chat
+Type this prompt into the chat input:
+
+```text
+Audit sample_target_repo for IM8 compliance. Do not remediate anything. Report every violation you find across code and infrastructure.
+```
+
+### What to Watch in the Interface
+1. Open the trace or events panel.
+2. Both `code_security_specialist` and `infra_security_specialist` start in the same turn. They run concurrently under `parallel_auditors`.
+3. Each specialist calls `lookup_im8_policy` on the FastMCP server to read the rule text.
+4. Each specialist then calls its audit tool with `remediate: false`.
+5. `cio_report_assembler` runs last, after both specialists finish.
+
+### Expected Findings
+The parallel auditors report all four defects:
+* **IM8-Sec-01**: Hardcoded APEX secret in `service/config.yaml`.
+* **IM8-Data-02**: Unmasked citizen NRIC logged in `service/app.py`.
+* **IM8-App-04**: Unauthenticated `/api/v1/debug/dump-records` route in `service/app.py`.
+* **IM8-Infra-03**: Public bucket grant in `infra/terraform/storage.tf`.
+
+The overall status is `NON-COMPLIANT`.
+
+---
+
+## 9. Remediate the Violations in the Same Interface
+Duration: 0:05:00
+
+Now repair the defects. Use the same chat session, so the agents keep the context of the audit.
+
+### Prompt in the ADK Web Chat
+Type this prompt into the chat input:
+
+```text
+Remediate every violation in sample_target_repo now. Repair the code, the configuration, and the infrastructure files. Then write the CIO attestation report.
+```
+
+### What to Watch in the Interface
+1. Both specialists now call their audit tools with `remediate: true`.
+2. Each tool reads the repaired file back and checks it against the defect pattern.
+3. `cio_report_assembler` calls `get_assessment_timestamp` before it writes the report.
+4. The report status changes to `COMPLIANT`.
+
+### Verify the Repair
+Run the audit prompt from step 8 one more time. Every rule must now report `COMPLIANT`.
+
+Then open each file and read it:
+1. `service/config.yaml`: the hardcoded key is replaced by `${APEX_SERVICE_KEY}`.
+2. `service/app.py`: the citizen NRIC and phone number are masked before logging.
+3. `service/app.py`: the public debug route is removed.
+4. `infra/terraform/storage.tf`: bucket access is `enforced` and the `allUsers` grant is gone.
+
+Negative : Do not trust the REMEDIATED message on its own. Open each file and read it. A codelab teaches you to verify, not to assume.
+
+Positive : To repeat the lab, restore the defects with `git checkout -- sample_target_repo`.
 
 ---
 
