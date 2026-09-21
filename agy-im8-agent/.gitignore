@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+IM8_COMPLIANCE_REPORT.md
+im8_policies.db

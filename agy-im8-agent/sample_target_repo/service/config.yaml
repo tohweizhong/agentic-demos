@@ -1,0 +1,14 @@
+app:
+  name: "citizen-support-portal"
+  environment: "production"
+  port: 8080
+
+database:
+  host: "gcc-db.agency.internal"
+  port: 5432
+  name: "grants_db"
+
+security:
+  # VIOLATION: Hardcoded API secret in configuration file (IM8 Sec-01)
+  apex_service_key: "apex-sec-prod-9841294812"
+  jwt_algorithm: "HS256"
