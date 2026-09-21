@@ -29,8 +29,8 @@ graph TD
         ParallelAuditors --> InfraAgent["infra_security_specialist (Agent)"]
     end
 
-    CodeAgent --> |MCP Tool Calls| PolicyLookup1["lookup_im8_policy (IM8-Sec-01, IM8-Data-02)"]
-    InfraAgent --> |MCP Tool Calls| PolicyLookup2["lookup_im8_policy (IM8-App-04, IM8-Infra-03)"]
+    CodeAgent --> |MCP Tool Calls| PolicyLookup1["lookup_im8_control (as-8, lm-19)"]
+    InfraAgent --> |MCP Tool Calls| PolicyLookup2["lookup_im8_control (as-13, ns-2)"]
 
     CodeAgent --> |Local Audit Tool| CodeTool["audit_code_security"]
     InfraAgent --> |Local Audit Tool| InfraTool["audit_infra_security"]
@@ -51,101 +51,96 @@ The lab has two phases.
 
 ### What You Will Learn
 * How to pair-program with Antigravity 2.0 using natural language prompts.
-* How to seed and query an SQLite policy catalog using a FastMCP server.
+* How to serve a real, public government control catalog through a FastMCP server.
 * How to build concurrent security auditors with Google ADK `ParallelAgent`.
 * How to synthesize multi-agent findings using a sequential `cio_report_assembler`.
 * How to run and inspect the pipeline in the visual ADK web interface (`adk web`).
 * How to make a repair tool prove its work instead of assuming success.
+* How to cite a real control and refuse to invent one.
 
 ---
 
-## 2. Explore the Target Codebase and IM8 Rules
-Duration: 0:03:00
+## 2. Explore the Target Codebase and the IM8 Reform Controls
+Duration: 0:04:00
 
-Your workspace contains a mock Singapore public sector digital service located in `sample_target_repo/`.
+Your workspace holds a mock Singapore public sector service in `sample_target_repo/`.
 
-### The 4 IM8 Compliance Rules to Enforce:
+### Where the controls come from
 
-1. **IM8 Sec-01: No Hardcoded Secrets**
-   - **Requirement**: Source files and configuration YAML must never store static credentials.
-   - **Defect in repo**: `sample_target_repo/service/config.yaml` contains `apex_service_key: "apex-sec-prod-9841294812"`.
+The full Instruction Manual 8 is not a public document. It sits behind a
+government portal and needs authorised credentials.
 
-2. **IM8 Data-02: Citizen PII Data Protection**
-   - **Requirement**: Citizen National Registration Identity Card (NRIC) numbers and telephone numbers must be masked in log files.
-   - **Defect in repo**: `sample_target_repo/service/app.py` logs unmasked NRIC numbers and phone numbers in plain text.
+Under the IM8 Reform programme, GovTech publishes a control catalog for
+low-risk cloud systems. That catalog is public and open source. This lab uses
+four controls from it.
 
-3. **IM8 App-04: API Debug Route Hardening**
-   - **Requirement**: Public services must disable or protect administrative debug endpoints.
-   - **Defect in repo**: `sample_target_repo/service/app.py` exposes `/api/v1/debug/dump-records` without authentication.
+* Repository: [GovTechSG/tech-standards](https://github.com/GovTechSG/tech-standards)
+* File: `catalogs/im8-reform.json`, version 2025.05.13
+* Licence: MIT, Government Technology Agency of Singapore
 
-4. **IM8 Infra-03: Cloud Storage Access Hardening**
-   - **Requirement**: Government Commercial Cloud (GCC) buckets must prohibit public access.
-   - **Defect in repo**: `sample_target_repo/infra/terraform/storage.tf` sets `public_access_prevention = "inherited"` and grants read permissions to `allUsers`.
+Positive : The catalog uses OSCAL, an open control format from NIST. Because the controls are machine readable, an agent can read them directly instead of reading prose.
+
+Negative : Do not invent a control identifier. If a control is not in the public catalog, do not cite it. A false citation in a compliance report is worse than no report.
+
+### The four controls and the four defects
+
+| Control | Title | Profile | Defect planted in the repository |
+|---|---|---|---|
+| `as-8` | Secrets Management | Level 1 | `service/config.yaml` holds the static key `apex-sec-prod-9841294812`. |
+| `lm-19` | Log Sanitisation | Level 2 | `service/app.py` writes the citizen identity number and telephone number to the log in plaintext. |
+| `as-13` | Exposure of Internal System Details | Level 2 | `service/app.py` serves `/api/v1/debug/dump-records` with no authentication. |
+| `ns-2` | Access Restrictions on CSP Resources Outside Virtual Network | Level 1 | `infra/terraform/storage.tf` sets `public_access_prevention` to `inherited` and grants object read to `allUsers`. |
+
+The profile column records the low-risk cloud profile that carries the control.
+Level 0 is a must-have, Level 1 is a should-have, and Level 2 is a good-to-have.
 
 ---
 
-## 3. Seed the IM8 Policy Database
+## 3. Seed the Control Database
 Duration: 0:05:00
 
-We represent official Singapore Government IM8 security policies inside a local SQLite database (`im8_policies.db`).
+Store the four controls in a local SQLite database, `im8_policies.db`.
 
 ### 🤖 The Agentic Prompt (Antigravity)
-Open the **Antigravity Chat Panel** and enter the following prompt:
+Open the **Antigravity Chat Panel** and enter this prompt:
 
 ```text
-Create a python script named init_im8_db.py that initializes a local SQLite database named im8_policies.db. The database must contain two tables: im8_policies (storing rule_id, clause_title, domain, severity, requirement, remediation_guidance) and remediation_templates (storing rule_id, file_type, vulnerable_pattern, compliant_replacement, explanation). Seed it with policies for IM8-Sec-01, IM8-Data-02, IM8-App-04, and IM8-Infra-03 along with approved code remediation templates. Then, execute the script to initialize the database.
+Fetch https://raw.githubusercontent.com/GovTechSG/tech-standards/master/catalogs/im8-reform.json. It is the public Singapore Government IM8 Reform control catalog in OSCAL format.
+
+Create init_im8_db.py. It must build a SQLite database im8_policies.db with two tables:
+1. im8_controls: control_id, title, control_group, profile_level, statement, guidance, source.
+2. remediation_templates: control_id, file_type, vulnerable_pattern, compliant_replacement, explanation.
+
+Seed im8_controls with exactly four controls taken from the catalog: as-8, lm-19, as-13 and ns-2. Copy the real statement and the real guidance. Do not paraphrase them and do not invent any control.
+
+Record the source as the catalog file and its version. Add a module docstring that names the repository, the file, the version and the MIT licence.
+
+Seed remediation_templates with a repair example for each control, and mark in the comments that these templates are written for this lab and are not part of the catalog.
+
+Then run the script.
 ```
 
-### 📄 Expected Reference Code
-Here is what Antigravity generates inside `init_im8_db.py`:
+### 📄 What the agent produces
 
-```python
-import sqlite3
-
-def init_db():
-    conn = sqlite3.connect("im8_policies.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS im8_policies (
-        rule_id TEXT PRIMARY KEY,
-        clause_title TEXT,
-        domain TEXT,
-        severity TEXT,
-        requirement TEXT,
-        remediation_guidance TEXT
-    )
-    """)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS remediation_templates (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        rule_id TEXT,
-        file_type TEXT,
-        vulnerable_pattern TEXT,
-        compliant_replacement TEXT,
-        explanation TEXT,
-        FOREIGN KEY(rule_id) REFERENCES im8_policies(rule_id)
-    )
-    """)
-    # Seed IM8 rules and remediation templates...
-    conn.commit()
-    conn.close()
-
-if __name__ == "__main__":
-    init_db()
-```
+The database holds four rows. Each row carries the real control statement. For
+example, `as-8` states: "Securely store secrets in an appropriate secrets
+management solution with access control enforcement, encryption, and
+monitoring."
 
 ---
 
-## 4. Build the FastMCP IM8 Policy Server
+## 4. Build the FastMCP Control Catalog Server
 Duration: 0:08:00
 
-Next, we expose the policy database via the **Model Context Protocol (MCP)** using `FastMCP`. The server connects to `im8_policies.db` and provides tools for looking up policy rules and remediation patterns.
+Next, expose the control database through the **Model Context Protocol (MCP)** using `FastMCP`. The server reads `im8_policies.db` and offers tools that look up a control and its repair template.
+
+This is the reason MCP belongs in this lab. Government control text changes on its own schedule. Putting it behind MCP lets an agency update a control without touching the agent code.
 
 ### 🤖 The Agentic Prompt (Antigravity)
 Enter the following prompt in the Antigravity chat panel:
 
 ```text
-Create an MCP server script named mcp_im8_server.py using FastMCP. The server must connect to im8_policies.db and expose three tools: lookup_im8_policy(rule_id: str) -> str, list_active_im8_policies() -> str, and get_remediation_pattern(rule_id: str) -> str. Ensure each tool function includes rich docstrings and clear error handling. When executed directly, run the server over stdio transport.
+Create an MCP server script named mcp_im8_server.py using FastMCP. The server must read im8_policies.db and expose three tools: lookup_im8_control(control_id: str) -> str, list_im8_controls() -> str, and get_remediation_pattern(control_id: str) -> str. lookup_im8_control must return the title, the group, the profile level, the statement, the guidance and the source. Give each tool a clear docstring and error handling. When run directly, serve over stdio transport.
 ```
 
 ### 📄 Expected Reference Code
@@ -157,31 +152,32 @@ import sqlite3
 import sys
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("IM8PolicyServer")
+mcp = FastMCP("IM8ControlCatalog")
 DB_FILE = os.path.join(os.path.dirname(__file__), "im8_policies.db")
 
 @mcp.tool()
-def lookup_im8_policy(rule_id: str) -> str:
-    """Look up Singapore Government IM8 policy requirements and severity by rule ID."""
+def lookup_im8_control(control_id: str) -> str:
+    """Look up one control from the public IM8 Reform catalog."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT rule_id, clause_title, domain, severity, requirement, remediation_guidance FROM im8_policies WHERE LOWER(rule_id) = LOWER(?)", (rule_id.strip(),))
+    cursor.execute(
+        "SELECT control_id, title, control_group, profile_level, statement, "
+        "guidance, source FROM im8_controls WHERE LOWER(control_id) = LOWER(?)",
+        (control_id.strip(),))
     row = cursor.fetchone()
     conn.close()
     if row:
-        return f"Rule ID: {row[0]}\nTitle: {row[1]}\nSeverity: {row[3]}\nRequirement: {row[4]}"
-    return f"Rule '{rule_id}' not found."
+        return f"Control ID: {row[0]}\nTitle: {row[1]}\nProfile Level: {row[3]}\nStatement: {row[4]}"
+    return f"Control '{control_id}' is not in the local catalog."
 
 @mcp.tool()
-def list_active_im8_policies() -> str:
-    """List all active Singapore Government IM8 security policies."""
-    # Queries and returns all active rules
+def list_im8_controls() -> str:
+    """List every control held in the local IM8 Reform catalog."""
     ...
 
 @mcp.tool()
-def get_remediation_pattern(rule_id: str) -> str:
-    """Retrieve the official government-approved code remediation template."""
-    # Returns vulnerable pattern and replacement snippet
+def get_remediation_pattern(control_id: str) -> str:
+    """Return the repair template written for one control."""
     ...
 
 if __name__ == "__main__":
@@ -200,8 +196,8 @@ Enter the following prompt in the Antigravity chat panel:
 
 ```text
 In app/tools.py, write four functions:
-1. audit_code_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/config.yaml for hardcoded secrets (IM8 Sec-01) and service/app.py for unmasked citizen NRICs and phone numbers (IM8 Data-02). When remediate is True, it replaces the secret with ${APEX_SERVICE_KEY} and applies NRIC masking.
-2. audit_infra_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/app.py for unauthenticated debug endpoints (IM8 App-04) and infra/terraform/storage.tf for public bucket grants (IM8 Infra-03). Match both google_storage_bucket_iam_binding with a members list and google_storage_bucket_iam_member with a single member field. When remediate is True, it removes the debug endpoint and enforces private bucket access.
+1. audit_code_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/config.yaml for a static credential (control as-8) and service/app.py for unmasked identity and telephone numbers in the log (control lm-19). When remediate is True, it replaces the secret with ${APEX_SERVICE_KEY} and applies NRIC masking.
+2. audit_infra_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/app.py for an unauthenticated debug route (control as-13) and infra/terraform/storage.tf for a public bucket grant (control ns-2). Match both google_storage_bucket_iam_binding with a members list and google_storage_bucket_iam_member with a single member field. When remediate is True, it removes the debug endpoint and enforces private bucket access.
 3. generate_cio_report(report_content: str, output_path: str = "IM8_COMPLIANCE_REPORT.md") -> str: Writes the CIO attestation report to disk.
 4. get_assessment_timestamp() -> str: Returns the current date and time in Singapore Standard Time.
 
@@ -230,7 +226,7 @@ We orchestrate the specialist agents into an ADK pipeline:
 Enter the following prompt in the Antigravity chat panel:
 
 ```text
-In app/agent.py, construct a multi-agent ADK pipeline. Connect to mcp_im8_server.py using McpToolset with StdioConnectionParams. Create two specialist agents: code_security_specialist and infra_security_specialist, both equipped with the MCP policy tools and their respective audit tools. Group them under a ParallelAgent named parallel_auditors. Then create a sequential step with cio_report_assembler. Give it generate_cio_report and get_assessment_timestamp. Instruct it to read the real date from the clock tool and never guess a date. It must write COMPLIANT only when every rule reports COMPLIANT or REMEDIATED. Bundle the pipeline into SequentialAgent and export app = App(root_agent=root_agent, name="app").
+In app/agent.py, construct a multi-agent ADK pipeline. Connect to mcp_im8_server.py using McpToolset with StdioConnectionParams. Create two specialist agents: code_security_specialist handles as-8 and lm-19, and infra_security_specialist handles as-13 and ns-2. Give both the MCP control tools and their own audit tool. Instruct each one to call lookup_im8_control first and to quote the real statement. Tell them never to invent a control identifier. Group them under a ParallelAgent named parallel_auditors. Then create a sequential step with cio_report_assembler. Give it generate_cio_report and get_assessment_timestamp. Instruct it to read the real date from the clock tool and never guess a date. It must write COMPLIANT only when every rule reports COMPLIANT or REMEDIATED. Bundle the pipeline into SequentialAgent and export app = App(root_agent=root_agent, name="app").
 ```
 
 ### 📄 Expected Reference Code
@@ -308,16 +304,16 @@ Audit sample_target_repo for IM8 compliance. Do not remediate anything. Report e
 ### What to Watch in the Interface
 1. Open the trace or events panel.
 2. Both `code_security_specialist` and `infra_security_specialist` start in the same turn. They run concurrently under `parallel_auditors`.
-3. Each specialist calls `lookup_im8_policy` on the FastMCP server to read the rule text.
+3. Each specialist calls `lookup_im8_control` on the FastMCP server to read the real control statement.
 4. Each specialist then calls its audit tool with `remediate: false`.
 5. `cio_report_assembler` runs last, after both specialists finish.
 
 ### Expected Findings
 The parallel auditors report all four defects:
-* **IM8-Sec-01**: Hardcoded APEX secret in `service/config.yaml`.
-* **IM8-Data-02**: Unmasked citizen NRIC logged in `service/app.py`.
-* **IM8-App-04**: Unauthenticated `/api/v1/debug/dump-records` route in `service/app.py`.
-* **IM8-Infra-03**: Public bucket grant in `infra/terraform/storage.tf`.
+* **as-8**: static credential in `service/config.yaml`.
+* **lm-19**: unmasked identity and telephone numbers logged in `service/app.py`.
+* **as-13**: unauthenticated `/api/v1/debug/dump-records` route in `service/app.py`.
+* **ns-2**: public bucket grant in `infra/terraform/storage.tf`.
 
 The overall status is `NON-COMPLIANT`.
 

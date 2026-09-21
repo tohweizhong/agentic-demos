@@ -9,6 +9,6 @@ database:
   name: "grants_db"
 
 security:
-  # VIOLATION: Hardcoded API secret in configuration file (IM8 Sec-01)
+  # VIOLATION: Static credential stored in a configuration file (IM8 Reform as-8)
   apex_service_key: "apex-sec-prod-9841294812"
   jwt_algorithm: "HS256"

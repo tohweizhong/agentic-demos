@@ -1,18 +1,34 @@
 ---
 trigger: always_on
-description: "Singapore Government IM8 Security and Privacy Rules"
+description: "IM8 Reform controls enforced by this lab"
 ---
 
-# Singapore Government IM8 Compliance Standards
+# IM8 Reform controls in scope
 
-## 1. Secrets Management
-Never place plaintext API keys, passwords, or tokens in source code or YAML files. Always read secrets from environment variables or Google Cloud Secret Manager.
+This lab enforces four controls from the public Singapore Government ICT&SS
+Policy (IM8 Reform) control catalog.
 
-## 2. Personal Data Protection
-Never log unmasked Singapore NRIC numbers or citizen mobile numbers. Mask NRIC numbers so that only the last four characters are visible (e.g., `SXXXX567A`).
+Source: https://github.com/GovTechSG/tech-standards, `catalogs/im8-reform.json`,
+version 2025.05.13, MIT licence.
 
-## 3. API Security
-Do not expose administrative debug endpoints in production builds. Require authentication for every route that handles citizen records.
+The full Instruction Manual 8 is not public. Only the IM8 Reform catalog for
+low-risk cloud systems is published. Cite a control only if it appears in that
+catalog. Never invent a control identifier.
 
-## 4. Cloud Infrastructure
-Ensure Google Cloud Storage buckets have `public_access_prevention` set to `enforced`. Never assign roles to `allUsers` or `allAuthenticatedUsers`.
+## as-8 Secrets Management
+Store secrets in a secrets management solution with access control, encryption,
+and monitoring. Do not store secrets unencrypted in source code or in
+configuration files.
+
+## lm-19 Log Sanitisation
+Sanitise logs to protect classified and sensitive data before any logging system
+records it. Mask personal data, credentials, and API keys.
+
+## as-13 Exposure of Internal System Details
+Prevent the unnecessary disclosure of internal system details to end users. Do
+not expose debug information, stack traces, or version strings.
+
+## ns-2 Access Restrictions on CSP Resources Outside Virtual Network
+Restrict access to cloud provider resources outside a virtual network. Restrict
+object storage buckets with IAM policies and block public access from the
+internet.
