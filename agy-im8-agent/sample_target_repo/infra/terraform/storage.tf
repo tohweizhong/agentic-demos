@@ -8,7 +8,7 @@ terraform {
   }
 }
 
-# VIOLATION: Cloud storage bucket permits public access and lacks TLS enforcement (IM8 Infra-03)
+# VIOLATION: Storage bucket permits public access from the internet (IM8 Reform ns-2)
 resource "google_storage_bucket" "citizen_documents" {
   name          = "gcc-agency-citizen-documents-prod"
   location      = "asia-southeast1" # Singapore region

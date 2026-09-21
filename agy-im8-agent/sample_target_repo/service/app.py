@@ -25,7 +25,7 @@ APPLICATIONS = []
 
 @app.post("/api/v1/grants/apply")
 def apply_grant(application: GrantApplication):
-    # VIOLATION: Logging plaintext citizen NRIC and phone number (IM8 Data-02)
+    # VIOLATION: Personal data written to the log without masking (IM8 Reform lm-19)
     logger.info(
         f"Processing application for citizen NRIC: {application.nric}, "
         f"Name: {application.full_name}, Phone: {application.phone_number}"
@@ -38,7 +38,7 @@ def apply_grant(application: GrantApplication):
         "message": "Grant application submitted successfully."
     }
 
-# VIOLATION: Public unauthenticated debug endpoint exposing citizen records (IM8 App-04)
+# VIOLATION: Unauthenticated debug route exposes internal records (IM8 Reform as-13)
 @app.get("/api/v1/debug/dump-records")
 def dump_all_records():
     """Administrative debug endpoint to inspect stored applications."""
