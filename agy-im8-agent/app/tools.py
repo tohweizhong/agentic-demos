@@ -1,5 +1,21 @@
 import os
 import re
+from datetime import datetime, timedelta, timezone
+
+# Singapore Standard Time. The host clock runs in UTC.
+_SGT = timezone(timedelta(hours=8))
+
+# Comment lines that mark a planted defect. They must go when the defect goes.
+_STALE_MARKER = re.compile(
+    r'^[ \t]*(#|//)[ \t]*(VIOLATION|Non-compliant)\b.*\n',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+
+def _strip_stale_markers(text: str) -> str:
+    """Remove violation marker comments left behind after a repair."""
+    return _STALE_MARKER.sub("", text)
+
 
 def audit_code_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str:
     """Audit application source code for IM8 Sec-01 (secrets) and IM8 Data-02 (citizen PII).
@@ -27,9 +43,15 @@ def audit_code_security(target_repo: str = "sample_target_repo", remediate: bool
                     'apex_service_key: "${APEX_SERVICE_KEY}"',
                     content
                 )
+                new_content = _strip_stale_markers(new_content)
                 with open(config_file, "w") as f:
                     f.write(new_content)
-                results.append("[IM8-Sec-01: No Hardcoded Secrets] REMEDIATED. Replaced static APEX secret in service/config.yaml with environment variable ${APEX_SERVICE_KEY}.")
+
+                # Verify the repair. Never report success without proof.
+                if re.search(r'apex-sec-prod-[0-9]+', open(config_file).read()):
+                    results.append("[IM8-Sec-01: No Hardcoded Secrets] REMEDIATION FAILED. A plaintext secret remains in service/config.yaml.")
+                else:
+                    results.append("[IM8-Sec-01: No Hardcoded Secrets] REMEDIATED. Replaced the static APEX secret in service/config.yaml with the environment variable ${APEX_SERVICE_KEY}.")
             else:
                 results.append("[IM8-Sec-01: No Hardcoded Secrets] VIOLATION DETECTED. Hardcoded APEX secret found in service/config.yaml.")
         else:
@@ -59,9 +81,15 @@ def audit_code_security(target_repo: str = "sample_target_repo", remediate: bool
                     replacement,
                     app_content
                 )
+                new_app_content = _strip_stale_markers(new_app_content)
                 with open(app_file, "w") as f:
                     f.write(new_app_content)
-                results.append("[IM8-Data-02: Citizen PII Protection] REMEDIATED. Masked citizen NRIC and phone number before logging in service/app.py.")
+
+                # Verify the repair. Never report success without proof.
+                if re.search(unmasked_pattern, open(app_file).read()):
+                    results.append("[IM8-Data-02: Citizen PII Protection] REMEDIATION FAILED. Unmasked citizen data remains in service/app.py.")
+                else:
+                    results.append("[IM8-Data-02: Citizen PII Protection] REMEDIATED. Masked the citizen NRIC and phone number before logging in service/app.py.")
             else:
                 results.append("[IM8-Data-02: Citizen PII Protection] VIOLATION DETECTED. Unmasked citizen NRIC and phone number logged in service/app.py.")
         else:
@@ -96,9 +124,15 @@ def audit_infra_security(target_repo: str = "sample_target_repo", remediate: boo
             if remediate:
                 replacement_comment = "# REMOVED: Unauthenticated debug endpoint removed for IM8 App-04 compliance"
                 new_app_content = re.sub(debug_route_pattern, replacement_comment, app_content)
+                new_app_content = _strip_stale_markers(new_app_content)
                 with open(app_file, "w") as f:
                     f.write(new_app_content)
-                results.append("[IM8-App-04: API Debug Route Hardening] REMEDIATED. Removed unauthenticated /api/v1/debug/dump-records route from service/app.py.")
+
+                # Verify the repair. Never report success without proof.
+                if re.search(debug_route_pattern, open(app_file).read()):
+                    results.append("[IM8-App-04: API Debug Route Hardening] REMEDIATION FAILED. The debug route remains in service/app.py.")
+                else:
+                    results.append("[IM8-App-04: API Debug Route Hardening] REMEDIATED. Removed the unauthenticated /api/v1/debug/dump-records route from service/app.py.")
             else:
                 results.append("[IM8-App-04: API Debug Route Hardening] VIOLATION DETECTED. Unauthenticated debug route found in service/app.py.")
         else:
@@ -112,7 +146,12 @@ def audit_infra_security(target_repo: str = "sample_target_repo", remediate: boo
         with open(tf_file, "r") as f:
             tf_content = f.read()
 
-        has_public_binding = 'members = ["allUsers"]' in tf_content or 'members = ["allAuthenticatedUsers"]' in tf_content
+        # Match both Terraform styles: iam_binding (members list) and iam_member (single member).
+        public_principal = r'"(allUsers|allAuthenticatedUsers)"'
+        has_public_binding = bool(
+            re.search(r'members\s*=\s*\[\s*' + public_principal, tf_content)
+            or re.search(r'member\s*=\s*' + public_principal, tf_content)
+        )
         has_inherited = 'public_access_prevention = "inherited"' in tf_content
 
         if has_public_binding or has_inherited:
@@ -121,14 +160,29 @@ def audit_infra_security(target_repo: str = "sample_target_repo", remediate: boo
                     'public_access_prevention = "inherited"',
                     'public_access_prevention = "enforced"'
                 )
+                # Remove any storage bucket IAM resource that grants public access.
                 tf_clean = re.sub(
-                    r'resource\s+"google_storage_bucket_iam_binding"\s+"public_read"\s+\{[\s\S]*?\}',
-                    '# REMOVED: allUsers binding removed for IM8 Infra-03 compliance',
+                    r'(?:#[^\n]*\n)*resource\s+"google_storage_bucket_iam_(?:binding|member)"\s+"[^"]+"\s*\{[^{}]*'
+                    + public_principal + r'[^{}]*\}\n?',
+                    '# REMOVED: public access binding removed for IM8 Infra-03 compliance\n',
                     tf_clean
                 )
+                tf_clean = _strip_stale_markers(tf_clean)
                 with open(tf_file, "w") as f:
                     f.write(tf_clean)
-                results.append("[IM8-Infra-03: Cloud Storage Access Hardening] REMEDIATED. Enforced bucket access prevention and removed allUsers binding in infra/terraform/storage.tf.")
+
+                # Verify the repair. Never report success without proof.
+                with open(tf_file, "r") as f:
+                    verify = f.read()
+                still_public = bool(
+                    re.search(r'members\s*=\s*\[\s*' + public_principal, verify)
+                    or re.search(r'member\s*=\s*' + public_principal, verify)
+                    or 'public_access_prevention = "inherited"' in verify
+                )
+                if still_public:
+                    results.append("[IM8-Infra-03: Cloud Storage Access Hardening] REMEDIATION FAILED. Public access settings remain in infra/terraform/storage.tf. Manual review is required.")
+                else:
+                    results.append("[IM8-Infra-03: Cloud Storage Access Hardening] REMEDIATED. Enforced bucket access prevention and removed the public access binding in infra/terraform/storage.tf.")
             else:
                 results.append("[IM8-Infra-03: Cloud Storage Access Hardening] VIOLATION DETECTED. Public bucket binding and inherited access prevention found in infra/terraform/storage.tf.")
         else:
@@ -155,3 +209,14 @@ def generate_cio_report(report_content: str, output_path: str = "IM8_COMPLIANCE_
         return f"CIO attestation report successfully generated at: {output_path}"
     except Exception as e:
         return f"Error writing attestation report: {e}"
+
+
+def get_assessment_timestamp() -> str:
+    """Return the current date and time in Singapore Standard Time.
+
+    Call this before you write the attestation report. Never guess the date.
+
+    Returns:
+        The timestamp as a string, for example "21 Sep 2026 17:39 SGT".
+    """
+    return datetime.now(_SGT).strftime("%d %b %Y %H:%M SGT")
