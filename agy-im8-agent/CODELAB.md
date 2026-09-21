@@ -197,14 +197,21 @@ We now build the native Python scanning and automated repair tools that inspect 
 Enter the following prompt in the Antigravity chat panel:
 
 ```text
-In app/tools.py, write three functions:
+In app/tools.py, write four functions:
 1. audit_code_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/config.yaml for hardcoded secrets (IM8 Sec-01) and service/app.py for unmasked citizen NRICs and phone numbers (IM8 Data-02). When remediate is True, it replaces the secret with ${APEX_SERVICE_KEY} and applies NRIC masking.
-2. audit_infra_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/app.py for unauthenticated debug endpoints (IM8 App-04) and infra/terraform/storage.tf for public bucket bindings (IM8 Infra-03). When remediate is True, it removes the debug endpoint and enforces private bucket access.
+2. audit_infra_security(target_repo: str = "sample_target_repo", remediate: bool = False) -> str: Checks service/app.py for unauthenticated debug endpoints (IM8 App-04) and infra/terraform/storage.tf for public bucket grants (IM8 Infra-03). Match both google_storage_bucket_iam_binding with a members list and google_storage_bucket_iam_member with a single member field. When remediate is True, it removes the debug endpoint and enforces private bucket access.
 3. generate_cio_report(report_content: str, output_path: str = "IM8_COMPLIANCE_REPORT.md") -> str: Writes the CIO attestation report to disk.
+4. get_assessment_timestamp() -> str: Returns the current date and time in Singapore Standard Time.
+
+After every repair, read the file back and test it against the defect pattern again. Report REMEDIATION FAILED when the defect remains. Also remove the planted comment lines that start with VIOLATION or Non-compliant, so a repaired file does not carry a stale warning.
 ```
 
+Negative : A repair tool must never report success from the fact that it ran. It must prove the defect is gone. An audit tool that reports a repair it did not make is worse than no tool, because it produces a false attestation.
+
 ### 📄 Expected Reference Code
-Antigravity creates `app/tools.py` with typed tools and regex repair patterns.
+Antigravity creates `app/tools.py` with typed tools, regex repair patterns, and a read-back check after each write.
+
+Positive : Ask Antigravity to run each tool directly against `sample_target_repo` before you wire it into an agent. Then restore the files with `git checkout`. A tool that fails on its own will also fail inside the pipeline.
 
 ---
 
@@ -221,7 +228,7 @@ We orchestrate the specialist agents into an ADK pipeline:
 Enter the following prompt in the Antigravity chat panel:
 
 ```text
-In app/agent.py, construct a multi-agent ADK pipeline. Connect to mcp_im8_server.py using McpToolset with StdioConnectionParams. Create two specialist agents: code_security_specialist and infra_security_specialist, both equipped with the MCP policy tools and their respective audit tools. Group them under a ParallelAgent named parallel_auditors. Then create a sequential step with cio_report_assembler that uses generate_cio_report to write IM8_COMPLIANCE_REPORT.md. Bundle the pipeline into SequentialAgent and export app = App(root_agent=root_agent, name="app").
+In app/agent.py, construct a multi-agent ADK pipeline. Connect to mcp_im8_server.py using McpToolset with StdioConnectionParams. Create two specialist agents: code_security_specialist and infra_security_specialist, both equipped with the MCP policy tools and their respective audit tools. Group them under a ParallelAgent named parallel_auditors. Then create a sequential step with cio_report_assembler. Give it generate_cio_report and get_assessment_timestamp. Instruct it to read the real date from the clock tool and never guess a date. It must write COMPLIANT only when every rule reports COMPLIANT or REMEDIATED. Bundle the pipeline into SequentialAgent and export app = App(root_agent=root_agent, name="app").
 ```
 
 ### 📄 Expected Reference Code
@@ -292,11 +299,15 @@ Run the im8_pipeline against sample_target_repo with remediation enabled. Repair
 ```
 
 ### Verification
+Ask Antigravity to run the audit again in scan mode. Every rule must now report COMPLIANT.
+
 Once Antigravity completes the repair:
 1. `service/config.yaml`: The hardcoded key is replaced by `${APEX_SERVICE_KEY}`.
 2. `service/app.py`: Citizen NRIC and phone numbers are masked before logging.
 3. `service/app.py`: The public debug endpoint is removed.
 4. `infra/terraform/storage.tf`: Bucket access is set to `enforced` and `allUsers` is removed.
+
+Negative : Do not trust the REMEDIATED message on its own. Open each file and read it. A codelab teaches you to verify, not to assume.
 
 ---
 
