@@ -67,17 +67,17 @@ only what is specific to that demo.
 
 ## 5. Git workflow
 
-**Solo repository. Commit directly to `main`. Do not open a pull request.**
+**Direct commits to `main` for the repository maintainer. Pull requests for outside contributors.**
 
 1.  Run `git pull` before committing.
 2.  Check `.gitignore` covers new credential files, build outputs, and compiled binaries
     (for example `ge-prober/ge-prober`) before staging.
 3.  Scan the diff for the items in section 1 before every commit.
-4.  Stage explicit paths. Do not run `git add .` in a repository of 22 independent demos, because
+4.  Stage explicit paths. Do not run `git add .` in a repository of independent demos, because
     it sweeps in unrelated work from other folders.
 5.  Push to `main`.
 
 > [!NOTE]
-> This overrides the generic `git-workflow` skill and the `sharepoint-research` convention. Both
-> require a feature branch and a pull request. Those rules exist for shared repositories. This
-> repository has one developer, so a branch adds a step and protects nothing.
+> For the maintainer, this overrides the generic `git-workflow` skill and the `sharepoint-research`
+> convention, which require a feature branch and a pull request on every change. Outside
+> contributors should fork the repository and open a pull request.

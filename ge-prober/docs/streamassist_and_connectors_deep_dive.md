@@ -1,12 +1,5 @@
 # Deep Dive: Discovery Engine `StreamAssist` Query Lifecycle & Connector Architecture
 
-> **Source References:**
-> - [`life_of_a_streamassist_query.md`](http://google3/cloud/ml/agentspace/g3doc/assistant/development/life_of_a_streamassist_query.md) (`go/spark-assistant-life-of-a-streamassist-query`)
-> - [`dolphin_life_of_query.md`](http://google3/cloud/ml/agentspace/g3doc/assistant/dolphin_life_of_query.md) (`go/dolphin-life-of-query`)
-> - [`bap-integration.md`](http://google3/cloud/ml/agentspace/g3doc/connectors/bap-integration.md) (`go/ge-bap`)
-> - [`oauth_recipes.md`](http://google3/cloud/ml/agentspace/g3doc/connectors/oauth_recipes.md)
-> - [`toolspec.md`](http://google3/cloud/ml/agentspace/g3doc/connectors/toolspec.md)
-
 ---
 
 ## 1. Executive Summary & Architecture Overview
@@ -100,7 +93,7 @@ Gemini Enterprise integrates with the **Business Application Platform (BAP)** us
 * **Managed Connectors (MT):** Multi-tenant shared deployment used in **Gemini Enterprise Biz Edition**.
 * **Standard Connectors (MST):** Dedicated multi-single tenant deployment used in **Gemini Enterprise Enterprise Edition**.
 
-Connector definitions are declaratively specified via textprotos in `google3/cloud/connectors/runtime/releases/connector_versions/`.
+Connector definitions are declaratively specified via versioned configuration manifests in the connector runtime.
 
 ---
 
@@ -124,7 +117,7 @@ For 1P (Google Workspace) and 3P (Microsoft SharePoint, Jira, Salesforce) connec
 ### C. Model Context Protocol (MCP) & Toolspec Engine
 * **Unified GE MCP Server:** Hosts tools from CDATA connectors, Remote MCP servers, OpenAPI specs, and BYO-MCP servers.
 * **Local MCP Proxy:** A lightweight Go plugin runs inside `DolphinServer` as a local MCP server, proxying `tools/call` RPCs directly to the BAP Gateway with the user's OAuth credentials.
-* **Toolspec Overrides & Drift Detection:** Tool specifications are snapshot and periodically compared against `google3/cloud/ml/discoveryengine/dolphin/agent_configs/tool_specs/` to detect signature drift across connector releases.
+* **Toolspec Overrides & Drift Detection:** Tool specifications are snapshot and periodically compared against the canonical agent tool specifications to detect signature drift across connector releases.
 
 ---
 
