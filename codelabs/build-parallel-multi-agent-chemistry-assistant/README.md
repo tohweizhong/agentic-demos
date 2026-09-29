@@ -4,6 +4,8 @@ Welcome to the **Organic Chemistry Parallel Multi-Agent Companion** repository. 
 
 This project is built using **Google's Agent Development Kit (ADK)**, orchestrated using **`agents-cli`**, and integrated with external data stores using the **Model Context Protocol (MCP)**.
 
+Google Codelab: [Build a Multi-Agent Organic Chemistry Safety & Research Assistant](https://codelabs.developers.google.com/build-parallel-multi-agent-chemistry-assistant) ([local source](CODELAB.md))
+
 ---
 
 ## 📊 System Diagrams
