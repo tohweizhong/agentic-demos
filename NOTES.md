@@ -10,15 +10,16 @@ Last updated: 21 Sep 2026 SGT.
 
 ---
 
-## 1. The three codelabs
+## 1. The four codelabs
 
-All three authored codelabs live under `codelabs/`.
+All four authored codelabs live under `codelabs/`.
 
-| Lab folder | Authoring source | Images | Published state | Reference implementation |
-|---|---|---|---|---|
-| `codelabs/organic-chem-agent` | `CODELAB.md` | `img/` | Live | Same folder, `app/` |
-| `codelabs/agy-im8-agent` | `CODELAB.md` | — | Staged preview only | Same folder, `app/` |
-| `codelabs/nus-transit-hub` | `CODELAB.md` | `img/` | Live | Same folder, `app/` and `lib/` |
+| Lab folder | DevSite ID | Authoring source | Images | Published state | Reference implementation |
+|---|---|---|---|---|---|
+| `codelabs/organic-chem-agent` | `build-parallel-multi-agent-chemistry-assistant` | `CODELAB.md` | `img/` | Live | Same folder, `app/` |
+| `codelabs/agy-im8-agent` | `adk-im8-compliance-agent-mcp` | `CODELAB.md` | `img/` | Staged preview only | Same folder, `app/` |
+| `codelabs/adk-im8-compliance-agent` | `adk-im8-compliance-agent` | `CODELAB.md` | `img/` | Staged preview only | Shares `agy-im8-agent/sample_target_repo/` |
+| `codelabs/nus-transit-hub` | `build-nus-transit-hub-antigravity` | `CODELAB.md` | `img/` | Live | Same folder, `app/` and `lib/` |
 
 Find them with `ls codelabs/*/CODELAB.md`.
 
