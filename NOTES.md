@@ -12,14 +12,15 @@ Last updated: 21 Sep 2026 SGT.
 
 ## 1. The three codelabs
 
-| Lab folder | Authoring source | Published state | Reference implementation |
-|---|---|---|---|
-| `organic-chem-agent` | `CODELAB.md` | Live | Same folder, `app/` |
-| `agy-im8-agent` | `CODELAB.md` | Staged preview only | Same folder, `app/` |
-| `nus-agy-workshop` | `index.lab.md` | Live | Separate folder, `nus-transit-hub/` |
+All three authored codelabs live under `codelabs/`.
 
-Find them with `ls */CODELAB.md`. This command misses `nus-agy-workshop` today,
-because that lab has no `CODELAB.md`. Section 5 holds the fix.
+| Lab folder | Authoring source | Images | Published state | Reference implementation |
+|---|---|---|---|---|
+| `codelabs/organic-chem-agent` | `CODELAB.md` | `img/` | Live | Same folder, `app/` |
+| `codelabs/agy-im8-agent` | `CODELAB.md` | — | Staged preview only | Same folder, `app/` |
+| `codelabs/nus-transit-hub` | `CODELAB.md` | `img/` | Live | Same folder, `app/` and `lib/` |
+
+Find them with `ls codelabs/*/CODELAB.md`.
 
 ---
 

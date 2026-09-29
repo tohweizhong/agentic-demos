@@ -11,8 +11,10 @@
 * [ae_ge_publish](./ae_ge_publish/): ADK -> Agent Engine -> Gemini Enterprise (Agentspace) integration
 * [agents_cli](./agents_cli/): Agents generated or managed via agents-cli (e.g. hr-onboarding-agent)
 * [agentspace_stream_assist](./agentspace_stream_assist/): Invoking Gemini Enterprise agents using the streamAssist API
-* [agy-im8-agent](./agy-im8-agent/): Autonomous IM8 compliance checking and remediation agent built with Antigravity
-* [codelabs](./codelabs/): Collection of Codelabs related to MCP, ADK, and A2A
+* [codelabs](./codelabs/): Authored Codelabs for Antigravity, ADK, and MCP
+  * [agy-im8-agent](./codelabs/agy-im8-agent/): Autonomous IM8 compliance checking and remediation agent built with Antigravity
+  * [nus-transit-hub](./codelabs/nus-transit-hub/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
+  * [organic-chem-agent](./codelabs/organic-chem-agent/): Organic Chemistry parallel multi-agent research & lab inventory companion
 * [deep_research](./deep_research/): Prototyping Gemini Deep Research / Interactions API
 * [doc_ai](./doc_ai/): Sample scripts and notebooks using Vertex AI Document AI
 * [ge-prober](./ge-prober/): High-performance Go synthetic monitoring tool and smoke prober for Gemini Enterprise
@@ -20,7 +22,5 @@
 * [ge_list_agents](./ge_list_agents/): Gemini Enterprise Agent Lister & Identity Resolver
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
-* [nus-transit-hub](./nus-transit-hub/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
-* [organic-chem-agent](./organic-chem-agent/): Organic Chemistry parallel multi-agent research & lab inventory companion
 * [sdp_content_policy](./sdp_content_policy/): Scripts for managing SDP content policies on data stores
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI

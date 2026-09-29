@@ -58,7 +58,7 @@ only what is specific to that demo.
 
 > [!IMPORTANT]
 > **Two demos must keep the filename `GEMINI.md`, not `AGENTS.md`:**
-> `organic-chem-agent/` and `agents_cli/hr-onboarding-agent/`.
+> `codelabs/organic-chem-agent/` and `agents_cli/hr-onboarding-agent/`.
 >
 > Their `agents-cli-manifest.yaml` declares `agent_guidance_filename: "GEMINI.md"`. Renaming the
 > file breaks the agents-cli contract. Everything else in this repository uses `AGENTS.md`.

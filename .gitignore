@@ -21,7 +21,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-!nus-transit-hub/lib/
+!codelabs/nus-transit-hub/lib/
 lib64/
 parts/
 sdist/
@@ -221,8 +221,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-# Demos
-nus-agy-workshop/
+# Codelab rehearsals and generated DevSite files
+codelabs/*/rehearsals/
+codelabs/*/index.lab.md
 
 # System files
 .DS_Store

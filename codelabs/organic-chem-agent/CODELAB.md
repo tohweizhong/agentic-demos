@@ -20,12 +20,12 @@ To make execution highly efficient, you will build a **parallel multi-agent work
 ### Codelab Workflow & Tooling Layout
 This diagram illustrates the lifecycle of developer tooling used in the Codelab:
 
-![Codelab Workflow & Tooling Layout](images/tooling_layout.png)
+![Codelab Workflow & Tooling Layout](img/tooling_layout.png)
 
 ### Multi-Agent Parallel Orchestration Architecture
 This diagram illustrates how incoming student queries are processed concurrently across specialized researchers before being synthesized into a safe, comprehensive laboratory guide sheet:
 
-![Multi-Agent Parallel Orchestration Architecture](images/agent_orchestration.png)
+![Multi-Agent Parallel Orchestration Architecture](img/agent_orchestration.png)
 
 ### 🚀 The Antigravity Way: Agentic Software Engineering
 Traditionally, software tutorials involve manual reading, typing, and copy-pasting. In this codelab, you will pair-program with the **Antigravity Agent**. Instead of copy-pasting code blocks, you will write **prompts** to guide the agent in building, testing, and evaluating the multi-agent system.
@@ -112,7 +112,7 @@ Create a python script named init_db.py that initializes a local SQLite database
 
 Here is what it looks like when you input the prompt and the agent generates and runs the database seed script:
 
-![Antigravity Agent Seeding Database](images/agent_seeding_db.png)
+![Antigravity Agent Seeding Database](img/agent_seeding_db.png)
 
 ### 📄 Expected Reference Code
 
@@ -349,7 +349,7 @@ if __name__ == "__main__":
 
 When you launch the FastMCP server, it will display the server name, active transport type, and startup logs in your terminal. Note that later, when we execute the ADK pipeline agent, the framework will automatically launch this FastMCP server as a background subprocess to resolve inventory tool queries:
 
-![FastMCP Server Startup Logs](images/fastmcp_server.png)
+![FastMCP Server Startup Logs](img/fastmcp_server.png)
 
 
 ---
@@ -381,7 +381,7 @@ Ensure you export this pipeline as 'app' to be loaded by agents-cli."
 
 When your developer agent successfully completes the re-architecture of the `app/agent.py` file, it will output a verification message:
 
-![Antigravity Agent Verification Output](images/agent_verification.png)
+![Antigravity Agent Verification Output](img/agent_verification.png)
 
 ### 📄 Expected Reference Code
 
@@ -563,7 +563,7 @@ Once selected, type `aspirin` or `acetaminophen` in the chat bar to talk to your
 
 Here is what the ADK Playground interface looks like, highlighting the multi-agent graph layout and interactive agent trace log:
 
-![ADK Playground Web Interface](images/adk_playground.png)
+![ADK Playground Web Interface](img/adk_playground.png)
 
 <aside class="special">
 <b>Stopping the Playground Server</b>: The playground runs a persistent local server that locks your terminal window. To stop the playground server and return to your terminal shell, press <code>Ctrl + C</code> in your active terminal. You must do this to release the port before running other commands (like the evaluations in Section 8)!
@@ -649,7 +649,7 @@ The CLI will execute your agent over all three chemistry test cases, record trac
 
 When the evaluations complete, the terminal will print a summary table grading each metric:
 
-![Evaluation Metrics Summary Table](images/evaluation_summary.png)
+![Evaluation Metrics Summary Table](img/evaluation_summary.png)
 
 ---
 
@@ -663,7 +663,7 @@ Your challenge is to deploy both your **FastMCP tool server** and your **ADK orc
 ### Deployment Challenge Blueprint
 
 Here is the high-level roadmap and architectural overview to guide you:
-![Cloud Deployment Architecture](images/cloud_deployment_architecture.png)
+![Cloud Deployment Architecture](img/cloud_deployment_architecture.png)
 
 
 ### 💡 Challenge Hints & Guidance
