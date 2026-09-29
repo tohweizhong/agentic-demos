@@ -22,7 +22,6 @@ scratch/
 tmp/
 logs/
 *.log
-!conductor/**/*.log
 
 # IDE, OS & Tooling logs
 .agents/
