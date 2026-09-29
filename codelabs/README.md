@@ -9,7 +9,7 @@ This folder holds the four codelabs authored in this repository. Each subfolder 
 | [adk-im8-compliance-agent](./adk-im8-compliance-agent/) | [CODELAB.md](./adk-im8-compliance-agent/CODELAB.md) | — | Draft |
 | [adk-im8-compliance-agent-mcp](./adk-im8-compliance-agent-mcp/) | [CODELAB.md](./adk-im8-compliance-agent-mcp/CODELAB.md) | — | Draft |
 | [build-nus-transit-hub-antigravity](./build-nus-transit-hub-antigravity/) | [CODELAB.md](./build-nus-transit-hub-antigravity/CODELAB.md) | [Build NUS Campus Transit Hub with Antigravity](https://codelabs.developers.google.com/build-nus-transit-hub-antigravity#1) | Published |
-| [build-parallel-multi-agent-chemistry-assistant](./build-parallel-multi-agent-chemistry-assistant/) | [CODELAB.md](./build-parallel-multi-agent-chemistry-assistant/CODELAB.md) | — | Published |
+| [build-parallel-multi-agent-chemistry-assistant](./build-parallel-multi-agent-chemistry-assistant/) | [CODELAB.md](./build-parallel-multi-agent-chemistry-assistant/CODELAB.md) | [Build a Multi-Agent Organic Chemistry Safety & Research Assistant](https://codelabs.developers.google.com/build-parallel-multi-agent-chemistry-assistant) | Published |
 
 ## Folder Structure for Each Lab
 
