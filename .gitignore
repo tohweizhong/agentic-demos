@@ -229,8 +229,10 @@ codelabs/*/index.lab.md
 .DS_Store
 Thumbs.db
 
-# ADK local storage
+# ADK local storage, runtime databases, and logs
 .adk/
+*.db
+*.log
 
 
 # Go binaries and local prober artifacts
