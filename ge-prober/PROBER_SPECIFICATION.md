@@ -142,8 +142,7 @@ The suite covers **11 distinct enterprise subsystems**:
 ┌────────────────────────────────────────────────────────────────────────┐
 │                  OBSERVABILITY & DASHBOARD EXPORT                      │
 │  • Publishes real-time JSON metrics to Cloud Monitoring & Cloud Logging│
-│  • Updates x20 Master Dashboard:                                       │
-│    http://x20web/~weizhongt/test_suite_reports/dashboard.html         │
+│  • Exports structured JSON and HTML test suite summary reports         │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 

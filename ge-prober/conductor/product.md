@@ -65,12 +65,12 @@ Client / Prober (HTTP/gRPC) ──> ESF (IAM, Quota, Rate Limiting)
 
 ### 3. Connector Deployment Models & Toolspec Management
 - **BAP Connector Types**:
-  - **Standard Connectors (MST)**: Multi-Single-Tenant dedicated deployments for Enterprise Edition (`google3/google/cloud/connectors/v1/connectors_service.proto`).
+  - **Standard Connectors (MST)**: Multi-Single-Tenant dedicated deployments for Enterprise Edition (`google.cloud.connectors.v1.Connectors`).
   - **Managed Connectors (MT)**: Multi-Tenant shared deployments for Biz Edition.
 - **Unified GE MCP Server & Toolspecs**:
   - Connectors expose actions and search capabilities via **Model Context Protocol (MCP)**.
   - A local Go MCP proxy inside the Python server forwards `tools/call` RPCs directly to the BAP Gateway with the user's OAuth credentials.
-  - Toolspecs are snapshot and periodically synchronized against `google3/cloud/ml/discoveryengine/dolphin/agent_configs/tool_specs/` for drift detection.
+  - Toolspecs are snapshot and periodically synchronized against canonical agent tool specifications for drift detection.
 
 ### 4. Pluggable `AssistantStrategy` Implementations
 - **`CorePlannerStrategy` (C++)**: Native "plan-execute-observe" reasoning loop managed by the C++ Orchestrator with pre-emptive parallel search and ECHO mode optimizations.
