@@ -1,12 +1,13 @@
 # Codelabs
 
-This folder holds the codelabs authored in this repository. Each subfolder contains the authoring source (`CODELAB.md`), screenshots (`img/`), the finished reference code, and an ignored `rehearsals/` folder for dry runs.
+This folder holds the four codelabs authored in this repository. Each subfolder contains the authoring source (`CODELAB.md`), screenshots (`img/`), the reference code, and an ignored `rehearsals/` folder for dry runs.
 
 ## Authored Codelabs
 
 | Codelab | Local Guide | Published Page | Status |
 |---|---|---|---|
-| [agy-im8-agent](./agy-im8-agent/) | [CODELAB.md](./agy-im8-agent/CODELAB.md) | — | Draft |
+| [adk-im8-compliance-agent](./adk-im8-compliance-agent/) | [CODELAB.md](./adk-im8-compliance-agent/CODELAB.md) | — | Draft |
+| [agy-im8-agent](./agy-im8-agent/) (`adk-im8-compliance-agent-mcp`) | [CODELAB.md](./agy-im8-agent/CODELAB.md) | — | Draft |
 | [nus-transit-hub](./nus-transit-hub/) | [CODELAB.md](./nus-transit-hub/CODELAB.md) | [Build NUS Campus Transit Hub with Antigravity](https://codelabs.developers.google.com/build-nus-transit-hub-antigravity#1) | Published |
 | [organic-chem-agent](./organic-chem-agent/) | [CODELAB.md](./organic-chem-agent/CODELAB.md) | — | Published |
 

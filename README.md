@@ -12,7 +12,8 @@
 * [agents_cli](./agents_cli/): Agents generated or managed via agents-cli (e.g. hr-onboarding-agent)
 * [agentspace_stream_assist](./agentspace_stream_assist/): Invoking Gemini Enterprise agents using the streamAssist API
 * [codelabs](./codelabs/): Authored Codelabs for Antigravity, ADK, and MCP
-  * [agy-im8-agent](./codelabs/agy-im8-agent/): Autonomous IM8 compliance checking and remediation agent built with Antigravity
+  * [adk-im8-compliance-agent](./codelabs/adk-im8-compliance-agent/): IM8 compliance agent built with Agents CLI and ADK, deployed to Agent Runtime and Gemini Enterprise
+  * [agy-im8-agent](./codelabs/agy-im8-agent/): Autonomous IM8 compliance checking and remediation agent built with Antigravity and FastMCP
   * [nus-transit-hub](./codelabs/nus-transit-hub/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
   * [organic-chem-agent](./codelabs/organic-chem-agent/): Organic Chemistry parallel multi-agent research & lab inventory companion
 * [deep_research](./deep_research/): Prototyping Gemini Deep Research / Interactions API

@@ -1,14 +1,15 @@
-id: build-parallel-multiagent-im8-compliance-assistant
-summary: Build an autonomous parallel multi-agent IM8 compliance and remediation companion with Antigravity, ADK, and MCP.
-categories: AI, Cloud, Security, Government
+id: adk-im8-compliance-agent-mcp
+summary: Build an IM8 compliance and remediation agent with Antigravity 2.0, ADK, a FastMCP control catalog server, and Gemini, and run it in the ADK web interface.
+categories: AI, Cloud
 environments: Web
 status: Draft
+feedback link: https://github.com/tohweizhong/agentic-demos/issues
 authors: Weizhong Toh
-tags: Antigravity, ADK, MCP, Gemini, IM8, GovTech
+tags: antigravity, adk, mcp, gemini, im8, govtech, security, government
 
-# Build an Autonomous IM8 Compliance & Remediation Companion with Antigravity, ADK & MCP
+# Build an IM8 Compliance & Remediation Agent with Antigravity 2.0, ADK, FastMCP, and Gemini
 
-## 1. Overview & Objectives
+## Overview & Objectives
 Duration: 0:02:00
 
 In this codelab, you step into the role of an **Agent Creator**. 
@@ -17,37 +18,23 @@ Rather than manually auditing software repositories, you instruct **Antigravity 
 
 The agent system audits application source code and cloud infrastructure against Singapore Government **Instruction Manual 8 (IM8)** standards. It identifies security violations, executes automated code repairs, and generates an executive attestation report for the Agency Chief Information Officer (CIO).
 
+### Developer Tooling and Lifecycle Workflow
+This diagram shows how the developer tools and the agent components connect in Antigravity 2.0:
+
+![Developer tooling and lifecycle workflow](img/01-tooling-workflow.png)
+
 ### Multi-Agent Parallel Orchestration Architecture
 This diagram illustrates how incoming audit requests run concurrently across specialized security agents before synthesizing into the CIO attestation report:
 
-```mermaid
-graph TD
-    UserPrompt(["User Prompt in Antigravity / ADK Web"]) --> ParallelAuditors{"ParallelAgent (parallel_auditors)"}
-
-    subgraph ConcurrentAuditors ["Concurrent Security Auditors"]
-        ParallelAuditors --> CodeAgent["code_security_specialist (Agent)"]
-        ParallelAuditors --> InfraAgent["infra_security_specialist (Agent)"]
-    end
-
-    CodeAgent --> |MCP Tool Calls| PolicyLookup1["lookup_im8_control (as-8, lm-19)"]
-    InfraAgent --> |MCP Tool Calls| PolicyLookup2["lookup_im8_control (as-13, ns-2)"]
-
-    CodeAgent --> |Local Audit Tool| CodeTool["audit_code_security"]
-    InfraAgent --> |Local Audit Tool| InfraTool["audit_infra_security"]
-
-    CodeAgent --> |State: code_audit_result| Assembler["cio_report_assembler (Agent)"]
-    InfraAgent --> |State: infra_audit_result| Assembler
-
-    Assembler --> |Generate Report Tool| CIOReport(["Executive CIO Report (IM8_COMPLIANCE_REPORT.md)"])
-```
+![Multi-agent parallel orchestration architecture](img/02-orchestration.png)
 
 ### 🚀 The Antigravity Way: Agentic Software Engineering
 Traditionally, software tutorials require manual typing and copy-pasting code blocks. In this codelab, you pair-program with the **Antigravity Agent**. You write **prompts** to guide the agent in building, testing, and verifying the multi-agent system.
 
 The lab has two phases.
 
-1. **Build phase (steps 3 to 6)**: You prompt Antigravity to write the policy database, the FastMCP server, the audit tools, and the agent pipeline. Each build step gives you the exact prompt and the reference code to check against.
-2. **Run phase (steps 7 to 10)**: You start the ADK web interface, then drive the audit and the repair from its chat panel. You watch each agent step and each tool call as it happens.
+1. **Build phase (from Seed the Control Database to Build the Parallel Multi-Agent Pipeline)**: You prompt Antigravity to write the policy database, the FastMCP server, the audit tools, and the agent pipeline. Each build step gives you the exact prompt and the reference code to check against.
+2. **Run phase (from Launch the ADK Web Interface to Review the Executive CIO Attestation Report)**: You start the ADK web interface, then drive the audit and the repair from its chat panel. You watch each agent step and each tool call as it happens.
 
 ### What You Will Learn
 * How to pair-program with Antigravity 2.0 using natural language prompts.
@@ -60,7 +47,50 @@ The lab has two phases.
 
 ---
 
-## 2. Explore the Target Codebase and the IM8 Reform Controls
+## Set Up the Workspace
+Duration: 0:05:00
+
+### Get the sample repository
+
+The sample service is on GitHub: [agentic-demos/codelabs/agy-im8-agent/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/agy-im8-agent/sample_target_repo).
+
+1. Open a terminal and run these commands. The sparse clone downloads only the `sample_target_repo` folder, not the whole `agentic-demos` repository.
+
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/tohweizhong/agentic-demos.git
+git -C agentic-demos sparse-checkout set codelabs/agy-im8-agent/sample_target_repo
+mkdir im8-compliance-agent
+cp -r agentic-demos/codelabs/agy-im8-agent/sample_target_repo im8-compliance-agent/
+cd im8-compliance-agent
+git init && git add . && git commit -m "Add the IM8 sample repository"
+```
+
+> aside negative
+> Copy only `sample_target_repo/`. The rest of `codelabs/agy-im8-agent` is the finished solution for this lab.
+
+> aside positive
+> The `git commit` lets you restore the planted defects later with `git checkout -- sample_target_repo`.
+
+### Open Antigravity 2.0
+
+1. Open the **Google Antigravity 2.0** desktop application.
+2. Set the agent to **Always proceed** mode.
+
+### Open the IM8 workspace project in Antigravity 2.0
+
+1. In Antigravity 2.0, click the **Create New Project** icon next to **Projects**, or press CTRL+K (or CMD+K on macOS) and select **New Project**.
+
+![Create New Project button in Antigravity 2.0](img/03-new-project.png)
+
+2. Click **Add Folder**, select the `im8-compliance-agent` folder that you created in the previous step, and click **Open**.
+
+![Add Folder dialog in Antigravity 2.0](img/04-add-folder.png)
+
+3. Click **Next**, leave the remaining settings as their defaults, and click **Create Project**.
+
+---
+
+## Explore the Target Codebase and the IM8 Reform Controls
 Duration: 0:04:00
 
 Your workspace holds a mock Singapore public sector service in `sample_target_repo/`.
@@ -78,9 +108,11 @@ four controls from it.
 * File: `catalogs/im8-reform.json`, version 2025.05.13
 * Licence: MIT, Government Technology Agency of Singapore
 
-Positive : The catalog uses OSCAL, an open control format from NIST. Because the controls are machine readable, an agent can read them directly instead of reading prose.
+> aside positive
+> The catalog uses OSCAL, an open control format from NIST. Because the controls are machine readable, an agent can read them directly instead of reading prose.
 
-Negative : Do not invent a control identifier. If a control is not in the public catalog, do not cite it. A false citation in a compliance report is worse than no report.
+> aside negative
+> Do not invent a control identifier. If a control is not in the public catalog, do not cite it. A false citation in a compliance report is worse than no report.
 
 ### The four controls and the four defects
 
@@ -96,7 +128,7 @@ Level 0 is a must-have, Level 1 is a should-have, and Level 2 is a good-to-have.
 
 ---
 
-## 3. Seed the Control Database
+## Seed the Control Database
 Duration: 0:05:00
 
 Store the four controls in a local SQLite database, `im8_policies.db`.
@@ -129,7 +161,7 @@ monitoring."
 
 ---
 
-## 4. Build the FastMCP Control Catalog Server
+## Build the FastMCP Control Catalog Server
 Duration: 0:08:00
 
 Next, expose the control database through the **Model Context Protocol (MCP)** using `FastMCP`. The server reads `im8_policies.db` and offers tools that look up a control and its repair template.
@@ -186,7 +218,7 @@ if __name__ == "__main__":
 
 ---
 
-## 5. Implement Audit and Remediation Tools
+## Implement Audit and Remediation Tools
 Duration: 0:08:00
 
 We now build the native Python scanning and automated repair tools that inspect and modify `sample_target_repo/`.
@@ -204,16 +236,18 @@ In app/tools.py, write four functions:
 After every repair, read the file back and test it against the defect pattern again. Report REMEDIATION FAILED when the defect remains. Also remove the planted comment lines that start with VIOLATION or Non-compliant, so a repaired file does not carry a stale warning.
 ```
 
-Negative : A repair tool must never report success from the fact that it ran. It must prove the defect is gone. An audit tool that reports a repair it did not make is worse than no tool, because it produces a false attestation.
+> aside negative
+> A repair tool must never report success from the fact that it ran. It must prove the defect is gone. An audit tool that reports a repair it did not make is worse than no tool, because it produces a false attestation.
 
 ### 📄 Expected Reference Code
 Antigravity creates `app/tools.py` with typed tools, regex repair patterns, and a read-back check after each write.
 
-Positive : Ask Antigravity to run each tool directly against `sample_target_repo` before you wire it into an agent. Then restore the files with `git checkout`. A tool that fails on its own will also fail inside the pipeline.
+> aside positive
+> Ask Antigravity to run each tool directly against `sample_target_repo` before you wire it into an agent. Then restore the files with `git checkout`. A tool that fails on its own will also fail inside the pipeline.
 
 ---
 
-## 6. Build the Parallel Multi-Agent Pipeline
+## Build the Parallel Multi-Agent Pipeline
 Duration: 0:10:00
 
 We orchestrate the specialist agents into an ADK pipeline:
@@ -263,7 +297,7 @@ app = App(root_agent=root_agent, name="app")
 
 ---
 
-## 7. Launch the ADK Web Interface
+## Launch the ADK Web Interface
 Duration: 0:04:00
 
 Google ADK includes a visual web interface. It shows each agent step and each tool call as the pipeline runs. You will drive the audit and the repair from this interface.
@@ -283,13 +317,15 @@ http://localhost:8000
 ### Select the Agent
 In the navigation menu on the left, select the `app` agent. The chat input appears on the right.
 
-Negative : Start `adk web` from the project root, not from inside `app/`. The audit tools resolve `sample_target_repo` against the working directory of the server process.
+> aside negative
+> Start `adk web` from the project root, not from inside `app/`. The audit tools resolve `sample_target_repo` against the working directory of the server process.
 
-Positive : Keep the terminal open. The FastMCP policy server starts as a child process of the web server. Its errors print in that terminal.
+> aside positive
+> Keep the terminal open. The FastMCP policy server starts as a child process of the web server. Its errors print in that terminal.
 
 ---
 
-## 8. Audit the Target Repository in Scan Mode
+## Audit the Target Repository in Scan Mode
 Duration: 0:04:00
 
 First run the pipeline in audit-only mode. Nothing is modified in this step.
@@ -319,7 +355,7 @@ The overall status is `NON-COMPLIANT`.
 
 ---
 
-## 9. Remediate the Violations in the Same Interface
+## Remediate the Violations in the Same Interface
 Duration: 0:05:00
 
 Now repair the defects. Use the same chat session, so the agents keep the context of the audit.
@@ -338,7 +374,7 @@ Remediate every violation in sample_target_repo now. Repair the code, the config
 4. The report status changes to `COMPLIANT`.
 
 ### Verify the Repair
-Run the audit prompt from step 8 one more time. Every rule must now report `COMPLIANT`.
+Run the audit prompt from **Audit the Target Repository in Scan Mode** one more time. Every rule must now report `COMPLIANT`.
 
 Then open each file and read it:
 1. `service/config.yaml`: the hardcoded key is replaced by `${APEX_SERVICE_KEY}`.
@@ -346,13 +382,15 @@ Then open each file and read it:
 3. `service/app.py`: the public debug route is removed.
 4. `infra/terraform/storage.tf`: bucket access is `enforced` and the `allUsers` grant is gone.
 
-Negative : Do not trust the REMEDIATED message on its own. Open each file and read it. A codelab teaches you to verify, not to assume.
+> aside negative
+> Do not trust the REMEDIATED message on its own. Open each file and read it. A codelab teaches you to verify, not to assume.
 
-Positive : To repeat the lab, restore the defects with `git checkout -- sample_target_repo`.
+> aside positive
+> To repeat the lab, restore the defects with `git checkout -- sample_target_repo`.
 
 ---
 
-## 10. Review the Executive CIO Attestation Report
+## Review the Executive CIO Attestation Report
 Duration: 0:02:00
 
 Open the generated report in your editor:
@@ -368,7 +406,7 @@ IM8_COMPLIANCE_REPORT.md
 
 ---
 
-## 11. Summary & Next Steps
+## Summary & Next Steps
 Duration: 0:02:00
 
 Congratulations! You have completed the **Autonomous IM8 Compliance Agent** codelab.
