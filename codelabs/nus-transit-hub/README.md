@@ -4,7 +4,7 @@ An intelligent, real-time campus transit dashboard and Telegram bot for the Nati
 
 Live Web Dashboard: [https://nus-transit-hub-tau.vercel.app](https://nus-transit-hub-tau.vercel.app)  
 Live Telegram Bot: [@nus_transit_wz_bot](https://t.me/nus_transit_wz_bot)  
-Google Codelab: [Build NUS Campus Transit Hub with Antigravity](https://codelabs.developers.google.com/build-nus-transit-hub-antigravity#1)
+Google Codelab: [Build NUS Campus Transit Hub with Antigravity](https://codelabs.developers.google.com/build-nus-transit-hub-antigravity#1) ([local source](CODELAB.md))
 
 ---
 
