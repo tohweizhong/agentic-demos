@@ -17,7 +17,7 @@ Instead of writing audit scripts manually, you use **Google Antigravity 2.0**, *
 
 Under the IM8 Reform programme, the Government Technology Agency of Singapore (GovTech) publishes machine-readable security controls in the [GovTech Singapore Tech Standards repository](https://github.com/GovTechSG/tech-standards). Your workspace (`~/Desktop/im8-compliance-agent`) comes pre-staged with:
 
-* A sample public sector application (`sample_target_repo/`) containing four planted IM8 compliance defects. The source is on GitHub: [agentic-demos/codelabs/agy-im8-agent/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/agy-im8-agent/sample_target_repo).
+* A sample public sector application (`sample_target_repo/`) containing four planted IM8 compliance defects. The source is on GitHub: [agentic-demos/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo).
 * A local IM8 Reform policy database (`im8_policies.db`).
 * Pre-built deterministic policy lookup, code/infrastructure audit, and remediation tools (`tools.py`).
 

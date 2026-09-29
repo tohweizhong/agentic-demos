@@ -52,21 +52,21 @@ Duration: 0:05:00
 
 ### Get the sample repository
 
-The sample service is on GitHub: [agentic-demos/codelabs/agy-im8-agent/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/agy-im8-agent/sample_target_repo).
+The sample service is on GitHub: [agentic-demos/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo).
 
 1. Open a terminal and run these commands. The sparse clone downloads only the `sample_target_repo` folder, not the whole `agentic-demos` repository.
 
 ```bash
 git clone --depth 1 --filter=blob:none --sparse https://github.com/tohweizhong/agentic-demos.git
-git -C agentic-demos sparse-checkout set codelabs/agy-im8-agent/sample_target_repo
+git -C agentic-demos sparse-checkout set codelabs/adk-im8-compliance-agent-mcp/sample_target_repo
 mkdir im8-compliance-agent
-cp -r agentic-demos/codelabs/agy-im8-agent/sample_target_repo im8-compliance-agent/
+cp -r agentic-demos/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo im8-compliance-agent/
 cd im8-compliance-agent
 git init && git add . && git commit -m "Add the IM8 sample repository"
 ```
 
 > aside negative
-> Copy only `sample_target_repo/`. The rest of `codelabs/agy-im8-agent` is the finished solution for this lab.
+> Copy only `sample_target_repo/`. The rest of `codelabs/adk-im8-compliance-agent-mcp` is the finished solution for this lab.
 
 > aside positive
 > The `git commit` lets you restore the planted defects later with `git checkout -- sample_target_repo`.
