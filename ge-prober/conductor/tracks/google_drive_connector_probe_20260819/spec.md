@@ -1,7 +1,7 @@
 # Specification: Google Drive Connector Grounding & Authentication Probe
 
 ## Overview
-Implement and configure a dedicated probe for the **1P Google Workspace Google Drive Connector** within `ge-prober`. The objective is to verify authentication (`admin@weizhongt.altostrat.com`) and ensure `StreamAssist` routes queries to Google Drive, retrieves internal enterprise documents, returns source citations, and produces a grounded response without auth errors, permission blocks, or ungrounded refusals.
+Implement and configure a dedicated probe for the **1P Google Workspace Google Drive Connector** within `ge-prober`. The objective is to verify authentication (`admin@example.com`) and ensure `StreamAssist` routes queries to Google Drive, retrieves internal enterprise documents, returns source citations, and produces a grounded response without auth errors, permission blocks, or ungrounded refusals.
 
 ## Functional Requirements
 
@@ -26,9 +26,9 @@ Implement and configure a dedicated probe for the **1P Google Workspace Google D
   - Extract Google Drive citation URLs and metadata from `StreamAssistResponse` chunks.
 
 ### 3. Authentication & Identity (`auth.go`, `deploy_job.sh`)
-- Seamlessly resolve user access token for `admin@weizhongt.altostrat.com` (from local ADC or `GCP_ACCESS_TOKEN`).
+- Seamlessly resolve user access token for `admin@example.com` (from local ADC or `GCP_ACCESS_TOKEN`).
 - Ensure Discovery Engine correctly evaluates Drive permissions without `401`/`403` or `AUTH_REQUIRED`.
-- Set default scheduler/invocation service account in `deploy_job.sh` to `ge-regression-runner-sa@weizhong-project03.iam.gserviceaccount.com`.
+- Set default scheduler/invocation service account in `deploy_job.sh` to `ge-regression-runner-sa@your-project-id.iam.gserviceaccount.com`.
 
 ### 4. 100% LLM-as-a-Judge Evaluation (`judge.go`)
 - Use Vertex AI `gemini-2.5-flash` to evaluate the response against the semantic contract (detecting ungrounded fallbacks or refusals, score $\ge 4/5$).

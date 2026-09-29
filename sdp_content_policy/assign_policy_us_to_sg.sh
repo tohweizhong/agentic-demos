@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set your Google Cloud Project ID, Singapore Connector details, and US SDP Policy details
-PROJECT_ID="weizhong-project03"
+PROJECT_ID="your-project-id"
 CONNECTOR_LOCATION="sg"
 POLICY_LOCATION="us"
 COLLECTION_ID="sharepoint-sg-2-apr26_1777961646884"

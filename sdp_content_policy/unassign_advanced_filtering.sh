@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set your Google Cloud Project ID, Location, Collection ID, and SDP Policy full resource name
-PROJECT_ID="weizhong-project03"
+PROJECT_ID="your-project-id"
 LOCATION="us" # or 'us', 'eu'
 COLLECTION_ID="sharepoint-us-apr26_1776086514433"
 MSIP_LABEL_GUID="defa4170-0d19-0005-0007-bc88714345d2"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set your Google Cloud Project ID, Location, and Policy ID
-PROJECT_ID="weizhong-project03"
+PROJECT_ID="your-project-id"
 LOCATION="global"
 # Example policy ID: "test_policy1"
 POLICY_ID="test_policy1"

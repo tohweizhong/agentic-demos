@@ -8,7 +8,7 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) 5e40de8
 
 ## Phase 2: Authentication Resolution & Local Live Probing [checkpoint: 892d9d9]
-- [x] Task: Verify `auth.go` resolves user token (`admin@weizhongt.altostrat.com`) and configure `deploy_job.sh` to use dedicated SA `ge-regression-runner-sa@weizhong-project03.iam.gserviceaccount.com`. 892d9d9
+- [x] Task: Verify `auth.go` resolves user token (`admin@example.com`) and configure `deploy_job.sh` to use dedicated SA `ge-regression-runner-sa@your-project-id.iam.gserviceaccount.com`. 892d9d9
 - [x] Task: Execute `./ge-prober` locally to verify live Google Drive connector query, citation capture, and Vertex AI LLM Judge score. 892d9d9
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) 892d9d9
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT_ID="weizhong-project03"
+PROJECT_ID="your-project-id"
 
 echo "Listing all Data Stores in default_collection..."
 

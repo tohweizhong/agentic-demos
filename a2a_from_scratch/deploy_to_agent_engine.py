@@ -28,7 +28,7 @@ LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION")
 STAGING_BUCKET = os.getenv("STAGING_BUCKET")
 
 vertexai.init(
-    project="weizhong-project03",
+    project="your-project-id",
     location=LOCATION,
     staging_bucket=STAGING_BUCKET,
 )

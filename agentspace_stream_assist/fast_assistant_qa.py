@@ -19,7 +19,7 @@ def ask_fast(question: str) -> str:
         Direct final answer without streaming steps
     """
     # Configuration from stream_assist.py
-    project_id = "weizhong-project01"
+    project_id = "your-project-id"
     location = "global"
     engine_id = 'enterprise-search-17484208_1748420861365'
     
