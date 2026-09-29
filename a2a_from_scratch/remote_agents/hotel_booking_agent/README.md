@@ -11,5 +11,5 @@ gcloud run deploy hotel-booking-agent \
     --min 1 \
     --region us-central1 \
     --update-env-vars GOOGLE_CLOUD_LOCATION=us-central1 \
-    --update-env-vars GOOGLE_CLOUD_PROJECT=weizhong-project03
+    --update-env-vars GOOGLE_CLOUD_PROJECT=your-project-id
 ```

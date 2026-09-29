@@ -7,8 +7,8 @@ adk create my_agent
 
 https://google.github.io/adk-docs/deploy/cloud-run/#adk-cli
 gcloud auth login
-gcloud config set project weizhong-project03
-(gcloud auth application-default set-quota-project weizhong-project03)
+gcloud config set project your-project-id
+(gcloud auth application-default set-quota-project your-project-id)
 source ./set_vars.sh
 
 adk deploy cloud_run \

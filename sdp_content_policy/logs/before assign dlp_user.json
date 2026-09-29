@@ -12,6 +12,6 @@
   },
   "timestamp": "2026-04-20T07:57:55.359579346Z",
   "severity": "ERROR",
-  "logName": "projects/weizhong-project03/logs/discoveryengine.googleapis.com%2Fdata_connectors",
+  "logName": "projects/your-project-id/logs/discoveryengine.googleapis.com%2Fdata_connectors",
   "receiveTimestamp": "2026-04-20T07:57:56.354637083Z"
 }

@@ -38,7 +38,7 @@ import asyncio
 import json
 import os
 
-project_id = "weizhong-project01"
+project_id = "your-project-id"
 location = "global"          # Values: "global", "us", "eu"
 engine_id = "enterprise-search-17484208_1748420861365"
 search_query = "roll a 20-side dice for me"

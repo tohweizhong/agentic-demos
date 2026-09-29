@@ -36,7 +36,7 @@ from google.cloud import discoveryengine_v1
 from google.api_core.client_options import ClientOptions
 
 # Update accordingly
-project_id = "weizhong-project01"
+project_id = "your-project-id"
 location = "global"          # Values: "global", "us", "eu"
 engine_id = "enterprise-search-17484208_1748420861365"
 search_query = "tell me about dyson singapore"
