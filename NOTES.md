@@ -16,10 +16,10 @@ All four authored codelabs live under `codelabs/`.
 
 | Lab folder | DevSite ID | Authoring source | Images | Published state | Reference implementation |
 |---|---|---|---|---|---|
-| `codelabs/organic-chem-agent` | `build-parallel-multi-agent-chemistry-assistant` | `CODELAB.md` | `img/` | Live | Same folder, `app/` |
+| `codelabs/build-parallel-multi-agent-chemistry-assistant` | `build-parallel-multi-agent-chemistry-assistant` | `CODELAB.md` | `img/` | Live | Same folder, `app/` |
 | `codelabs/adk-im8-compliance-agent-mcp` | `adk-im8-compliance-agent-mcp` | `CODELAB.md` | `img/` | Staged preview only | Same folder, `app/` |
 | `codelabs/adk-im8-compliance-agent` | `adk-im8-compliance-agent` | `CODELAB.md` | `img/` | Staged preview only | Shares `adk-im8-compliance-agent-mcp/sample_target_repo/` |
-| `codelabs/nus-transit-hub` | `build-nus-transit-hub-antigravity` | `CODELAB.md` | `img/` | Live | Same folder, `app/` and `lib/` |
+| `codelabs/build-nus-transit-hub-antigravity` | `build-nus-transit-hub-antigravity` | `CODELAB.md` | `img/` | Live | Same folder, `app/` and `lib/` |
 
 Find them with `ls codelabs/*/CODELAB.md`.
 

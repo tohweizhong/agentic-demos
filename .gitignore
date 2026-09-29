@@ -21,7 +21,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-!codelabs/nus-transit-hub/lib/
+!codelabs/build-nus-transit-hub-antigravity/lib/
 lib64/
 parts/
 sdist/

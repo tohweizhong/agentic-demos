@@ -14,8 +14,8 @@
 * [codelabs](./codelabs/): Authored Codelabs for Antigravity, ADK, and MCP
   * [adk-im8-compliance-agent](./codelabs/adk-im8-compliance-agent/): IM8 compliance agent built with Agents CLI and ADK, deployed to Agent Runtime and Gemini Enterprise
   * [adk-im8-compliance-agent-mcp](./codelabs/adk-im8-compliance-agent-mcp/): Autonomous IM8 compliance checking and remediation agent built with Antigravity and FastMCP
-  * [nus-transit-hub](./codelabs/nus-transit-hub/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
-  * [organic-chem-agent](./codelabs/organic-chem-agent/): Organic Chemistry parallel multi-agent research & lab inventory companion
+  * [build-nus-transit-hub-antigravity](./codelabs/build-nus-transit-hub-antigravity/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
+  * [build-parallel-multi-agent-chemistry-assistant](./codelabs/build-parallel-multi-agent-chemistry-assistant/): Organic Chemistry parallel multi-agent research & lab inventory companion
 * [deep_research](./deep_research/): Prototyping Gemini Deep Research / Interactions API
 * [doc_ai](./doc_ai/): Sample scripts and notebooks using Vertex AI Document AI
 * [ge-prober](./ge-prober/): High-performance Go synthetic monitoring tool and smoke prober for Gemini Enterprise
