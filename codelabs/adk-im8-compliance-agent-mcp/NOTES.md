@@ -187,7 +187,7 @@ report.
 | `pip3 install` refused | The environment is externally managed. Add `--user --break-system-packages`. |
 | `uv` | Not installed. |
 | `mcp` version | `pip install mcp` pulls 2.x, where `FastMCP` was renamed to `MCPServer`. This code needs 1.x. Install `"mcp>=1.2.0,<2.0.0"`. Version 1.30.0 works. |
-| Model | `gemini-2.5-flash`. The earlier draft named `gemini-3.7-flash`, which does not exist. |
+| Model | `gemini-3.8-flash`. |
 
 ---
 

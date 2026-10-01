@@ -30,7 +30,7 @@ from app.tools import (
 
 # Shared model config
 model_config = Gemini(
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     retry_options=types.HttpRetryOptions(attempts=3),
 )
 

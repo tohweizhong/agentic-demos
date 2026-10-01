@@ -14,7 +14,7 @@ Duration: 0:02:00
 
 In this codelab, you step into the role of an **Agent Creator**. 
 
-Rather than manually auditing software repositories, you instruct **Antigravity 2.0** to build an autonomous compliance companion. The system is built with the **Google Agent Development Kit (ADK)** and the **Model Context Protocol (MCP)**, powered by **Gemini 2.5 Flash**.
+Rather than manually auditing software repositories, you instruct **Antigravity 2.0** to build an autonomous compliance companion. The system is built with the **Google Agent Development Kit (ADK)** and the **Model Context Protocol (MCP)**, powered by **Gemini 3.8 Flash**.
 
 The agent system audits application source code and cloud infrastructure against Singapore Government **Instruction Manual 8 (IM8)** standards. It identifies security violations, executes automated code repairs, and generates an executive attestation report for the Agency Chief Information Officer (CIO).
 
@@ -260,7 +260,7 @@ We orchestrate the specialist agents into an ADK pipeline:
 Enter the following prompt in the Antigravity chat panel:
 
 ```text
-In app/agent.py, construct a multi-agent ADK pipeline. Connect to mcp_im8_server.py using McpToolset with StdioConnectionParams. Create two specialist agents: code_security_specialist handles as-8 and lm-19, and infra_security_specialist handles as-13 and ns-2. Give both the MCP control tools and their own audit tool. Instruct each one to call lookup_im8_control first and to quote the real statement. Tell them never to invent a control identifier. Group them under a ParallelAgent named parallel_auditors. Then create a sequential step with cio_report_assembler. Give it generate_cio_report and get_assessment_timestamp. Instruct it to read the real date from the clock tool and never guess a date. It must write COMPLIANT only when every rule reports COMPLIANT or REMEDIATED. Bundle the pipeline into SequentialAgent and export app = App(root_agent=root_agent, name="app").
+In app/agent.py, construct a multi-agent ADK pipeline using Gemini(model="gemini-3.8-flash", retry_options=types.HttpRetryOptions(attempts=3)) as the shared model configuration. Connect to mcp_im8_server.py using McpToolset with StdioConnectionParams. Create two specialist agents: code_security_specialist handles as-8 and lm-19, and infra_security_specialist handles as-13 and ns-2. Give both the MCP control tools and their own audit tool. Instruct each one to call lookup_im8_control first and to quote the real statement. Tell them never to invent a control identifier. Group them under a ParallelAgent named parallel_auditors. Then create a sequential step with cio_report_assembler. Give it generate_cio_report and get_assessment_timestamp. Instruct it to read the real date from the clock tool and never guess a date. It must write COMPLIANT only when every rule reports COMPLIANT or REMEDIATED. Bundle the pipeline into SequentialAgent and export app = App(root_agent=root_agent, name="app").
 ```
 
 ### 📄 Expected Reference Code
@@ -269,8 +269,16 @@ Antigravity constructs `app/agent.py`:
 ```python
 from google.adk.agents import Agent, ParallelAgent, SequentialAgent
 from google.adk.apps import App
+from google.adk.models import Gemini
 from google.adk.tools.mcp_tool import McpToolset
+from google.genai import types
 from app.tools import audit_code_security, audit_infra_security, generate_cio_report
+
+# Shared model config
+model_config = Gemini(
+    model="gemini-3.8-flash",
+    retry_options=types.HttpRetryOptions(attempts=3),
+)
 
 # Parallel Specialist Auditors
 parallel_auditors = ParallelAgent(
@@ -281,6 +289,7 @@ parallel_auditors = ParallelAgent(
 # Executive Report Assembler
 assembler_agent = Agent(
     name="cio_report_assembler",
+    model=model_config,
     output_key="cio_report",
     tools=[generate_cio_report]
 )
