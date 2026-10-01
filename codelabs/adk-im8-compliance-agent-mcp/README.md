@@ -82,7 +82,7 @@ graph TD
 ## Repository Structure
 
 ```text
-agy-im8-agent/
+adk-im8-compliance-agent-mcp/
 ├── app/                          # Core multi-agent package
 │   ├── __init__.py               # Package exports
 │   ├── agent.py                  # Parallel and sequential agent pipeline definition
