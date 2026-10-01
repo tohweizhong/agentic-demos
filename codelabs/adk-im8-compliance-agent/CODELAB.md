@@ -17,7 +17,7 @@ Instead of writing audit scripts manually, you use **Google Antigravity 2.0**, *
 
 Under the IM8 Reform programme, the Government Technology Agency of Singapore (GovTech) publishes machine-readable security controls in the [GovTech Singapore Tech Standards repository](https://github.com/GovTechSG/tech-standards). Your workspace (`~/Desktop/im8-compliance-agent`) comes pre-staged with:
 
-* A sample public sector application (`sample_target_repo/`) containing four planted IM8 compliance defects. The source is on GitHub: [agentic-demos/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/adk-im8-compliance-agent-mcp/sample_target_repo).
+* A sample public sector application (`sample_target_repo/`) containing four planted IM8 compliance defects. The source is on GitHub: [agentic-demos/codelabs/adk-im8-compliance-agent/sample_target_repo](https://github.com/tohweizhong/agentic-demos/tree/main/codelabs/adk-im8-compliance-agent/sample_target_repo).
 * A local IM8 Reform policy database (`im8_policies.db`).
 * Pre-built deterministic policy lookup, code/infrastructure audit, and remediation tools (`tools.py`).
 
@@ -91,7 +91,7 @@ In this task, you prompt **Antigravity 2.0** to assemble the multi-agent pipelin
 1. In the Antigravity 2.0 chat input box, paste the following prompt and press ENTER:
 
 ```text
-Read requirements.md and app/tools.py. Implement app/agent.py by assembling:
+Read requirements.md and app/tools.py. Implement app/agent.py using Gemini(model="gemini-3.8-flash", retry_options=types.HttpRetryOptions(attempts=3)) as the shared model configuration by assembling:
 
 1. code_security_specialist (using lookup_im8_control and audit_code_security for controls as-8 and lm-19, with output_key="code_audit_result").
 
