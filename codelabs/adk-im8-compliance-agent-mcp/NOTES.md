@@ -1,4 +1,4 @@
-# Project Notes: agy-im8-agent
+# Project Notes: adk-im8-compliance-agent-mcp
 
 Design decisions, known traps, and open questions for this codelab. Read this
 before you change the lab. The commit history records what changed. This file
@@ -11,7 +11,7 @@ Last updated: 21 Sep 2026.
 ## 0. Quick start
 
 ```bash
-cd agy-im8-agent
+cd codelabs/adk-im8-compliance-agent-mcp
 python3 init_im8_db.py     # rebuild im8_policies.db, which is generated and ignored
 adk web                    # start the visual interface, then open localhost:8000
 ```
@@ -45,7 +45,7 @@ companion. The companion audits a mock public sector repository, repairs the
 defects, and writes a CIO attestation report.
 
 The lab is modelled on the organic chemistry codelab in
-[organic-chem-agent](../organic-chem-agent/). That lab sets the pattern: the
+[build-parallel-multi-agent-chemistry-assistant](../build-parallel-multi-agent-chemistry-assistant/). That lab sets the pattern: the
 attendee only writes prompts and never copies code by hand.
 
 ---
@@ -55,9 +55,10 @@ attendee only writes prompts and never copies code by hand.
 The folder began life at `coding/scratchpad/codelab-agy-im8-agent`. It held a
 single-agent implementation with a command line runner in `im8_agent/main.py`.
 
-It moved to `coding/agentic-demos/agy-im8-agent` and the `codelab-` prefix was
-dropped. The old `im8_agent/` package and `requirements.md` were deleted when
-the multi-agent pipeline replaced them.
+It moved to `coding/agentic-demos/agy-im8-agent`, and later moved to
+`coding/agentic-demos/codelabs/adk-im8-compliance-agent-mcp` to match the
+DevSite codelab identifier. The old `im8_agent/` package and `requirements.md`
+were deleted when the multi-agent pipeline replaced them.
 
 ---
 

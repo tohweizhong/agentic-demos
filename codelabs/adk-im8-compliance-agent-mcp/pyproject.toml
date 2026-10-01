@@ -1,5 +1,5 @@
 [project]
-name = "agy-im8-agent"
+name = "adk-im8-compliance-agent-mcp"
 version = "0.1.0"
 description = "Autonomous Multi-Agent IM8 Compliance Checking and Remediation Companion"
 authors = [
