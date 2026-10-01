@@ -37,28 +37,21 @@ Two questions are unresolved. Both are written out in full below.
 
 ## 1. What this project is
 
-A workshop lab for the Singapore Whole-of-Government CIO Workshop, Play 4:
-Agent Creator with Antigravity 2.0.
+A standalone codelab that teaches how to build an autonomous IM8 compliance
+companion with Antigravity 2.0, Google ADK, and FastMCP.
 
-The attendee prompts Antigravity 2.0 to build an autonomous IM8 compliance
-companion. The companion audits a mock public sector repository, repairs the
-defects, and writes a CIO attestation report.
-
-The lab is modelled on the organic chemistry codelab in
-[build-parallel-multi-agent-chemistry-assistant](../build-parallel-multi-agent-chemistry-assistant/). That lab sets the pattern: the
-attendee only writes prompts and never copies code by hand.
+The developer prompts Antigravity 2.0 to build the compliance pipeline. The
+companion audits a mock public sector repository, repairs the defects, and
+writes a CIO attestation report. The developer writes prompts and does not copy
+code by hand.
 
 ---
 
 ## 2. History
 
-The folder began life at `coding/scratchpad/codelab-agy-im8-agent`. It held a
-single-agent implementation with a command line runner in `im8_agent/main.py`.
-
-It moved to `coding/agentic-demos/agy-im8-agent`, and later moved to
-`coding/agentic-demos/codelabs/adk-im8-compliance-agent-mcp` to match the
-DevSite codelab identifier. The old `im8_agent/` package and `requirements.md`
-were deleted when the multi-agent pipeline replaced them.
+The project began as a single-agent implementation with a command line runner in
+`im8_agent/main.py`. The old `im8_agent/` package and `requirements.md` were
+deleted when the multi-agent pipeline replaced them.
 
 ---
 
@@ -103,12 +96,12 @@ to put behind MCP. It separates government rules from agent code. An agency can
 change a rule without a code change. The server holds the rule text, the
 severity, and the approved repair template.
 
-**Why the ADK web interface.** The attendee can watch both specialists run at
+**Why the ADK web interface.** The developer can watch both specialists run at
 the same time in the trace panel. A terminal hides that.
 
 **Why the run steps come after the launch step.** The first draft launched the
 web interface at step 9, after the audit and the repair were already done. The
-attendee opened the interface with nothing left to watch. The launch step now
+developer opened the interface with nothing left to watch. The launch step now
 comes first, at step 7.
 
 ---
@@ -267,8 +260,8 @@ never queries across them. MCP starts a stdio subprocess. Both could go.
 
 | Option | What you keep | Cost |
 |---|---|---|
-| A. Remove both | One plain function tool holding four controls | The lab no longer teaches MCP. The workshop loses a stated learning goal. |
-| B. Remove SQLite, keep MCP | An MCP server that reads the live public OSCAL catalog | Needs a network call, or a cached copy for an offline workshop machine. |
+| A. Remove both | One plain function tool holding four controls | The lab no longer teaches MCP. The codelab loses a stated learning goal. |
+| B. Remove SQLite, keep MCP | An MCP server that reads the live public OSCAL catalog | Needs a network call, or a cached copy for an offline machine. |
 | C. Keep both | Current state | An extra build step and a database file that holds four rows. |
 
 ### The facts behind the trade-off
@@ -290,8 +283,8 @@ Option B. Point the MCP server at the published catalog and drop the database.
 
 * The lab drops from eleven steps to ten, because the seed step goes away.
 * A contrived database is replaced by a real external source.
-* For an offline workshop machine, the server downloads the catalog once and
-  caches it to a local file.
+* For an offline machine, the server downloads the catalog once and caches it to
+  a local file.
 
 ### If option B is chosen, the work is
 
@@ -337,10 +330,6 @@ machine.
 
 The current summary step moves from 11 to 14. Total length grows from about 45
 minutes to about 70 minutes.
-
-The notebook in [ae_ge_publish](../ae_ge_publish/) already holds working code
-for steps 11 and 12. Lift the `agent_engines.create` call and the Discovery
-Engine registration call from it.
 
 **The open question.** Step 10 is the real work. Should the remote agent audit a
 repository it clones from a Git URL, or audit file content supplied in the

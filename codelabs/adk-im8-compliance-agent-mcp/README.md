@@ -1,4 +1,4 @@
-# Play 4: Autonomous IM8 Compliance Checking & Remediation Agent
+# Build an IM8 Compliance & Remediation Agent with Antigravity 2.0, ADK, FastMCP, and Gemini
 
 Welcome to the **Autonomous IM8 Compliance Companion** repository. This project provides a multi-agent system built with the **Google Agent Development Kit (ADK)** and the **Model Context Protocol (MCP)**. The system audits a software repository against four controls from the public Singapore Government ICT&SS Policy (IM8 Reform) catalog, repairs the defects it finds, and writes an executive Chief Information Officer (CIO) attestation report.
 
@@ -38,7 +38,7 @@ This diagram illustrates how developer tooling and agent components connect in A
 ```mermaid
 graph TD
     subgraph LocalIDE ["Developer Environment (Antigravity 2.0)"]
-        IDE["Antigravity 2.0 Chat Panel"] --> Developer["Engineer / Workshop Attendee"]
+        IDE["Antigravity 2.0 Chat Panel"] --> Developer["Developer"]
         Developer --> |Prompts Agent| ADK["Google ADK Framework"]
         ADK --> |Launches Subprocess| FastMCP["FastMCP Server (mcp_im8_server.py)"]
         FastMCP --> |Reads Controls| SQLite[("im8_policies.db (SQLite)")]
