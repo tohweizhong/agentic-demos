@@ -8,9 +8,7 @@
 * [adk_cloud_run](./adk_cloud_run/): Deploying ADK agents to Google Cloud Run
 * [adk_mcp_explainer](./adk_mcp_explainer/): Secure MCP server and ADK Agent playground on Cloud Run
 * [adk_multiagent](./adk_multiagent/): Multi-agent ADK example (Campaign Orchestrator, Creative Director, Financial Analyst)
-* [ae_ge_publish](./ae_ge_publish/): ADK -> Agent Engine -> Gemini Enterprise (Agentspace) integration
 * [agents_cli](./agents_cli/): Agents generated or managed via agents-cli (e.g. hr-onboarding-agent)
-* [agentspace_stream_assist](./agentspace_stream_assist/): Invoking Gemini Enterprise agents using the streamAssist API
 * [codelabs](./codelabs/): Authored Codelabs for Antigravity, ADK, and MCP
   * [adk-im8-compliance-agent](./codelabs/adk-im8-compliance-agent/): IM8 compliance agent built with Agents CLI and ADK, deployed to Agent Runtime and Gemini Enterprise
   * [adk-im8-compliance-agent-mcp](./codelabs/adk-im8-compliance-agent-mcp/): Autonomous IM8 compliance checking and remediation agent built with Antigravity and FastMCP
@@ -18,10 +16,13 @@
   * [build-parallel-multi-agent-chemistry-assistant](./codelabs/build-parallel-multi-agent-chemistry-assistant/): Organic Chemistry parallel multi-agent research & lab inventory companion
 * [deep_research](./deep_research/): Prototyping Gemini Deep Research / Interactions API
 * [doc_ai](./doc_ai/): Sample scripts and notebooks using Vertex AI Document AI
-* [ge-prober](./ge-prober/): High-performance Go synthetic monitoring tool and smoke prober for Gemini Enterprise
-* [ge_license_distribute](./ge_license_distribute/): Gemini Enterprise License Distribution Utility Scripts
-* [ge_list_agents](./ge_list_agents/): Gemini Enterprise Agent Lister & Identity Resolver
+* [ge_utils](./ge_utils/): Auxiliary scripts and tools for Gemini Enterprise
+  * [ae_ge_publish](./ge_utils/ae_ge_publish/): ADK -> Agent Engine -> Gemini Enterprise (Agentspace) integration
+  * [agentspace_stream_assist](./ge_utils/agentspace_stream_assist/): Invoking Gemini Enterprise agents using the streamAssist API
+  * [ge-prober](./ge_utils/ge-prober/): High-performance Go synthetic monitoring tool and smoke prober for Gemini Enterprise
+  * [ge_license_distribute](./ge_utils/ge_license_distribute/): Gemini Enterprise License Distribution Utility Scripts
+  * [ge_list_agents](./ge_utils/ge_list_agents/): Gemini Enterprise Agent Lister & Identity Resolver
+  * [sdp_content_policy](./ge_utils/sdp_content_policy/): Scripts for managing SDP content policies on data stores
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
-* [sdp_content_policy](./sdp_content_policy/): Scripts for managing SDP content policies on data stores
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI

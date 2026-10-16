@@ -236,6 +236,6 @@ Thumbs.db
 
 
 # Go binaries and local prober artifacts
-ge-prober/ge-prober
+ge_utils/ge-prober/ge-prober
 smoke_prober_results.json
 .agents/

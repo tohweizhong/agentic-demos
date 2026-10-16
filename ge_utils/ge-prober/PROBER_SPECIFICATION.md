@@ -6,7 +6,7 @@ A comprehensive architecture specification and test case catalog for continuous 
 
 ## 1. Executive Summary
 
-The **Gemini Enterprise Prober** ([`ge-prober/`](file:///usr/local/google/home/weizhongt/coding/agentic-demos/ge-prober)) is an automated, lightweight, continuous blackbox monitoring suite. Unlike deep, once-off evaluation suites that test multi-turn edge cases, `ge-prober` executes **high-breadth, low-depth canonical queries** every 15–60 minutes to verify vital signs:
+The **Gemini Enterprise Prober** (`ge_utils/ge-prober/`) is an automated, lightweight, continuous blackbox monitoring suite. Unlike deep, once-off evaluation suites that test multi-turn edge cases, `ge-prober` executes **high-breadth, low-depth canonical queries** every 15–60 minutes to verify vital signs:
 1. **End-to-End Service Vitality**: Are all core Gemini Enterprise subsystems and agents responsive?
 2. **Cross-Tenant Authentication & Connectivity**: Are Microsoft 365 Entra ID WIF pools, Google Workspace DWD scopes, and remote MCP servers reachable?
 3. **Latency SLO Enforcement**: Are **TTFT** (< 3.0s) and **TTLT** (< 12.0s) within production thresholds?

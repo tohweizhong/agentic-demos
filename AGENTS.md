@@ -71,7 +71,7 @@ only what is specific to that demo.
 
 1.  Run `git pull` before committing.
 2.  Check `.gitignore` covers new credential files, build outputs, and compiled binaries
-    (for example `ge-prober/ge-prober`) before staging.
+    (for example `ge_utils/ge-prober/ge-prober`) before staging.
 3.  Scan the diff for the items in section 1 before every commit.
 4.  Stage explicit paths. Do not run `git add .` in a repository of independent demos, because
     it sweeps in unrelated work from other folders.
