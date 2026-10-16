@@ -239,3 +239,6 @@ Thumbs.db
 ge_utils/ge-prober/ge-prober
 smoke_prober_results.json
 .agents/
+
+# Internal reference documents. Keep local only.
+ge_utils/sdp_content_policy/*.pdf
