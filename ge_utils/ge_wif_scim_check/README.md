@@ -12,11 +12,10 @@ The scripts only read. They do not change anything.
 ## Explanation
 
 * A workforce pool belongs to an **organization**. A provider belongs to a pool.
-* A SCIM tenant belongs to a **provider**, not to a pool. The command
-  `gcloud iam workforce-pools tenants list` does not exist. The correct command is
+* A SCIM tenant belongs to a **provider**, not to a pool. To list the SCIM tenants, use
   `gcloud iam workforce-pools providers scim-tenants list`.
-* The attribute mapping is also on the provider. `gcloud iam workforce-pools describe`
-  shows the pool only, so its output does not include the mapping.
+* The attribute mapping is also on the provider. To see it, use
+  `gcloud iam workforce-pools providers describe`.
 * Without a SCIM tenant, the agent Share dialog gives no suggestions. Users must type each
   address.
 * If `google.subject` does not use `lowerAscii()`, Cloud IAM compares subjects with case

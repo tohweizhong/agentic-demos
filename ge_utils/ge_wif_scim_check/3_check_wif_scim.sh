@@ -4,9 +4,8 @@
 #   2. What is the attribute mapping of each provider, and does google.subject keep
 #      the case from the identity provider?
 #
-# SCIM tenants are child resources of a provider, not of a pool. There is no
-# "gcloud iam workforce-pools tenants" command. The correct command is
-# "gcloud iam workforce-pools providers scim-tenants list".
+# SCIM tenants are child resources of a provider, not of a pool. The script lists them
+# with "gcloud iam workforce-pools providers scim-tenants list".
 #
 # Required role: a role on the ORGANIZATION that can read workforce pool providers and
 # list their SCIM tenants, for example roles/iam.workforcePoolAdmin.
