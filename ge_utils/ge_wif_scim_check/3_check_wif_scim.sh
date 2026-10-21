@@ -1,5 +1,5 @@
 #!/bin/bash
-# Checks a Workforce Identity Federation (WIF) pool for two facts:
+# Step 3: Checks a Workforce Identity Federation (WIF) pool for two facts:
 #   1. Does each provider in the pool have a SCIM tenant?
 #   2. What is the attribute mapping of each provider, and does google.subject keep
 #      the case from the identity provider?
@@ -11,7 +11,7 @@
 # Required role: a role on the ORGANIZATION that can read workforce pool providers and
 # list their SCIM tenants, for example roles/iam.workforcePoolAdmin.
 #
-# Usage: ./check_wif_scim.sh <WORKFORCE_POOL_ID> [PROVIDER_ID] [LOCATION]
+# Usage: ./3_check_wif_scim.sh <WORKFORCE_POOL_ID> [PROVIDER_ID] [LOCATION]
 #   PROVIDER_ID  Optional. If you do not set it, the script checks every provider in the pool.
 #   LOCATION     Optional. Default: global.
 set -uo pipefail
@@ -39,8 +39,19 @@ fail() {
 }
 
 echo "=== Workforce pool ==="
-gcloud iam workforce-pools describe "$POOL" --location="$LOCATION" \
-    --format="yaml(name,parent,state)" || fail "cannot read workforce pool '$POOL'."
+POOL_OUT="$(gcloud iam workforce-pools describe "$POOL" --location="$LOCATION" \
+    --format="yaml(name,parent,state)" 2>&1)"
+POOL_STATUS=$?
+echo "$POOL_OUT"
+if [ "$POOL_STATUS" -ne 0 ]; then
+    if [[ "$POOL_OUT" == *NOT_FOUND* ]]; then
+        echo >&2
+        echo "Error: workforce pool '$POOL' does not exist in $LOCATION." >&2
+        echo "Run ./1_list_pools.sh to find the correct POOL_ID." >&2
+        exit 1
+    fi
+    fail "cannot read workforce pool '$POOL'."
+fi
 echo
 
 if [ -n "$PROVIDER_ARG" ]; then
