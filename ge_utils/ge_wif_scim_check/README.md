@@ -11,6 +11,20 @@ The scripts only read. They do not change anything.
 
 ## Explanation
 
+```mermaid
+flowchart TD
+    org["Organization"]
+    pool["Workforce pool"]
+    prov["Provider (OIDC or SAML)"]
+    map["Attribute mapping, for example google.subject"]
+    scim["SCIM tenant (optional)"]
+
+    org -->|"has 1 or more"| pool
+    pool -->|"has 1 or more"| prov
+    prov -->|"holds"| map
+    prov -->|"has 0 or 1"| scim
+```
+
 * A workforce pool belongs to an **organization**. A provider belongs to a pool.
 * A SCIM tenant belongs to a **provider**, not to a pool. To list the SCIM tenants, use
   `gcloud iam workforce-pools providers scim-tenants list`.
