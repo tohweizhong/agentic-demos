@@ -227,7 +227,65 @@ gcloud logging read "logName=\"projects/${PROJECT_ID}/logs/networkservices.googl
    `projects/PROJECT_NUMBER/locations/us-central1/reasoningEngines/AGENT_ID`.
 3. Open the web app, then the Agent Gallery, and select Mortgage Assistant Agent.
 
-## 10. Clean up
+## 10. Scale down and up between sessions
+
+Most of the idle cost comes from minimum instances. Scale them down after a session, and scale them
+up again at least 30 minutes before the next one.
+
+```bash
+# Scale down: agent to 0 minimum instances
+curl -s -X PATCH \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  "https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_NUMBER}/locations/${REGION}/reasoningEngines/${AGENT_ID}?updateMask=spec.deploymentSpec.minInstances" \
+  -d '{"spec": {"deploymentSpec": {"minInstances": 0}}}'
+
+# Scale down: MCP servers to 0 minimum instances
+for s in legacy-dms income-verification corporate-email; do
+  gcloud run services update $s --region=${REGION} --min-instances=0
+done
+```
+
+To scale up, run the same commands with `2` for the agent and `1` for each MCP server.
+
+| Note | Detail |
+|---|---|
+| Not tested for the agent | The value `0` for the agent was not tested in a real run. Check the agent with one prompt after you scale up. |
+| Cold start | With 0 MCP instances, the first tool call takes about 16 to 19 seconds. This is longer than the 5-second MCP timeout, so the agent loses its tools for that request. |
+| Terraform | A later `terraform apply` can set the Cloud Run minimum instances back to the value in `terraform.tfvars`. |
+
+## 11. Track the cost
+
+The Billing report shows the cost per SKU. Filter on your demo project and group by SKU.
+
+To read the cost with one query, export the billing data to BigQuery:
+
+1. Create a dataset in a project that you keep. Use the `US` or `EU` multi-region location. Then the
+   export also loads the costs from the start of the previous month.
+
+   ```bash
+   bq mk --dataset --location=US ${PROJECT_ID}:billing_export
+   ```
+
+2. In the Billing console, open **Billing export**. Under **Standard usage cost**, select this
+   dataset. This step has no API. You need the Billing Account Administrator role.
+3. Wait a few hours for the first rows. The older costs can take up to 5 days to load.
+4. Query the cost per day and per SKU. In the table name, replace the dashes in your billing account
+   ID with underscores.
+
+   ```sql
+   SELECT
+     DATE(usage_start_time) AS day,
+     service.description AS service,
+     sku.description AS sku,
+     ROUND(SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0)), 2) AS net_cost
+   FROM `PROJECT_ID.billing_export.gcp_billing_export_v1_XXXXXX_XXXXXX_XXXXXX`
+   WHERE project.id = "PROJECT_ID"
+   GROUP BY day, service, sku
+   ORDER BY day DESC, net_cost DESC
+   ```
+
+## 12. Clean up
 
 If a deployment of the agent failed, delete that agent. Its IAP grants on the registry endpoints
 then point to an agent that no longer exists. They do nothing, but they make the policies harder to

@@ -106,6 +106,8 @@ What the measured cost contained:
 | Agent on Agent Runtime, Agent Gateway | USD 0 | No charge appeared while idle. Prices can change, so check the Billing report. |
 
 > [!TIP]
-> To see the real cost, open the Billing report, filter on your demo project, and group by SKU.
+> To see the real cost, open the Billing report, filter on your demo project, and group by SKU. To
+> cut the cost between sessions, or to read the cost with one query, see sections 10 and 11 of the
+> runbook.
 > Do not set the Cloud Run minimum instances to 0 before a demo. A cold start takes longer than the
 > 5-second MCP timeout, and the agent then loses its tools for that request.
