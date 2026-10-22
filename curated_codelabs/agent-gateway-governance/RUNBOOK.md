@@ -229,28 +229,30 @@ gcloud logging read "logName=\"projects/${PROJECT_ID}/logs/networkservices.googl
 
 ## 10. Scale down and up between sessions
 
-Most of the idle cost comes from minimum instances. Scale them down after a session, and scale them
-up again at least 30 minutes before the next one.
+Almost all of the idle cost comes from the Cloud Run minimum instances. In a real run, the agent
+showed no charge while it was idle. So you can normally leave the agent unchanged, and scale only
+the MCP servers. Scale them up again at least 30 minutes before the next session.
 
 ```bash
-# Scale down: agent to 0 minimum instances
+# Scale down: MCP servers to 0 minimum instances
+for s in legacy-dms income-verification corporate-email; do
+  gcloud run services update $s --region=${REGION} --min-instances=0
+done
+
+# Optional, only if the Billing report shows an idle charge for the agent:
+# agent to 0 minimum instances
 curl -s -X PATCH \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H "Content-Type: application/json" \
   "https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_NUMBER}/locations/${REGION}/reasoningEngines/${AGENT_ID}?updateMask=spec.deploymentSpec.minInstances" \
   -d '{"spec": {"deploymentSpec": {"minInstances": 0}}}'
-
-# Scale down: MCP servers to 0 minimum instances
-for s in legacy-dms income-verification corporate-email; do
-  gcloud run services update $s --region=${REGION} --min-instances=0
-done
 ```
 
-To scale up, run the same commands with `2` for the agent and `1` for each MCP server.
+To scale up, run the same commands with `1` for each MCP server and `2` for the agent.
 
 | Note | Detail |
 |---|---|
-| Not tested for the agent | The value `0` for the agent was not tested in a real run. Check the agent with one prompt after you scale up. |
+| Agent scale-down not tested | The agent command was not tested in a real run. A change to the agent settings can start a new rollout of the agent, so do it only when you have time to fix a problem. |
 | Cold start | With 0 MCP instances, the first tool call takes about 16 to 19 seconds. This is longer than the 5-second MCP timeout, so the agent loses its tools for that request. |
 | Terraform | A later `terraform apply` can set the Cloud Run minimum instances back to the value in `terraform.tfvars`. |
 
