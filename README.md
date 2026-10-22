@@ -9,7 +9,7 @@
 * [adk_mcp_explainer](./adk_mcp_explainer/): Secure MCP server and ADK Agent playground on Cloud Run
 * [adk_multiagent](./adk_multiagent/): Multi-agent ADK example (Campaign Orchestrator, Creative Director, Financial Analyst)
 * [agents_cli](./agents_cli/): Agents generated or managed via agents-cli (e.g. hr-onboarding-agent)
-* [codelabs](./codelabs/): Authored Codelabs for Antigravity, ADK, and MCP
+* [codelabs](./codelabs/): Codelabs that I wrote, for Antigravity, ADK, and MCP
   * [adk-im8-compliance-agent](./codelabs/adk-im8-compliance-agent/): IM8 compliance agent built with Agents CLI and ADK, deployed to Agent Runtime and Gemini Enterprise
   * [adk-im8-compliance-agent-mcp](./codelabs/adk-im8-compliance-agent-mcp/): Autonomous IM8 compliance checking and remediation agent built with Antigravity and FastMCP
   * [build-nus-transit-hub-antigravity](./codelabs/build-nus-transit-hub-antigravity/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
