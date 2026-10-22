@@ -58,6 +58,7 @@ means that the gateway blocked the call. Show the gateway log to prove it.
 | Can one agent use a tool and another agent not? | Yes. Grants are per agent identity, per MCP server, and optionally per tool. |
 | What happens if the policy check fails? | It depends on the fail mode. The demo uses fail-open for a smooth demo. Production must use fail-closed. |
 | Can we try it without blocking traffic? | Yes. Dry-run mode logs each decision and blocks nothing. |
+| What happens if someone deletes the gateway policies? | The gateway denies all agent traffic. It fails closed, so a missing policy does not open the gateway. This was seen in a real run. |
 | Which regions? | The demo uses `us-central1`. Check the current documentation for your region before you promise anything. |
 | Does it work for agents outside Agent Runtime? | The demo covers Agent Runtime. Check the current documentation for other runtimes. |
 

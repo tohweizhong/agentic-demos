@@ -192,8 +192,25 @@ terraform apply
 ```
 
 **Fix 5: the update can fail with `ABORTED`.** The error is "There is another ongoing operation for
-the same AgentGateway". The gateway accepts only one change at a time, and a background task from
-an earlier change can still run. Wait about 15 minutes and run `terraform apply` again.
+the same AgentGateway". In a real run, the update failed three times in a row, each time after about
+5 minutes. A wait of 19 minutes before the third try did not help. So a plain retry does not fix it.
+
+What worked: delete the two gateway policies, apply the change, and let Terraform create the
+policies again. Without an attached policy, the extension update finished in 4 seconds.
+
+```bash
+terraform destroy -target='module.agent_gateway[0].google_network_security_authz_policy.iap'
+terraform plan -out=tfplan_fix   # expect: 2 to add, 1 or 2 to change, 0 to destroy
+terraform apply tfplan_fix
+```
+
+The destroy also deletes the Model Armor policy, because it depends on the IAP policy. Each policy
+delete or create takes 5 to 8 minutes, so the full fix takes about 30 minutes.
+
+> [!WARNING]
+> While the policies are missing, the gateway **denies all agent traffic**. It does not let traffic
+> pass. The gateway log shows the rule `default_denied` with action `DENIED`. The agent cannot even
+> create a session. Do this fix only when nobody uses the demo.
 
 Do not trust the extension setting alone. Check what the gateway really does in the request log:
 
@@ -211,6 +228,12 @@ gcloud logging read "logName=\"projects/${PROJECT_ID}/logs/networkservices.googl
 3. Open the web app, then the Agent Gallery, and select Mortgage Assistant Agent.
 
 ## 10. Clean up
+
+If a deployment of the agent failed, delete that agent. Its IAP grants on the registry endpoints
+then point to an agent that no longer exists. They do nothing, but they make the policies harder to
+read in a demo, so remove them too.
+
+To remove everything:
 
 ```bash
 # 1. Delete the agent first. Delete the failed agents too, if any.
