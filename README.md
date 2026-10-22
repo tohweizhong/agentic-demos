@@ -14,6 +14,8 @@
   * [adk-im8-compliance-agent-mcp](./codelabs/adk-im8-compliance-agent-mcp/): Autonomous IM8 compliance checking and remediation agent built with Antigravity and FastMCP
   * [build-nus-transit-hub-antigravity](./codelabs/build-nus-transit-hub-antigravity/): NUS Campus Transit Hub & Telegram Bot built with Next.js 16 and grammY
   * [build-parallel-multi-agent-chemistry-assistant](./codelabs/build-parallel-multi-agent-chemistry-assistant/): Organic Chemistry parallel multi-agent research & lab inventory companion
+* [curated_codelabs](./curated_codelabs/): Public codelabs by other authors, with run notes, fixes, and demo talking points
+  * [agent-gateway-governance](./curated_codelabs/agent-gateway-governance/): Agent Gateway with IAP per-tool egress policy and Model Armor, for an ADK agent on Agent Runtime and Gemini Enterprise
 * [deep_research](./deep_research/): Prototyping Gemini Deep Research / Interactions API
 * [doc_ai](./doc_ai/): Sample scripts and notebooks using Vertex AI Document AI
 * [ge_utils](./ge_utils/): Auxiliary scripts and tools for Gemini Enterprise
