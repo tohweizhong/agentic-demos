@@ -7,7 +7,8 @@
 ## Open work
 
 The backlog in [product.md](product.md#backlog) is the single list of open work, with a status for
-each item. Each backlog item becomes a track when work on it starts.
+each item (including items 11 to 23 covering Day-2 operations and enterprise handover extensions,
+all marked `Not built`). Each backlog item becomes a track when work on it starts.
 
 ---
 
