@@ -35,7 +35,17 @@ The client does three things:
 | `main.py`, `static/script.js` | Robust resume after consent. The `/validateUserId` success page sends a same-origin signal (BroadcastChannel, `window.opener.postMessage`, and a localStorage event), then closes itself. The main page resumes the agent exactly once, on the first signal or when the popup closes. Before this change, the page resumed only when the popup closed. If the user did not close the popup, the agent did not resume. |
 | `static/index.html`, `static/script.js`, `static/style.css` | Loading states in the chat: typing dots before the first event, a spinner while the consent popup is open, and a spinner after consent until the first answer text. After 30 seconds, a note says that the first run can take up to 2 minutes. An error removes all spinners. |
 | `static/index.html`, `static/script.js`, `static/style.css` | Two tabs in the main area: "Playground" and "How 3LO works". The second tab draws the 12-step 3LO flow as an inline SVG, highlights the current step of the Playground run, lists the steps as text, and shows a timings table of the last run (browser memory only). A chip in the header shows the current step as text. |
+| `static/script.js` | Fix: the chat never shows an empty bubble. The typing dots stay until there is text. A tool call changes the status line ("The agent is calling a tool: NAME..."). A bubble that ends with no text is removed. |
+| `static/script.js`, `static/vendor/` | Agent answers render as Markdown when the stream ends (plain text while it streams). The client uses vendored copies of marked and DOMPurify, not a CDN. Raw HTML from the model is escaped, and DOMPurify sanitizes the result. Images are not rendered. Links open in a new tab with `rel="noopener noreferrer"`. |
+| `static/index.html`, `static/script.js` | New "New conversation" button. It clears the chat, the step chip, and the timings. The next message starts a new agent session. It does not remove the GitHub token that Auth Manager stores. To remove the token, use Demo controls, Reset Auth Manager consent. |
+| `static/style.css` | Fix: the 3LO diagram showed as a thin strip, because the scrolling flex panel shrank it. The panel children now keep their size. |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
+
+## Vendored libraries
+
+`static/vendor/` holds unchanged copies of marked 15.0.12 (MIT) and DOMPurify
+3.2.6 (Apache 2.0 or MPL 2.0), with their license files. See
+[static/vendor/README.md](static/vendor/README.md).
 
 ## Security
 

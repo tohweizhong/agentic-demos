@@ -208,6 +208,56 @@ $(function() {
     }
   };
 
+
+  // ---- Markdown rendering of agent answers. ----
+  // The model text is never trusted as HTML. marked escapes raw HTML in the
+  // text, and DOMPurify sanitizes the result. Links open in a new tab.
+  const escapeHtml = (t) => String(t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  if (window.marked) {
+    window.marked.use({
+      gfm: true,
+      breaks: true,
+      renderer: {
+        html(token) {
+          return escapeHtml(token.raw !== undefined ? token.raw : token.text);
+        },
+      },
+    });
+  }
+  if (window.DOMPurify) {
+    window.DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+      if (node.tagName === 'A') {
+        node.setAttribute('target', '_blank');
+        node.setAttribute('rel', 'noopener noreferrer');
+      }
+    });
+  }
+  const renderMarkdown = (text) => {
+    if (!window.marked || !window.DOMPurify) return null;
+    return window.DOMPurify.sanitize(window.marked.parse(text), {
+      FORBID_TAGS: ['style', 'form', 'input', 'iframe', 'img'],
+      FORBID_ATTR: ['style'],
+    });
+  };
+  // While the stream runs, answers show as plain text. When the stream ends,
+  // this function renders each answer as Markdown, once.
+  const finalizeAnswers = ($container) => {
+    $container.find('.answer-text[data-md-pending="1"]').each(function() {
+      const html = renderMarkdown($(this).data('raw') || '');
+      if (html !== null) {
+        this.innerHTML = html;
+        $(this).addClass('markdown');
+      }
+      $(this).attr('data-md-pending', '0');
+    });
+  };
+  const appendAnswer = ($container, text) => {
+    $container.append($('<div>').addClass('answer-text')
+        .attr('data-md-pending', '1').data('raw', text).text(text));
+  };
+
   // ---- Loading states in the chat. ----
   const waitTimers = new Set();
   const clearWaits = () => {
@@ -235,6 +285,15 @@ $(function() {
     waitTimers.add(timer);
     $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
     return $w;
+  };
+  // Changes the text of the last loading state, or adds one.
+  const setWaitText = ($container, text) => {
+    const $t = $container.find('.wait-indicator .wait-text').last();
+    if ($t.length) {
+      $t.text(text);
+    } else {
+      showWait($container, 'dots', text);
+    }
   };
 
   // ---- Resume after consent, exactly once. ----
@@ -299,6 +358,24 @@ $(function() {
       $('#demo-reset-btn').trigger('focus');
     }
   });
+  // New conversation: clear the chat, the step chip, and the timings. The
+  // next message starts a new agent session. This does not remove the GitHub
+  // token that Auth Manager stores.
+  $('#new-conversation').on('click', () => {
+    clearWaits();
+    pendingAuth = null;
+    latestRequestId++;
+    currentSessionId = null;
+    document.cookie =
+        'session_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=lax';
+    resetChatFeed();
+    appendMessage('New conversation started.', 'system-message');
+    timings = {};
+    renderTimings();
+    setStep([]);
+    updateAgentInfoPane();
+  });
+
   $('#clear-timings').on('click', () => {
     timings = {};
     renderTimings();
@@ -801,11 +878,9 @@ $(function() {
                 continue;
               }
 
-              if (isFirstEvent) {
-                clearWaits();
-                $contentDiv.empty();
-                isFirstEvent = false;
-              }
+              // agentic-demos change: do not empty the bubble here. The
+              // loading state stays until there is text or a status line.
+              isFirstEvent = false;
 
               if (data.popup_auth_uri) {
                 if (data.consent_nonce) {
@@ -876,19 +951,25 @@ $(function() {
                 $agentMessageDiv.addClass('error-message');
               } else if (data.content && data.content.parts) {
                 data.content.parts.forEach(part => {
+                  const fc = part.function_call || part.functionCall;
+                  if (fc && fc.name && fc.name !== 'adk_request_credential' &&
+                      !data.popup_auth_uri) {
+                    setWaitText($contentDiv, `The agent is calling a tool: ${fc.name}...`);
+                  }
                   if (part.text) {
                     clearWaits();
                     markTiming('firstText');
                     markTiming('lastText', true);
                     setStep([12]);
-                    $contentDiv.append(
-                        $('<div>').html(formatAgentText(part.text)));
+                    appendAnswer($contentDiv, part.text);
                   }
                 });
               } else if (data.text) {
-                $contentDiv.append($('<div>').html(formatAgentText(data.text)));
+                clearWaits();
+                appendAnswer($contentDiv, data.text);
               } else if (typeof data === 'string') {
-                $contentDiv.append($('<div>').html(formatAgentText(data)));
+                clearWaits();
+                appendAnswer($contentDiv, data);
               }
 
               $messagesContainer.scrollTop(
@@ -902,14 +983,19 @@ $(function() {
       // agentic-demos change: the stream ended. Keep the consent spinner
       // only while the consent is pending.
       if (!pendingAuth && requestId === latestRequestId) clearWaits();
+      finalizeAnswers($contentDiv);
+      // Never leave an empty bubble.
+      const $visible = $contentDiv.clone();
+      $visible.find('.wait-indicator').remove();
+      if (!$visible.text().trim() && !$contentDiv.find('.wait-indicator').length) {
+        $agentMessageDiv.remove();
+      }
     } catch (error) {
       console.error('Error during query stream processing:', error);
       clearWaits();
       pendingAuth = null;
       setStep([], 'stopped on an error');
-      if (isFirstEvent) {
-        $contentDiv.empty();
-      }
+      finalizeAnswers($contentDiv);
       $contentDiv.append(
           $('<div>')
               .addClass('error-header')

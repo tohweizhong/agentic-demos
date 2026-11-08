@@ -150,6 +150,12 @@
             <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
           </div>
           <div class="header-right">
+            <!-- agentic-demos change: start a new agent session. -->
+            <md-outlined-button id="new-conversation"
+              title="Clears the chat and starts a new session. It does not remove the stored GitHub token. To remove it, use Demo controls, Reset Auth Manager consent."
+              aria-label="New conversation. Clears the chat and starts a new session. It does not remove the stored GitHub token.">
+              New conversation
+            </md-outlined-button>
             <!-- agentic-demos change: tabs for the main area. -->
             <div class="tabs" role="tablist" aria-label="Main views">
               <button type="button" class="tab" role="tab" id="tab-play"
@@ -224,6 +230,9 @@
 
     <!-- jQuery Library -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- agentic-demos change: vendored Markdown parser and HTML sanitizer. -->
+    <script src="/static/vendor/marked.umd.js"></script>
+    <script src="/static/vendor/purify.min.js"></script>
     <!-- Local JavaScript Hook -->
     <script src="/static/script.js"></script>
   </body>

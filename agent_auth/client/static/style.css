@@ -616,3 +616,84 @@ body {
 .timings-total td {
   font-weight: 700;
 }
+
+/* agentic-demos change: header buttons, SVG panel height, Markdown answers. */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The panel is a flex column with a scroll bar. Without this rule, the
+   diagram box shrinks to a thin strip. */
+.how-panel > * {
+  flex-shrink: 0;
+}
+
+.answer-text {
+  white-space: pre-wrap;
+}
+
+.answer-text.markdown {
+  white-space: normal;
+}
+
+.answer-text.markdown p,
+.answer-text.markdown ul,
+.answer-text.markdown ol,
+.answer-text.markdown pre,
+.answer-text.markdown table,
+.answer-text.markdown h1,
+.answer-text.markdown h2,
+.answer-text.markdown h3,
+.answer-text.markdown h4 {
+  margin: 0 0 8px 0;
+}
+
+.answer-text.markdown ul,
+.answer-text.markdown ol {
+  padding-left: 22px;
+}
+
+.answer-text.markdown h1 { font-size: 1.15rem; }
+.answer-text.markdown h2 { font-size: 1.05rem; }
+.answer-text.markdown h3,
+.answer-text.markdown h4 { font-size: 0.95rem; }
+
+.answer-text.markdown code {
+  font-family: 'Roboto Mono', Consolas, Menlo, monospace;
+  font-size: 0.85em;
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.answer-text.markdown pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.answer-text.markdown pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.answer-text.markdown table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.answer-text.markdown th,
+.answer-text.markdown td {
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.answer-text.markdown a {
+  color: #1a73e8;
+}
