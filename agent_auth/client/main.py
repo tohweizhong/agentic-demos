@@ -354,10 +354,10 @@ async def demo_gateway_logs(
         f'logName="projects/{project_id}/logs/'
         'cloudaudit.googleapis.com%2Fdata_access"'
         ' AND protoPayload.serviceName="iap.googleapis.com"'
-        ' AND protoPayload.methodName:"GatekeeperAuthorizer.AuthorizeUser"'
         ' AND protoPayload.authorizationInfo.permission='
         '"iap.webServiceVersions.egressViaIAP"'
-        ' AND NOT protoPayload.request.httpRequest.url:"googleapis.com"'
+        ' AND labels."iap.googleapis.com/audited_resource_type"='
+        '"agentregistry.googleapis.com/McpServer"'
     )
     parser = _parse_egress_entry
 

@@ -79,10 +79,15 @@ $(function() {
     const height = cfg.top + cfg.rowH * FLOW_STEPS.length + cfg.bottom;
     const x = {};
     FLOW_PARTIES.forEach((p, i) => { x[p.id] = cfg.left + i * cfg.colW; });
-    const svg = svgEl('svg', {
+    const svgAttrs = {
       viewBox: `0 0 ${width} ${height}`, role: 'img',
       'aria-labelledby': `${cfg.prefix}title ${cfg.prefix}desc`,
-      class: cfg.svgClass});
+      class: cfg.svgClass,
+    };
+    if (cfg.preserveAspectRatio) {
+      svgAttrs.preserveAspectRatio = cfg.preserveAspectRatio;
+    }
+    const svg = svgEl('svg', svgAttrs);
     svg.appendChild(svgEl('title', {id: `${cfg.prefix}title`}, cfg.title));
     svg.appendChild(svgEl('desc', {id: `${cfg.prefix}desc`}, cfg.desc));
     const defs = svgEl('defs');
@@ -165,6 +170,7 @@ $(function() {
 
     $('#compact-diagram').empty().append(drawSequenceSvg({
       prefix: 'compact-', svgClass: 'compact-svg', stepIds: false,
+      preserveAspectRatio: 'xMidYMin meet',
       title: '3LO flow, compact view',
       desc: 'Twelve numbered steps with short labels. The step card has the full text.',
       colW: 44, left: 26, top: 36, rowH: 30, bottom: 10,
@@ -896,14 +902,14 @@ $(function() {
   });
 
   // ---- Tabs. ----
-  // agentic-demos change: five tabs (Playground, How 3LO works, Auth
-  // Manager, Ingress gateway, Egress gateway).
+  // agentic-demos change: five tabs (3LO GitHub, How 3LO works, Auth
+  // Manager, Egress gateway, Ingress gateway).
   const TABS = [
     ['play', '#tab-play', '#playground-panel'],
     ['how', '#tab-how', '#how-panel'],
     ['auth', '#tab-auth-manager', '#auth-manager-panel'],
-    ['ingress', '#tab-ingress', '#ingress-panel'],
     ['egress', '#tab-egress', '#egress-panel'],
+    ['ingress', '#tab-ingress', '#ingress-panel'],
   ];
 
   /**
@@ -916,6 +922,10 @@ $(function() {
       $(tabId).attr({'aria-selected': String(selected), 'tabindex': selected ? '0' : '-1'});
       $(panelId).prop('hidden', !selected);
     });
+    const isPlay = which === 'play';
+    $('.header-right').prop('hidden', !isPlay);
+    $('#step-chip').prop('hidden', !isPlay);
+    $('#settings-sidebar').prop('hidden', !isPlay);
     if ((which === 'ingress' || which === 'egress') &&
         !$(`#${which}-log-table table`).length) {
       fetchGatewayLogs(which);
@@ -946,6 +956,7 @@ $(function() {
   });
   $('#open-demo-controls').on('click', (e) => {
     e.preventDefault();
+    $('#settings-sidebar').prop('hidden', false);
     const details = document.getElementById('demo-controls');
     if (details) {
       details.open = true;

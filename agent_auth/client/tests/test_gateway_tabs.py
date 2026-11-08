@@ -20,9 +20,22 @@ EGRESS_PROMPTS = [
 def test_ingress_tab_prompts_chat_banner_and_logs(new_page, stats):
   """G1, G5, G8: Ingress tab sample prompts, chat, block banner, and logs."""
   page = new_page(1280, 800)
+  # Check tab order and renamed first tab.
+  tab_labels = page.locator(".tabs [role=tab]").all_inner_texts()
+  assert tab_labels == [
+      "3LO GitHub",
+      "How 3LO works",
+      "Auth Manager",
+      "Egress gateway",
+      "Ingress gateway",
+  ]
   page.click("#tab-ingress")
   panel = page.locator("#ingress-panel")
   assert panel.is_visible()
+  # 3LO-only header actions, step chip, and left sidebar are hidden on Ingress tab.
+  assert not page.locator(".header-right").is_visible()
+  assert not page.locator("#step-chip").is_visible()
+  assert not page.locator("#settings-sidebar").is_visible()
   assert "ingress-engine-test" in panel.locator("#ingress-agent-id").inner_text()
 
   # Check the 3 exact sample prompts.

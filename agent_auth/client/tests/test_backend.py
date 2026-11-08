@@ -190,7 +190,8 @@ def test_gateway_logs_egress_parses_iap_entries(client, monkeypatch):
   assert method == "POST"
   assert url == "https://logging.googleapis.com/v2/entries:list"
   assert "cloudaudit.googleapis.com%2Fdata_access" in body["filter"]
-  assert "GatekeeperAuthorizer.AuthorizeUser" in body["filter"]
+  assert "iap.webServiceVersions.egressViaIAP" in body["filter"]
+  assert "agentregistry.googleapis.com/McpServer" in body["filter"]
   assert "gcloud logging read" in data["command"]
   assert len(data["rows"]) == 2
   assert data["rows"][0] == {

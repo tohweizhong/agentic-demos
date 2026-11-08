@@ -25,7 +25,8 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/cloudbuild.builds.builder" \
   --condition=None >/dev/null
 
-# Gateway tabs (DEMO ONLY): custom role with logging.logEntries.list only,
+# Gateway tabs (DEMO ONLY): custom role with logging.logEntries.list and
+# logging.privateLogEntries.list (needed for cloudaudit.googleapis.com/data_access),
 # so the client service account can read Model Armor and IAP audit log entries.
 if ! gcloud iam roles describe agentAuthDemoLogReader \
     --project="${PROJECT_ID}" >/dev/null 2>&1; then
@@ -33,12 +34,12 @@ if ! gcloud iam roles describe agentAuthDemoLogReader \
   gcloud iam roles create agentAuthDemoLogReader \
     --project="${PROJECT_ID}" \
     --title="Agent auth demo: read gateway log entries" \
-    --permissions="logging.logEntries.list" \
+    --permissions="logging.logEntries.list,logging.privateLogEntries.list" \
     --stage=GA >/dev/null
 else
   gcloud iam roles update agentAuthDemoLogReader \
     --project="${PROJECT_ID}" \
-    --permissions="logging.logEntries.list" \
+    --permissions="logging.logEntries.list,logging.privateLogEntries.list" \
     --stage=GA >/dev/null
 fi
 echo "Granting agentAuthDemoLogReader to ${CLIENT_SA_EMAIL}."

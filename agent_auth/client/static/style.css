@@ -1191,8 +1191,8 @@ body {
 }
 
 .playground-panel.split .compact-svg {
-  height: 100%;
-  max-height: 100%;
+  height: auto;
+  max-height: calc(100vh - 150px);
   width: auto;
   max-width: 100%;
   display: block;
@@ -1260,6 +1260,64 @@ body {
   background-color: var(--color-main);
   border-color: var(--color-main);
   color: var(--color-on-main);
+}
+
+/* Governance Tier tab accent colours (WCAG AA >= 4.5:1). */
+.tab-tier-identity {
+  border-color: #1a73e8;
+  color: #174ea6;
+  background-color: #ffffff;
+}
+
+.tab-tier-identity[aria-selected='true'] {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.tab-tier-docs {
+  border-color: #185abc;
+  color: #185abc;
+  background-color: #ffffff;
+}
+
+.tab-tier-docs[aria-selected='true'] {
+  background-color: #185abc;
+  border-color: #185abc;
+  color: #ffffff;
+}
+
+.tab-tier-egress {
+  border-color: #007b83;
+  color: #00686f;
+  background-color: #ffffff;
+}
+
+.tab-tier-egress[aria-selected='true'] {
+  background-color: #007b83;
+  border-color: #007b83;
+  color: #ffffff;
+}
+
+.tab-tier-ingress {
+  border-color: #a54500;
+  color: #8a3800;
+  background-color: #ffffff;
+}
+
+.tab-tier-ingress[aria-selected='true'] {
+  background-color: #a54500;
+  border-color: #a54500;
+  color: #ffffff;
+}
+
+md-outlined-button {
+  --md-outlined-button-leading-space: 18px;
+  --md-outlined-button-trailing-space: 18px;
+  padding: 0 18px;
+  min-width: max-content;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab:focus-visible,
