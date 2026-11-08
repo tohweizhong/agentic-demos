@@ -1,6 +1,6 @@
 # Plan: Step mode in the Playground (3LO)
 
-## Phase 1: Test setup
+## Phase 1: Test setup [checkpoint: 7cf6ac8]
 
 - [x] Task: Add the browser test harness to the repository 7cf6ac8
   - [x] Add `client/tests/` with a fake agent server that emits the 3LO events
@@ -9,11 +9,11 @@
   - [x] Port the existing checks (resume once, no empty bubble, Markdown,
         New conversation, diagram height).
   - [x] Run them with Step mode off. All must pass (acceptance A1 baseline).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Event queue and switch
 
-- [ ] Task: Write failing tests for the switch and the queue
+- [~] Task: Write failing tests for the switch and the queue
   - [ ] Switch is off by default, and its state persists after reload (F1).
   - [ ] With Step mode on, events are queued and no answer text shows (F4).
 - [ ] Task: Implement the switch and the event queue
