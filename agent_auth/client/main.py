@@ -211,6 +211,30 @@ async def demo_config():
   }
 
 
+# agentic-demos change: options for the Project ID and Location dropdowns.
+# PROJECT_OPTIONS and LOCATION_OPTIONS are comma-separated lists. If a list
+# is empty, the dropdown has one option: the default value.
+def _options(env_name: str, default: str) -> list[str]:
+  values = [
+      v.strip() for v in os.environ.get(env_name, "").split(",") if v.strip()
+  ]
+  if default and default not in values:
+    values.insert(0, default)
+  return values
+
+
+@app.get("/config")
+async def ui_config():
+  default_project = os.environ.get("GOOGLE_CLOUD_PROJECT", "")
+  default_location = os.environ.get("GOOGLE_CLOUD_LOCATION", "")
+  return {
+      "projects": _options("PROJECT_OPTIONS", default_project),
+      "locations": _options("LOCATION_OPTIONS", default_location),
+      "default_project": default_project,
+      "default_location": default_location,
+  }
+
+
 @app.post("/demo/reset-consent")
 async def demo_reset_consent(http_request: Request, response: Response):
   user_id = iap_user_id(http_request)

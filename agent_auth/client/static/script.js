@@ -111,8 +111,8 @@ $(function() {
    * API and populates the remote agent selection dropdown.
    */
   function loadRemoteAgents(showAlert = false) {
-    const projectId = $('#project-id').val().trim();
-    const location = $('#location').val().trim();
+    const projectId = ($('#project-id').val() || '').trim();
+    const location = ($('#location').val() || '').trim();
 
     updateAgentInfoPane();
 
@@ -195,6 +195,28 @@ $(function() {
     loadLocalAgents();
     updateAgentInfoPane();
 
+    // agentic-demos change: fill the Project ID and Location dropdowns from
+    // the server config, and select the server defaults.
+    const fillSelect = ($select, values, selected) => {
+      $select.empty();
+      values.forEach((v) => {
+        const $opt = $('<md-select-option>').attr('value', v).append(
+            $('<div>').attr('slot', 'headline').text(v));
+        if (v === selected) $opt.attr('selected', '');
+        $select.append($opt);
+      });
+      // The options register asynchronously. Set the value after that.
+      setTimeout(() => {
+        $select.val(selected);
+        updateAgentInfoPane();
+      }, 0);
+    };
+    $.getJSON('/config').done((cfg) => {
+      fillSelect($('#project-id'), cfg.projects || [], cfg.default_project);
+      fillSelect($('#location'), cfg.locations || [], cfg.default_location);
+    });
+    $('#project-id, #location').on('change', () => updateAgentInfoPane());
+
     // agentic-demos change: behind IAP, the server takes the user ID from
     // the IAP login. Show that user ID, and lock the field.
     $.getJSON('/whoami').done((who) => {
@@ -233,16 +255,36 @@ $(function() {
 
   // agentic-demos change: Demo controls panel. DEMO ONLY.
   // The server acts only for the IAP user. The page sends no user ID.
-  const showDemoResult = (data, httpStatus) => {
+  const showDemoResult = (data, httpStatus, note) => {
     const lines = [];
     if (data.command) lines.push(`$ ${data.command}`);
     if (data.http) lines.push(`# ${data.http}`);
     lines.push(`# HTTP status: ${data.status !== undefined ? data.status : httpStatus}`);
+    if (note) lines.push(`# ${note}`);
     lines.push(JSON.stringify(data.response !== undefined ? data.response : data, null, 2));
     $('#demo-output').text(lines.join('\n'));
   };
 
   const shortName = (value) => (value ? String(value).split('/').pop() : '');
+
+  // Shows an API time (UTC) in the browser local time with the zone, and
+  // the UTC time. Example: "08 Nov 2026 15:00 SGT (07:00 UTC)".
+  const formatTime = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const local = d.toLocaleString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit',
+      minute: '2-digit', hour12: false}).replace(',', '');
+    // The zone name comes from the browser language, for example "SGT" for
+    // en-SG or "GMT+8" for en-US.
+    const zonePart = new Intl.DateTimeFormat(undefined, {timeZoneName: 'short'})
+        .formatToParts(d).find((p) => p.type === 'timeZoneName');
+    const zone = zonePart ? ` ${zonePart.value}` : '';
+    const utc = d.toLocaleString('en-GB', {
+      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'});
+    return `${local}${zone} (${utc} UTC)`;
+  };
 
   const showSummaryTable = (summaries) => {
     const $table = $('<table>');
@@ -257,19 +299,19 @@ $(function() {
       $row.append($('<td>').text(shortName(s.workloadId)));
       $row.append($('<td>').text(shortName(s.authProvider)));
       $row.append($('<td>').text((s.scopes || []).join(' ')));
-      $row.append($('<td>').text(s.firstAccessTime || ''));
-      $row.append($('<td>').text(s.lastAccessTime || ''));
+      $row.append($('<td>').text(formatTime(s.firstAccessTime)));
+      $row.append($('<td>').text(formatTime(s.lastAccessTime)));
       $table.append($row);
     });
     $('#demo-table').empty().append($table);
   };
 
-  const callDemo = async (method, url) => {
+  const callDemo = async (method, url, note) => {
     $('#demo-output').text(`$ (running ${method} ${url})`);
     try {
       const resp = await fetch(url, {method: method});
       const data = await resp.json();
-      showDemoResult(data, resp.status);
+      showDemoResult(data, resp.status, note);
       return data;
     } catch (e) {
       $('#demo-output').text(`# Error: ${e}`);
@@ -295,7 +337,8 @@ $(function() {
 
   $('#demo-summary-btn').on('click', async () => {
     $('#demo-table').empty();
-    const data = await callDemo('GET', '/demo/access-summaries');
+    const data = await callDemo('GET', '/demo/access-summaries',
+        'Times in the API are UTC. The table shows local time.');
     const summaries = data && data.response && data.response.accessSummaries;
     if (summaries) showSummaryTable(summaries);
   });

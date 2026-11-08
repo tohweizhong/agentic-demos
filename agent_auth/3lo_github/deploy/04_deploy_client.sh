@@ -25,6 +25,8 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/cloudbuild.builds.builder" \
   --condition=None >/dev/null
 
+# The env var list uses "|" as the separator, because PROJECT_OPTIONS and
+# LOCATION_OPTIONS hold commas.
 echo "Deploying ${CLIENT_SERVICE} from ${CLIENT_DIR}."
 gcloud beta run deploy "${CLIENT_SERVICE}" \
   --project="${PROJECT_ID}" \
@@ -32,7 +34,7 @@ gcloud beta run deploy "${CLIENT_SERVICE}" \
   --source="${CLIENT_DIR}" \
   --build-service-account="projects/${PROJECT_ID}/serviceAccounts/${BUILD_SA_EMAIL}" \
   --service-account="${CLIENT_SA_EMAIL}" \
-  --set-env-vars="GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},AGENT_ID=${AGENT_ID},AUTH_PROVIDER_NAME=${AUTH_PROVIDER_NAME},GITHUB_APP_URL=${GITHUB_APP_URL:-https://github.com/settings/developers}" \
+  --set-env-vars="^|^GOOGLE_CLOUD_PROJECT=${PROJECT_ID}|GOOGLE_CLOUD_LOCATION=${REGION}|AGENT_ID=${AGENT_ID}|AUTH_PROVIDER_NAME=${AUTH_PROVIDER_NAME}|GITHUB_APP_URL=${GITHUB_APP_URL:-https://github.com/settings/developers}|PROJECT_OPTIONS=${PROJECT_OPTIONS:-}|LOCATION_OPTIONS=${LOCATION_OPTIONS:-}" \
   --no-allow-unauthenticated \
   --iap \
   --quiet

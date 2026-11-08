@@ -30,6 +30,8 @@ The client does three things:
 | `static/script.js` | The page calls `/whoami`. Behind IAP, it shows the IAP email in the User ID field and disables the field. |
 | `main.py` | New "Demo controls" endpoints: `GET /demo/config`, `POST /demo/reset-consent`, and `GET /demo/access-summaries`. They act only for the IAP user, and return 403 without the IAP header. |
 | `static/index.html`, `static/script.js`, `static/style.css` | New collapsible "Demo controls" panel with a terminal-style output box and an access summary table. |
+| `main.py`, `static/index.html`, `static/script.js` | Project ID and Location are dropdowns. New `GET /config` endpoint returns the options from `PROJECT_OPTIONS` and `LOCATION_OPTIONS` (comma-separated). The defaults are `GOOGLE_CLOUD_PROJECT` and `GOOGLE_CLOUD_LOCATION`. |
+| `static/script.js` | The access summary table shows times in the browser local time with the zone, and in UTC. The output box keeps the raw API JSON in UTC. The zone name comes from the browser language (for example `SGT` for en-SG, `GMT+8` for en-US). |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Security

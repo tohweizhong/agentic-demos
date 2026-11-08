@@ -44,18 +44,11 @@
 
           <!-- Remote Agent Settings -->
           <div id="remote-settings">
-            <md-outlined-text-field
-              id="project-id"
-              label="Project ID"
-              placeholder="e.g. my-gcp-project"
-              required
-            ></md-outlined-text-field>
-            <md-outlined-text-field
-              id="location"
-              label="Location"
-              placeholder="e.g. us-west1"
-              required
-            ></md-outlined-text-field>
+            <!-- agentic-demos change: dropdowns. The server sends the options. -->
+            <md-outlined-select id="project-id" label="Project ID" required>
+            </md-outlined-select>
+            <md-outlined-select id="location" label="Location" required>
+            </md-outlined-select>
 
             <md-filled-button id="load-agents-btn" class="btn-full">
               <span class="material-symbols-outlined" slot="icon">sync</span>
