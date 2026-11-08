@@ -82,16 +82,16 @@
 User feedback after the Phase 4 user test (08 Nov 20:56 SGT): "looks good".
 Amendment L8 approved at 20:57 SGT.
 
-- [~] Task: Write failing tests for the resizable compact panel (L8)
-  - [ ] The default width is 40 percent of the Playground area, between
+- [x] Task: Write failing tests for the resizable compact panel (L8) 748fa9d
+  - [x] The default width is 40 percent of the Playground area, between
         380 px and 560 px, at 1280x800.
-  - [ ] The separator has role="separator", aria-orientation="vertical", and
+  - [x] The separator has role="separator", aria-orientation="vertical", and
         aria-valuenow, and it can get the focus.
-  - [ ] A mouse drag and the arrow keys (20 px for each key) change the width,
+  - [x] A mouse drag and the arrow keys (20 px for each key) change the width,
         and the width stays between 380 px and 560 px.
-  - [ ] The width persists after reload.
-  - [ ] At 1024x700 the strip does not change, and the separator does not show.
-- [ ] Task: Implement the resizable compact panel (L8)
+  - [x] The width persists after reload.
+  - [x] At 1024x700 the strip does not change, and the separator does not show.
+- [~] Task: Implement the resizable compact panel (L8)
   - [ ] Add the separator, the drag and keyboard handlers, and the localStorage
         key.
   - [ ] Set the width with a CSS variable, so that the strip layout below
