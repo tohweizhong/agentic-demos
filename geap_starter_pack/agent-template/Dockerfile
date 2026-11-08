@@ -28,5 +28,6 @@ COPY --chown=appuser:appuser work_items/ /app/agents/work_items/
 
 EXPOSE 8080
 # On Agent Runtime, GOOGLE_CLOUD_AGENT_ENGINE_ID is set, so `adk api_server`
-# uses Agent Runtime Sessions.
-CMD ["adk", "api_server", "--host=0.0.0.0", "--port=8080", "--trace_to_cloud", "/app/agents"]
+# uses Agent Runtime Sessions. --gemini_enterprise_app_name turns on the Agent
+# Runtime query routes (/api/reasoning_engine) for this app.
+CMD ["adk", "api_server", "--port=8080", "--host=0.0.0.0", "--trace_to_cloud", "--gemini_enterprise_app_name=work_items", "/app/agents"]
