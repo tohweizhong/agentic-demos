@@ -8,6 +8,7 @@
 * [adk_cloud_run](./adk_cloud_run/): Deploying ADK agents to Google Cloud Run
 * [adk_mcp_explainer](./adk_mcp_explainer/): Secure MCP server and ADK Agent playground on Cloud Run
 * [adk_multiagent](./adk_multiagent/): Multi-agent ADK example (Campaign Orchestrator, Creative Director, Financial Analyst)
+* [agent_auth](./agent_auth/): Agent Identity and Auth Manager demos (3LO GitHub consent flow with a Cloud Run client behind IAP)
 * [agents_cli](./agents_cli/): Agents generated or managed via agents-cli (e.g. hr-onboarding-agent)
 * [codelabs](./codelabs/): Codelabs that I wrote, for Antigravity, ADK, and MCP
   * [adk-im8-compliance-agent](./codelabs/adk-im8-compliance-agent/): IM8 compliance agent built with Agents CLI and ADK, deployed to Agent Runtime and Gemini Enterprise
