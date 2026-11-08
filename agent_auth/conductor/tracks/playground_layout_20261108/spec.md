@@ -17,12 +17,18 @@
   above the chat as a strip.
 - L6 With Step mode off, the Playground looks the same as today, except for the
   new header layout and presentation mode.
+- L7 "Auth Manager" tab: a third tab after "How 3LO works". Information only:
+  no API calls, and no buttons except an in-page link to Demo controls. Static
+  HTML text in Simplified Technical English, with accessible headings and
+  tables. (Added on 08 Nov 2026 at 20:18 SGT, approved by the user.)
 
 ## Acceptance criteria
 
 - All existing browser tests pass.
 - New browser tests: folded cards, presentation mode, the split view at
   1280x800, the strip at 1024x700, and the marked arrow follows each card.
+- New browser test for L7: the tab exists, has role=tab, opens with the
+  keyboard, shows the sections, and makes no network request when it opens.
 - A real browser test by the user on the deployed client.
 
 ## Out of scope
