@@ -91,9 +91,10 @@ Package the agent source. Terraform reads the archive from `terraform/build/`:
 scripts/package_agent.sh
 ```
 
-Run the offline checks:
+Run the read-only preflight scan and the offline checks:
 
 ```bash
+scripts/preflight.sh
 (cd terraform && terraform init && terraform fmt -check -recursive && terraform validate && terraform test)
 (cd mcp-server && go test -cover ./...)
 (cd agent-template && python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt && .venv/bin/python -m pytest)

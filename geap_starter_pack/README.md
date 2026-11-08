@@ -124,7 +124,8 @@ sequenceDiagram
 | [`policies/`](policies/) | The IAP access policy and the Model Armor settings | 3 |
 | [`pipelines/`](pipelines/) | Not built (component 5) | 5 |
 | [`runbooks/`](runbooks/) | Add a new agent. Reset the demo | 6 |
-| [`scripts/`](scripts/) | Package the agent, ask the agent, read the audit log, clean up | 6 |
+| [`scripts/`](scripts/) | Preflight scan, package the agent, ask the agent, read the audit log, clean up | 6 |
+| [`.agents/skills/`](.agents/skills/) | CLI skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`), [`AGENTS.md`](AGENTS.md), and [`settings.json`](settings.json) | 6 |
 
 ## Related folders
 
