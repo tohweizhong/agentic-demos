@@ -216,6 +216,8 @@ def test_split_view_at_1280(new_page):
   assert box["x"] >= chat["x"] + chat["width"] - 1
   svg = page.locator(f"{COMPACT} svg.compact-svg")
   assert svg.is_visible()
+  svg_box = svg.bounding_box()
+  assert svg_box["y"] + svg_box["height"] <= box["y"] + box["height"] + 1
   assert svg.locator(".flow-step").count() == 12
   labels = svg.locator(".step-label").all_text_contents()
   assert "4 Consent request" in labels

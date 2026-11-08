@@ -1179,6 +1179,23 @@ body {
   flex: 0 0 var(--compact-width, 384px);
   width: var(--compact-width, 384px);
   border-left: none;
+  overflow: hidden;
+}
+
+.playground-panel.split .compact-diagram {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.playground-panel.split .compact-svg {
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: 100%;
+  display: block;
 }
 
 .compact-resizer {

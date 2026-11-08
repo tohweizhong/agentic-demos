@@ -108,9 +108,9 @@ Amendment L8 approved at 20:57 SGT.
   - [x] Use the variables in the header, the cards, the tabs, the strip, and
         the Demo controls.
   - [x] Run all browser tests. All must pass.
-- [~] Task: Deploy and verify the review fix
+- [x] Task: Deploy and verify the review fix
   - [x] Coverage, README change list, secret scan, commit and push.
   - [x] Tell the parent agent before the deploy, and wait for the go-ahead.
-  - [ ] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy
+  - [x] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy
         logs.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
