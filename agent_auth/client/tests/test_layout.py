@@ -69,3 +69,50 @@ def test_step_mode_off_chat_area_unchanged(new_page):
   messages = page.locator("#messages-container").bounding_box()
   assert abs(panel["width"] - messages["width"]) < 2
   assert page.locator("#user-input").is_visible()
+
+
+AM_SECTIONS = [
+    "What Auth Manager is",
+    "Auth providers",
+    "Who may use a provider",
+    "The vault",
+    "The 3LO consent, in short",
+    'What "Reset Auth Manager consent" deletes',
+    "What the reset does not delete",
+    "Revoke in two places",
+    "Audit",
+    "Console view",
+]
+
+
+def test_auth_manager_tab(new_page):
+  """L7: the Auth Manager tab shows static text and makes no request."""
+  page = new_page()
+  tabs = page.locator(".tabs [role=tab]")
+  assert tabs.count() == 3
+  assert tabs.nth(2).inner_text() == "Auth Manager"
+  assert tabs.nth(2).get_attribute("role") == "tab"
+  # Open it with the keyboard: arrow keys move along the tabs.
+  page.focus("#tab-play")
+  requests = []
+  page.on("request", lambda r: requests.append(r.url))
+  page.keyboard.press("ArrowRight")
+  page.keyboard.press("ArrowRight")
+  page.wait_for_timeout(500)
+  tab = page.locator("#tab-auth-manager")
+  assert tab.get_attribute("aria-selected") == "true"
+  panel = page.locator("#auth-manager-panel")
+  assert panel.is_visible()
+  assert panel.get_attribute("role") == "tabpanel"
+  assert not page.locator("#playground-panel").is_visible()
+  headings = panel.locator("h3").all_inner_texts()
+  for section in AM_SECTIONS:
+    assert section in headings
+  assert panel.locator("table").count() == 2
+  assert panel.locator("table th[scope=col]").count() == 4
+  assert "Facts tested in a demo project in November 2026" in panel.inner_text()
+  # Information only: no buttons, and one link to Demo controls.
+  assert panel.locator("button, md-outlined-button, md-filled-button").count() == 0
+  links = panel.locator("a").evaluate_all("els => els.map(a => a.getAttribute('href'))")
+  assert links == ["#demo-controls"]
+  assert requests == []
