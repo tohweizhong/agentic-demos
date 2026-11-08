@@ -48,6 +48,10 @@ variables {
   # Set every value that a local terraform.tfvars can change. terraform test
   # also reads terraform.tfvars.
   region                       = "us-central1"
+  enable_agent_registry        = true
+  enable_egress_gateway        = true
+  enable_model_armor           = true
+  enable_ingress_gateway       = false
   iap_enforcement_mode         = "DRY_RUN"
   allow_google_managed_members = false
   authz_fail_open              = false
@@ -57,17 +61,17 @@ run "dry_run_mode_sets_the_dry_run_field" {
   command = apply
 
   assert {
-    condition     = google_network_services_authz_extension.iap.metadata["iamEnforcementMode"] == "DRY_RUN"
+    condition     = google_network_services_authz_extension.iap[0].metadata["iamEnforcementMode"] == "DRY_RUN"
     error_message = "The IAP extension must start in DRY_RUN."
   }
 
   assert {
-    condition     = google_network_services_authz_extension.iap.metadata["iapPolicyVersion"] == "V2"
+    condition     = google_network_services_authz_extension.iap[0].metadata["iapPolicyVersion"] == "V2"
     error_message = "The IAP extension must use policy version V2."
   }
 
   assert {
-    condition     = google_network_services_authz_extension.iap.fail_open == false
+    condition     = google_network_services_authz_extension.iap[0].fail_open == false
     error_message = "The authz extensions must fail closed by default."
   }
 }
@@ -80,7 +84,7 @@ run "enforce_removes_the_dry_run_field" {
   }
 
   assert {
-    condition     = !contains(keys(google_network_services_authz_extension.iap.metadata), "iamEnforcementMode")
+    condition     = !contains(keys(google_network_services_authz_extension.iap[0].metadata), "iamEnforcementMode")
     error_message = "In ENFORCE mode, the IAP extension must not set iamEnforcementMode."
   }
 }
@@ -89,13 +93,13 @@ run "access_policy_comes_from_the_policy_file" {
   command = apply
 
   assert {
-    condition     = length(google_iam_project_access_policy.agent_egress.details[0].rules) == 2
+    condition     = length(google_iam_project_access_policy.agent_egress[0].details[0].rules) == 2
     error_message = "The access policy must have the two rules from policies/iap_access_policy.yaml."
   }
 
   assert {
     condition = alltrue([
-      for r in google_iam_project_access_policy.agent_egress.details[0].rules :
+      for r in google_iam_project_access_policy.agent_egress[0].details[0].rules :
       r.principals == tolist(["principal://agents.global.org-111111111111.system.id.goog/resources/aiplatform/projects/123456789012/locations/us-central1/reasoningEngines/1111111111111111111"])
     ])
     error_message = "Each rule must apply to the single reference agent principal."
@@ -103,7 +107,7 @@ run "access_policy_comes_from_the_policy_file" {
 
   assert {
     condition = anytrue([
-      for r in google_iam_project_access_policy.agent_egress.details[0].rules :
+      for r in google_iam_project_access_policy.agent_egress[0].details[0].rules :
       r.effect == "DENY" && strcontains(one(r.conditions).expression, "update_status")
     ])
     error_message = "The access policy must deny the update_status tool."
@@ -111,7 +115,7 @@ run "access_policy_comes_from_the_policy_file" {
 
   assert {
     condition = anytrue([
-      for r in google_iam_project_access_policy.agent_egress.details[0].rules :
+      for r in google_iam_project_access_policy.agent_egress[0].details[0].rules :
       r.effect == "ALLOW" && strcontains(one(r.conditions).expression, "'us-central1'")
     ])
     error_message = "The allow rule must name the region of the mini build."
@@ -151,8 +155,13 @@ run "base_roles_go_to_the_principal_set" {
   }
 }
 
-run "agent_uses_identity_and_gateway" {
+run "agent_uses_identity_and_gateways" {
   command = apply
+
+  variables {
+    enable_egress_gateway  = true
+    enable_ingress_gateway = true
+  }
 
   assert {
     condition     = google_vertex_ai_reasoning_engine.agent.spec[0].identity_type == "AGENT_IDENTITY"
@@ -160,8 +169,70 @@ run "agent_uses_identity_and_gateway" {
   }
 
   assert {
-    condition     = google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].agent_gateway_config[0].agent_to_anywhere_config[0].agent_gateway == google_network_services_agent_gateway.egress.id
+    condition     = google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].agent_gateway_config[0].agent_to_anywhere_config[0].agent_gateway == google_network_services_agent_gateway.egress[0].id
     error_message = "The agent must be bound to the egress gateway."
+  }
+
+  assert {
+    condition     = google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].agent_gateway_config[0].client_to_agent_config[0].agent_gateway == google_network_services_agent_gateway.ingress[0].id
+    error_message = "The agent must be bound to the ingress gateway."
+  }
+
+  assert {
+    condition     = google_network_services_agent_gateway.ingress[0].google_managed[0].governed_access_path == "CLIENT_TO_AGENT"
+    error_message = "The ingress gateway must use the CLIENT_TO_AGENT governed access path."
+  }
+}
+
+run "tier_1_without_gateways" {
+  command = apply
+
+  variables {
+    enable_agent_registry  = false
+    enable_egress_gateway  = false
+    enable_model_armor     = false
+    enable_ingress_gateway = false
+  }
+
+  assert {
+    condition     = length(google_agent_registry_service.mcp) == 0 && length(google_agent_registry_service.google_apis) == 0
+    error_message = "Tier 1 mode must not create Agent Registry entries when enable_agent_registry is false."
+  }
+
+  assert {
+    condition     = length(google_network_services_agent_gateway.egress) == 0 && length(google_network_services_agent_gateway.ingress) == 0
+    error_message = "Tier 1 mode must not create any Agent Gateway."
+  }
+
+  assert {
+    condition     = length(google_project_iam_member.gateway_model_armor) == 0
+    error_message = "Tier 1 mode must not create any gcp-sa-dep Model Armor bindings."
+  }
+
+  assert {
+    condition     = length(google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].agent_gateway_config) == 0
+    error_message = "Tier 1 mode must not set agent_gateway_config on the agent."
+  }
+}
+
+run "tier_3_egress_gateway_without_model_armor" {
+  command = apply
+
+  variables {
+    enable_agent_registry  = true
+    enable_egress_gateway  = true
+    enable_model_armor     = false
+    enable_ingress_gateway = false
+  }
+
+  assert {
+    condition     = length(google_network_services_agent_gateway.egress) == 1 && length(google_network_security_authz_policy.iap) == 1
+    error_message = "Tier 3 mode must create the egress gateway and IAP policy."
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.this) == 0 && length(google_project_iam_member.gateway_model_armor) == 0
+    error_message = "Tier 3 without Model Armor must not create Model Armor templates or gcp-sa-dep bindings."
   }
 }
 
@@ -178,7 +249,7 @@ run "registry_has_the_tool_spec" {
   command = apply
 
   assert {
-    condition     = length(jsondecode(google_agent_registry_service.mcp.mcp_server_spec[0].content).tools) == 2
+    condition     = length(jsondecode(google_agent_registry_service.mcp[0].mcp_server_spec[0].content).tools) == 2
     error_message = "The registered MCP server must have the two tools from tool_spec.json."
   }
 }

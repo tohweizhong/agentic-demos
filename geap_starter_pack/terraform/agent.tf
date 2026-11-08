@@ -1,6 +1,6 @@
 # Component 4 (reference agent): the ADK agent on Agent Runtime with Agent
-# Identity, Sessions, and the egress gateway binding. The binding is in
-# Terraform, so that the security owner controls it.
+# Identity, Sessions, and optional egress and ingress gateway bindings. The
+# bindings are in Terraform, so that the security owner controls them.
 
 locals {
   agent_archive_path = "${path.module}/${var.agent_source_archive}"
@@ -27,11 +27,10 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
       }
 
       # Container deploy: Agent Runtime builds ../agent-template/Dockerfile.
-      # With an egress gateway, use this path. The python_spec path failed: the
-      # Agent Runtime start-up gRPC call did not trust the gateway root CA.
+      # When an egress gateway is enabled, the Dockerfile installs its root CA.
       image_spec {
         build_args = {
-          AGENT_GATEWAY_ROOT_CERTIFICATES = join("\n", google_network_services_agent_gateway.egress.agent_gateway_card[0].root_certificates)
+          AGENT_GATEWAY_ROOT_CERTIFICATES = var.enable_egress_gateway ? join("\n", google_network_services_agent_gateway.egress[0].agent_gateway_card[0].root_certificates) : ""
         }
       }
     }
@@ -40,9 +39,21 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
       min_instances = 1
       max_instances = 2
 
-      agent_gateway_config {
-        agent_to_anywhere_config {
-          agent_gateway = google_network_services_agent_gateway.egress.id
+      dynamic "agent_gateway_config" {
+        for_each = local.any_gateway_enabled ? [1] : []
+        content {
+          dynamic "agent_to_anywhere_config" {
+            for_each = var.enable_egress_gateway ? [1] : []
+            content {
+              agent_gateway = google_network_services_agent_gateway.egress[0].id
+            }
+          }
+          dynamic "client_to_agent_config" {
+            for_each = var.enable_ingress_gateway ? [1] : []
+            content {
+              agent_gateway = google_network_services_agent_gateway.ingress[0].id
+            }
+          }
         }
       }
 
@@ -77,6 +88,7 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
   depends_on = [
     google_project_service.this,
     google_network_security_authz_policy.iap,
+    google_network_security_authz_policy.ingress_model_armor,
     # The container needs the base roles when it starts.
     google_project_iam_member.agent_base,
   ]

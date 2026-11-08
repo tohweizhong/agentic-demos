@@ -6,6 +6,16 @@ project_number  = "PROJECT_NUMBER"
 organization_id = "ORG_ID"
 region          = "us-central1"
 
+# Governance tiers (Tier 1 is always on):
+# Tier 2: Agent Registry catalog entries
+# Tier 3: Egress Agent Gateway + IAP Policy V2
+# Tier 4: Model Armor content safety (only Tier 4 needs domain restriction setup)
+# Tier 5: Ingress Agent Gateway (Client-to-Agent)
+enable_agent_registry  = true
+enable_egress_gateway  = true
+enable_model_armor     = true
+enable_ingress_gateway = false
+
 # Start in DRY_RUN. Change to ENFORCE in step 6 of the demo.
 iap_enforcement_mode = "DRY_RUN"
 

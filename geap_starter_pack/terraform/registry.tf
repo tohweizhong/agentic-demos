@@ -167,6 +167,8 @@ resource "google_cloud_run_v2_service_iam_member" "mcp_invoker" {
 # Agent Registry: the MCP server and its tools. IAP policy V2 rules can use the
 # tool names and the read-only hints from this spec.
 resource "google_agent_registry_service" "mcp" {
+  count = var.enable_agent_registry ? 1 : 0
+
   project      = var.project_id
   location     = var.region
   service_id   = "${var.name_prefix}-work-items"
@@ -186,8 +188,15 @@ resource "google_agent_registry_service" "mcp" {
   depends_on = [google_project_service.this]
 }
 
+moved {
+  from = google_agent_registry_service.mcp
+  to   = google_agent_registry_service.mcp[0]
+}
+
 # Agent Registry: one endpoint with the Google API hosts that the agent calls.
 resource "google_agent_registry_service" "google_apis" {
+  count = var.enable_agent_registry ? 1 : 0
+
   project      = var.project_id
   location     = var.region
   service_id   = "${var.name_prefix}-google-apis"
@@ -207,4 +216,9 @@ resource "google_agent_registry_service" "google_apis" {
   }
 
   depends_on = [google_project_service.this]
+}
+
+moved {
+  from = google_agent_registry_service.google_apis
+  to   = google_agent_registry_service.google_apis[0]
 }

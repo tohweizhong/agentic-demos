@@ -9,8 +9,13 @@ output "agent_principal" {
 }
 
 output "gateway_id" {
-  description = "The resource name of the egress Agent Gateway."
-  value       = google_network_services_agent_gateway.egress.id
+  description = "The resource name of the egress Agent Gateway, or empty when disabled."
+  value       = var.enable_egress_gateway ? google_network_services_agent_gateway.egress[0].id : ""
+}
+
+output "ingress_gateway_id" {
+  description = "The resource name of the ingress Agent Gateway, or empty when disabled."
+  value       = var.enable_ingress_gateway ? google_network_services_agent_gateway.ingress[0].id : ""
 }
 
 output "iap_enforcement_mode" {

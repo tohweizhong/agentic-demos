@@ -40,6 +40,30 @@ variable "name_prefix" {
   }
 }
 
+variable "enable_agent_registry" {
+  description = "Tier 2 (Catalog and Discovery): if true, Terraform registers the sample MCP server and the platform API endpoints in Agent Registry."
+  type        = bool
+  default     = true
+}
+
+variable "enable_egress_gateway" {
+  description = "Tier 3 (Outbound Access Control): if true, Terraform deploys the Agent-to-Anywhere (egress) gateway and the IAP V2 policy. Set to false to deploy without an egress gateway."
+  type        = bool
+  default     = true
+}
+
+variable "enable_model_armor" {
+  description = "Tier 4 (Content Safety): if true, Terraform deploys the Model Armor templates, the CONTENT_AUTHZ extension, and the three IAM bindings on the gateway Service Extensions service account."
+  type        = bool
+  default     = true
+}
+
+variable "enable_ingress_gateway" {
+  description = "Tier 5 (Inbound Client Control): if true, Terraform deploys the Client-to-Agent (ingress) gateway and binds it to the agent."
+  type        = bool
+  default     = false
+}
+
 variable "iap_enforcement_mode" {
   description = "The mode of the IAP gateway policy. DRY_RUN logs the decision and does not block. ENFORCE blocks a call that the policy does not allow."
   type        = string

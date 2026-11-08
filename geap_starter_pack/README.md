@@ -65,19 +65,32 @@ flowchart LR
         gw -.-> gwlog
         iapx -.-> iaplog
         agent -.-> cl
+
+        ingress["Ingress Agent Gateway (CLIENT_TO_AGENT)"] --> agent
+        user --> ingress
     end
 
     pipeline["Agent factory CI/CD pipeline, component 5: not built"] -.-> agent
-    ingress["Ingress Agent Gateway, CLIENT_TO_AGENT, backlog: not built"] -.-> agent
-    user -.-> ingress
     envs["Dev, test, and prod projects with VPC-SC and CMEK, component 1: not built"] -.- project
     dash["Dashboards, component 6: not built"] -.- logs
 
     classDef notbuilt stroke-dasharray: 5 5,fill:#f4f4f4,color:#555
-    class pipeline,ingress,envs,dash notbuilt
+    class pipeline,envs,dash notbuilt
 ```
 
 Legend: solid border = built in the mini build. Dashed border = not built.
+
+## Governance tiers
+
+You can turn each governance layer on or off with a boolean variable in `terraform/terraform.tfvars`:
+
+| Tier | Name | GEAP Services | Terraform Variable | Key Behavior |
+|---|---|---|---|---|
+| **Tier 1** | **Identity and Runtime Baseline** | Agent Runtime (`AGENT_IDENTITY` and Sessions), Cloud Run MCP server, regional Cloud Logging bucket | *(Always on)* | Every agent gets a unique SPIFFE identity and calls the MCP server with Cloud Run IAM (`roles/run.invoker`). Needs no organization policy changes |
+| **Tier 2** | **Catalog and Discovery** | Agent Registry (`mcpServers` and `endpoints`) | `enable_agent_registry` (default `true`) | Registers the MCP server tool specification and the platform API endpoints in Agent Registry |
+| **Tier 3** | **Outbound Access Control (Egress IAP)** | Egress Agent Gateway (`AGENT_TO_ANYWHERE`) and IAP Policy V2 (`REQUEST_AUTHZ` in `DRY_RUN` or `ENFORCE`) | `enable_egress_gateway` (default `true`) | Enforces per-tool CEL rules (`destination.agent_registry.mcp_server.tool.name`) on outbound agent traffic. Needs no domain restriction exception when `enable_model_armor = false` |
+| **Tier 4** | **Content Safety (Model Armor)** | Model Armor templates, `CONTENT_AUTHZ` extension, and 3 `gcp-sa-dep` IAM grants | `enable_model_armor` (default `true`) | Screens prompts and tool outputs for prompt injection, jailbreaks, and sensitive data on active gateways. **Only Tier 4 needs the domain restriction setup** |
+| **Tier 5** | **Inbound Client Control (Ingress Gateway)** | Ingress Agent Gateway (`CLIENT_TO_AGENT`) and `clientToAgentConfig` (attaches Model Armor when `enable_model_armor = true`) | `enable_ingress_gateway` (default `false`) | Controls inbound client traffic to the agent |
 
 The request flow below is in `ENFORCE` mode. The denied call never gets to Cloud Run.
 
@@ -165,11 +178,13 @@ them, Model Armor does not scan the gateway traffic.
 
 The organization admin must choose one option before the apply:
 
-| Option | Use |
+| Approach | Use |
 |---|---|
-| Option C: managed constraint `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names `serviceAccount:service-TENANT_PROJECT_NUMBER@gcp-sa-dep.iam.gserviceaccount.com` and `allowedPrincipalSets` that names `//cloudresourcemanager.googleapis.com/organizations/ORG_ID` | Production choice. Tested on 08 Nov 2026. Google Cloud checks `iam.allowedPolicyMemberDomains` and `iam.managed.allowedPolicyMembers` separately. If the organization enforces `iam.allowedPolicyMemberDomains`, the project must also relax `iam.allowedPolicyMemberDomains` (or the organization must replace it with `iam.managed.allowedPolicyMembers`) |
-| Option B: temporary project-level exception. Set `allow_google_managed_members = true`, apply the org policy and the 3 grants with `-target`, then set it to `false` and apply again. The grants remain. The grants failed for about 3 minutes after the exception was set | Used when you cannot keep a project-level override on `iam.allowedPolicyMemberDomains` |
-| Project-level `allowAll` (`allow_google_managed_members = true` in this Terraform) | Sandbox only |
+| Approach 1: managed constraint `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names `serviceAccount:service-TENANT_PROJECT_NUMBER@gcp-sa-dep.iam.gserviceaccount.com` and `allowedPrincipalSets` that names `//cloudresourcemanager.googleapis.com/organizations/ORG_ID` | Production choice. Google Cloud checks `iam.allowedPolicyMemberDomains` and `iam.managed.allowedPolicyMembers` separately. If the organization enforces `iam.allowedPolicyMemberDomains`, the project must also relax `iam.allowedPolicyMemberDomains` (or the organization must replace it with `iam.managed.allowedPolicyMembers`) |
+| Approach 2: short-lived project exception. Set `allow_google_managed_members = true`, apply the org policy and the 3 grants with `-target`, then set it to `false` and apply again. The grants remain | Used when you cannot keep a project-level override on `iam.allowedPolicyMemberDomains` |
+| Approach 3: project-level `allowAll` (`allow_google_managed_members = true` in this Terraform) | Sandbox only |
+
+If you want to deploy without the `gcp-sa-dep` Model Armor grants, set `enable_model_armor = false` (Tiers 1 to 3) or set `enable_egress_gateway = false` and `enable_ingress_gateway = false` (Tiers 1 and 2) in `terraform/terraform.tfvars`.
 
 ## Demo: identity, catalog, gateway control, audit (10 minutes)
 
