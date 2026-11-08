@@ -2,13 +2,13 @@
 
 ## Phase 1: Test setup
 
-- [ ] Task: Add the browser test harness to the repository
-  - [ ] Add `client/tests/` with a fake agent server that emits the 3LO events
+- [x] Task: Add the browser test harness to the repository 7cf6ac8
+  - [x] Add `client/tests/` with a fake agent server that emits the 3LO events
         (prompt, adk_request_credential, completion signal, answer).
-  - [ ] Add a headless Chrome runner (Playwright) and a README for the tests.
-  - [ ] Port the existing checks (resume once, no empty bubble, Markdown,
+  - [x] Add a headless Chrome runner (Playwright) and a README for the tests.
+  - [x] Port the existing checks (resume once, no empty bubble, Markdown,
         New conversation, diagram height).
-  - [ ] Run them with Step mode off. All must pass (acceptance A1 baseline).
+  - [x] Run them with Step mode off. All must pass (acceptance A1 baseline).
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Event queue and switch
