@@ -1,0 +1,4 @@
+# Keep the build context small.
+*_test.go
+coverage.out
+mcp-server

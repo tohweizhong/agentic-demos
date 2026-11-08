@@ -1,0 +1,31 @@
+{
+  "tools": [
+    {
+      "name": "get_status",
+      "description": "Read the status of one work item. This tool does not change data.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["item_id"],
+        "properties": {
+          "item_id": {"type": "string", "description": "The ID of the work item, for example ITEM-001"}
+        },
+        "additionalProperties": false
+      },
+      "annotations": {"readOnlyHint": true, "idempotentHint": true}
+    },
+    {
+      "name": "update_status",
+      "description": "Change the status of one work item. This tool writes data.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["item_id", "status"],
+        "properties": {
+          "item_id": {"type": "string", "description": "The ID of the work item, for example ITEM-001"},
+          "status": {"type": "string", "description": "The new status: open, in_progress, or closed"}
+        },
+        "additionalProperties": false
+      },
+      "annotations": {"readOnlyHint": false, "destructiveHint": false, "idempotentHint": false}
+    }
+  ]
+}
