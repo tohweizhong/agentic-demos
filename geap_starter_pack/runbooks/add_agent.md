@@ -54,10 +54,13 @@ Identity, its own grants, and the same egress gateway controls as the reference 
 
 ## Check the result
 
-1. Run `terraform output` and find the new agent resource name.
-2. Ask the new agent a question. Use [`scripts/ask_agent.sh`](../scripts/ask_agent.sh) with the
-   new resource name.
-3. Run [`scripts/read_audit_log.sh`](../scripts/read_audit_log.sh). The IAP Data Access audit log
+1. Wait 2 to 3 minutes after `terraform apply` so the egress gateway loads the updated IAP access policy for the new agent principal.
+2. Run `terraform output` and find the new agent resource name.
+3. Ask the new agent a question with the `-a` flag on [`scripts/ask_agent.sh`](../scripts/ask_agent.sh):
+   ```bash
+   scripts/ask_agent.sh -a "projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/NEW_AGENT_ID" "What is the status of ITEM-001?"
+   ```
+4. Run [`scripts/read_audit_log.sh`](../scripts/read_audit_log.sh). The IAP Data Access audit log
    shows the decisions for the new agent principal.
 
 ## Restore

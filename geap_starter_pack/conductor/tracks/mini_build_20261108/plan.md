@@ -37,7 +37,7 @@ Each task ends with its checks and one commit. Mark a task `[x]` when its commit
 ## Phase 4: Operations (steps 6 and 7)
 
 - [x] Task 4.1: Scripts: `ask_agent.sh`, `read_audit_log.sh`, `cleanup.sh`.
-- [x] Task 4.2: Runbooks: `add_agent.md` and `reset_demo.md`. Demo script in the README.
+- [x] Task 4.2: Runbooks: `add_agent.md` and `switch_policy_mode.md`. Walkthrough in the README.
 
 ## Phase 5: Cloud verification (needs approval)
 
@@ -50,7 +50,7 @@ Each task ends with its checks and one commit. Mark a task `[x]` when its commit
 
 | Success criterion (product.md) | Result | Evidence |
 |---|---|---|
-| `terraform apply` creates the mini build from a clean clone, with no manual grant | Partly met | Fixes were needed: API bootstrap order, base roles before the agent, the container deploy path, and the `adk api_server` query flag. The 3 Model Armor grants needed a temporary domain restricted sharing exception (option B) |
+| `terraform apply` creates the mini build from a clean clone, with no manual grant | Partly met | Fixes were needed: API bootstrap order, base roles before the agent, the container deploy path, and the `adk api_server` query flag. The 3 Model Armor grants needed a domain restricted sharing exception (option B or option C) |
 | The agent calls the MCP server through the gateway. The trace shows the call | Met (call). Trace not checked | Gateway request log: `tools/call get_status`, IAP and Model Armor `ALLOWED`. Cloud Trace was not examined |
 | `DRY_RUN`: a call that the policy does not allow passes, and the IAP audit log records it | Pass: met. Log: not met | `update_status` passed. The IAP log had entries only for MCP base methods, with `request.dryRun=true` |
 | After the change to enforce, the same call is denied | Met | `update_status` returned "MCP tool execution failed". It did not get to Cloud Run. The gateway used the new mode 1 to 3 minutes after the apply |
