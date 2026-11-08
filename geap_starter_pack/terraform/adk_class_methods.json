@@ -1,0 +1,220 @@
+[
+  {
+    "name": "get_session",
+    "api_mode": "",
+    "description": "Get a session by ID.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "session_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "async_get_session",
+    "api_mode": "async",
+    "description": "Get a session by ID.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "session_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "list_sessions",
+    "api_mode": "",
+    "description": "List the sessions of a user.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "async_list_sessions",
+    "api_mode": "async",
+    "description": "List the sessions of a user.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "create_session",
+    "api_mode": "",
+    "description": "Create a session.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  {
+    "name": "async_create_session",
+    "api_mode": "async",
+    "description": "Create a session.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  {
+    "name": "delete_session",
+    "api_mode": "",
+    "description": "Delete a session.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "session_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "async_delete_session",
+    "api_mode": "async",
+    "description": "Delete a session.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "session_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "stream_query",
+    "api_mode": "stream",
+    "description": "Send a message and stream the events.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "message",
+        "user_id"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "async_stream_query",
+    "api_mode": "async_stream",
+    "description": "Send a message and stream the events.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "message",
+        "user_id"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "streaming_agent_run_with_events",
+    "api_mode": "async_stream",
+    "description": "Run the agent and stream the events.",
+    "parameters": {
+      "type": "object",
+      "required": [
+        "request_json"
+      ],
+      "properties": {
+        "request_json": {
+          "type": "string"
+        }
+      }
+    }
+  }
+]

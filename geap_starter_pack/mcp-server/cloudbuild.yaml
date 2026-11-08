@@ -1,0 +1,10 @@
+# Cloud Build config for the sample MCP server image.
+# Terraform runs it with: gcloud builds submit --config cloudbuild.yaml --substitutions _IMAGE=...
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "${_IMAGE}", "."]
+images:
+  - "${_IMAGE}"
+options:
+  # A build with a user-managed service account must set a logging option.
+  logging: CLOUD_LOGGING_ONLY
