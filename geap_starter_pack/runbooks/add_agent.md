@@ -17,6 +17,8 @@ Identity, its own grants, and the same egress gateway controls as the reference 
 > `GRPC_DEFAULT_SSL_ROOTS_FILE_PATH`. A source deploy with `python_spec` failed in the mini build:
 > the Agent Runtime start-up gRPC call did not trust the gateway root CA.
 - You know which registered destinations the new agent must call.
+- The domain restricted sharing prerequisite in the [README](../README.md) is solved. If not, the
+  gateway Model Armor grants fail, and Model Armor does not scan the traffic of the new agent.
 
 ## Steps
 

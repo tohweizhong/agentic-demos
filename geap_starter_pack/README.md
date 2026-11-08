@@ -50,8 +50,21 @@ terraform plan -out=tfplan
 terraform apply tfplan
 ```
 
-If the organization uses domain restricted sharing, the Model Armor grants to the gateway fail.
-Then set `allow_google_managed_members = true`, after the organization admin approves it.
+### Known prerequisite: domain restricted sharing
+
+The gateway calls Model Armor as its Service Extensions service account. That account is in a
+Google-managed tenant project. Terraform gives it 3 roles: `roles/modelarmor.calloutUser`,
+`roles/modelarmor.user`, and `roles/serviceusage.serviceUsageConsumer`. If the organization enforces
+`iam.allowedPolicyMemberDomains`, these 3 grants fail with "not in permitted organization". Without
+them, Model Armor does not scan the gateway traffic.
+
+The organization admin must choose one option before the apply:
+
+| Option | Use |
+|---|---|
+| Managed constraint `iam.managed.allowedPolicyMembers` that names the gateway service account | Production choice. **Not tested** |
+| Temporary exception for the project, removed after the grants | Short tests |
+| Project-level `allowAll` (`allow_google_managed_members = true` in this Terraform) | Sandbox only |
 
 ## Demo: identity, catalog, gateway control, audit (10 minutes)
 
