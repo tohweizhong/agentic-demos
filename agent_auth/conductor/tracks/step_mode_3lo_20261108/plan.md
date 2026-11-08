@@ -23,14 +23,14 @@
 
 ## Phase 3: Step cards
 
-- [~] Task: Write failing tests for the cards
-  - [ ] 12 cards in order, only the newest has "Next step" (F2, A2).
-  - [ ] Short card and "Details" content, no secrets (F3).
-  - [ ] Popup opens on the step 5 click (F5). Resume runs in the background (F6).
-  - [ ] Stored token: steps 4 to 10 show "Skipped" (F7, A3).
-  - [ ] Keyboard: right arrow and Enter (F10). Expired consent message (F11).
-  - [ ] New conversation clears the queue and the cards (F12).
-- [ ] Task: Implement the step cards
+- [x] Task: Write failing tests for the cards ca35612
+  - [x] 12 cards in order, only the newest has "Next step" (F2, A2).
+  - [x] Short card and "Details" content, no secrets (F3).
+  - [x] Popup opens on the step 5 click (F5). Resume runs in the background (F6).
+  - [x] Stored token: steps 4 to 10 show "Skipped" (F7, A3).
+  - [x] Keyboard: right arrow and Enter (F10). Expired consent message (F11).
+  - [x] New conversation clears the queue and the cards (F12).
+- [~] Task: Implement the step cards
   - [ ] Card component with text from one step table (STE wording).
   - [ ] Wire steps to the queue, the popup, the resume, and the skip path.
   - [ ] Sync the step chip and the "How 3LO works" tab (F9).
