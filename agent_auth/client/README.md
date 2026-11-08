@@ -25,14 +25,21 @@ The client does three things:
 |---|---|
 | `main.py` | The `/chat` endpoint uses the `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, and `AGENT_ID` environment values when the UI sends empty values. |
 | `main.py` | The `__main__` block reads `HOST` and `PORT`. |
+| `main.py` | Behind IAP, `/chat`, `/validateUserId`, and `/commit` take the user ID from the `X-Goog-Authenticated-User-Email` header. They ignore the user ID from the form and from cookies. Without the header, the upstream behaviour applies, and the server logs one warning. |
+| `main.py` | New `/whoami` endpoint. It returns the IAP user email, or `iap: false` when there is no IAP header. |
+| `static/script.js` | The page calls `/whoami`. Behind IAP, it shows the IAP email in the User ID field and disables the field. |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Security
 
-The client uses one fixed user ID (`default_user_id`) for every browser.
-Every person who can open the client acts as that user. Do not give the client
-public access. The sub-demos deploy it on Cloud Run behind Identity-Aware Proxy
-(IAP).
+Behind IAP, the user ID is the email of the person that IAP verified. Each
+person gets a separate token in Auth Manager. Without IAP, the client uses one
+user ID from the form (`default_user_id` by default), and every person who can
+open the client acts as that user. Do not give the client public access. The
+sub-demos deploy it on Cloud Run behind Identity-Aware Proxy (IAP).
+
+The client reads only the IAP email header. For more protection, a production
+client must also verify the signed `X-Goog-IAP-JWT-Assertion` header.
 
 ## Run on your machine
 

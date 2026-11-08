@@ -110,6 +110,7 @@ default compute service account.
    Enter the project ID and `us-central1`, then click **Load Remote Agents**.
 3. Select `agent-auth-3lo-github` and click **Save & Apply Settings**.
    If you leave the fields empty, the client uses the agent in its environment.
+   The **User ID** field shows your IAP email, and you cannot edit it.
 4. Send this message: `List my last three updated repos`.
 5. A popup opens on the GitHub consent page. Click **Authorize**.
 6. The popup closes. The agent answers with your repositories, including
@@ -117,11 +118,20 @@ default compute service account.
 
 To see the consent page again, revoke the OAuth app in GitHub
 **Settings > Applications > Authorized OAuth Apps**. Auth Manager can keep a
-token for the fixed user ID `default_user_id` from an earlier test.
+token for your user ID from an earlier test.
+
+## Why the user ID comes from the IAP login
+
+Auth Manager stores one GitHub token for each user ID. If the user ID came
+from the form, any person could type the email of another person and use that
+token. Behind IAP, the client takes the user ID from the email that IAP
+verified (the `X-Goog-Authenticated-User-Email` header). It ignores the form
+value. The chat request and the consent finalize step use the same email, so
+the token belongs to the person who signed in.
 
 ## Known limits
 
-- The client uses one fixed user ID. Keep the client behind IAP.
+- Without IAP, the client uses the user ID from the form. Keep the client behind IAP.
 - A new IAM binding on the auth provider can take some minutes to apply.
   Before that, the agent logs a 403 error on
   `agentidentity.authProviders.retrieveCredentials`. Wait five minutes after

@@ -194,6 +194,15 @@ $(function() {
 
     loadLocalAgents();
     updateAgentInfoPane();
+
+    // agentic-demos change: behind IAP, the server takes the user ID from
+    // the IAP login. Show that user ID, and lock the field.
+    $.getJSON('/whoami').done((who) => {
+      if (who && who.iap) {
+        $('#user-id').val(who.user_id).prop('disabled', true);
+        updateAgentInfoPane();
+      }
+    });
   };
 
   // Apply configs to active session

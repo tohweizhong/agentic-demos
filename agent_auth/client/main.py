@@ -137,6 +137,36 @@ except Exception:
   default_project = ""
 
 
+# agentic-demos change: take the Auth Manager user ID from the IAP login.
+# IAP verifies the user and sets this header on each request. Its value has
+# the format "accounts.google.com:user@example.com". The client uses only this
+# header. If the header is absent (local run without IAP), the client keeps
+# the upstream behaviour: the user ID comes from the form or a cookie.
+IAP_EMAIL_HEADER = "X-Goog-Authenticated-User-Email"
+_iap_warning_logged = False
+
+
+def iap_user_id(http_request: Request) -> str | None:
+  """Returns the IAP user email, or None when the request has no IAP header."""
+  global _iap_warning_logged
+  value = http_request.headers.get(IAP_EMAIL_HEADER)
+  if not value:
+    if not _iap_warning_logged:
+      print(
+          f"WARNING: no {IAP_EMAIL_HEADER} header. The client uses the user ID"
+          " from the form. Do not expose this client without IAP."
+      )
+      _iap_warning_logged = True
+    return None
+  return value.split(":", 1)[1] if ":" in value else value
+
+
+@app.get("/whoami")
+async def whoami(http_request: Request):
+  user_id = iap_user_id(http_request)
+  return {"iap": user_id is not None, "user_id": user_id}
+
+
 class ChatRequest(BaseModel):
   message: str = ""
   agent_type: str = "remote"
@@ -155,8 +185,12 @@ class ChatRequest(BaseModel):
 
 # Endpoint for querying the agent.
 @app.post("/chat")
-async def chat(request: ChatRequest, response: Response):
+async def chat(request: ChatRequest, response: Response, http_request: Request):
   session_id = request.session_id or str(uuid.uuid4())
+  # agentic-demos change: behind IAP, the IAP login is the user ID. The
+  # client ignores the user_id value from the form.
+  if verified_user_id := iap_user_id(http_request):
+    request.user_id = verified_user_id
   # agentic-demos change: the UI sends empty strings when the user does not
   # fill the settings form. Use the server environment values in that case.
   request.project_id = request.project_id or os.environ.get(
@@ -369,8 +403,13 @@ async def chat(request: ChatRequest, response: Response):
 @app.get("/commit")
 async def validate_user_id(request: Request):
   # Session data stored in cookies
-  user_id = request.cookies.get("consent_user_id") or request.cookies.get(
-      "user_id"
+  # agentic-demos change: behind IAP, the IAP login is the user ID. The
+  # client ignores the user ID cookies. The /chat endpoint uses the same IAP
+  # login, so the consent request and the finalize call use one user ID.
+  user_id = (
+      iap_user_id(request)
+      or request.cookies.get("consent_user_id")
+      or request.cookies.get("user_id")
   )
   consent_nonce = request.cookies.get("consent_nonce")
   session_id = request.cookies.get("session_id")
