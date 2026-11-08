@@ -24,7 +24,7 @@ that you control which agent can call which tool, and what data can leave."
 | 4 | Playground or Gemini Enterprise: prompt A | "The agent reads documents and checks income. Note that the SSNs are redacted. Model Armor removes them from the tool response." |
 | 5 | Prompt B | "Now the agent tries to send email. IAP blocks it, because this agent may only use read-only tools on the email server." |
 | 6 | Prompt C | "Read-only email still works. The control is per tool, not per server." |
-| 7 | Gateway request log (query in the runbook) | "Each decision is logged: the agent, the tool, and allow or deny. This is your audit trail." |
+| 7 | IAP Data Access audit log (query below) | "Each decision is logged: the agent, the tool, the MCP method, and allow or deny. This is your audit trail." |
 | 8 | Cloud Trace for one request | "The trace shows the call came from Gemini Enterprise, through the agent, to the tool." |
 
 ## Prompts and expected results
@@ -32,11 +32,25 @@ that you control which agent can call which tool, and what data can leave."
 | Prompt | Expected result |
 |---|---|
 | A. "I am reviewing the Sterling family's current application. Can you summarize their 2024 and 2025 tax returns and verify if their total household income meets our 2026 debt-to-income requirements?" | A summary from the document tool and the income tool. SSNs are redacted. |
-| B. "Can you send a summary of this to my email jane@example.com?" | The agent says that it could not send the email. The gateway log shows `send_email`, `DENIED`, `403`. |
+| B. "Can you send a summary of this to my email jane@example.com?" | The agent says that it could not send the email. The IAP Data Access audit log shows `granted: false` for `tools/call` with `read_only_hint: false`. |
 | C. "Can you read my latest emails from the corporate inbox?" | A list of emails. Email addresses show as `[EMAIL_ADDRESS]`. |
 
 The message for prompt B can be a technical error, such as "MCP session connection lost". It still
-means that the gateway blocked the call. Show the gateway log to prove it.
+means that the gateway blocked the call. In the agent log, the MCP call returns `403 Forbidden`, and
+ADK then reports the lost session.
+
+Show the denial in the IAP Data Access audit log. In a test in November 2026, the gateway request
+log showed only tunnel (`CONNECT`) entries for the denied call. It had no `403` entry, but it had
+`ALLOWED` entries for allowed calls. The IAP audit log had the decision:
+
+```bash
+gcloud logging read 'logName:"cloudaudit.googleapis.com%2Fdata_access" AND protoPayload.methodName="GatekeeperAuthorizer.AuthorizeUser" AND protoPayload.authorizationInfo.permission="iap.webServiceVersions.egressViaIAP" AND protoPayload.authorizationInfo.granted=false' \
+  --project=${PROJECT_ID} --freshness=1h --limit=5 \
+  --format="table(timestamp, protoPayload.metadata.mcp_attributes.mcp_method, protoPayload.metadata.mcp_attributes.mcp_annotations.read_only_hint, protoPayload.status.code)"
+```
+
+Expected row: `tools/call`, `False`, `7` (permission denied). The filter on `egressViaIAP` hides
+denials from other IAP uses in the project, for example a web app behind IAP.
 
 ## Key messages
 

@@ -220,6 +220,16 @@ gcloud logging read "logName=\"projects/${PROJECT_ID}/logs/networkservices.googl
   --format="table(timestamp, jsonPayload.agentGatewayInfo.mcpInfo.parameter, jsonPayload.authzPolicyInfo.result, httpRequest.status)"
 ```
 
+The gateway request log can miss denied calls. In a test in November 2026, it showed only tunnel
+(`CONNECT`) entries for a denied `send_email` call. Check the IAP decision in the Data Access audit
+log as well:
+
+```bash
+gcloud logging read 'logName:"cloudaudit.googleapis.com%2Fdata_access" AND protoPayload.methodName="GatekeeperAuthorizer.AuthorizeUser" AND protoPayload.authorizationInfo.permission="iap.webServiceVersions.egressViaIAP" AND protoPayload.authorizationInfo.granted=false' \
+  --project=${PROJECT_ID} --freshness=1h --limit=5 \
+  --format="table(timestamp, protoPayload.metadata.mcp_attributes.mcp_method, protoPayload.metadata.mcp_attributes.mcp_annotations.read_only_hint, protoPayload.status.code)"
+```
+
 ## 9. Register in Gemini Enterprise (codelab step 16)
 
 1. Create a Gemini Enterprise app in the `global` location.
