@@ -22,6 +22,17 @@
   HTML text in Simplified Technical English, with accessible headings and
   tables. (Added on 08 Nov 2026 at 20:18 SGT, approved by the user.)
 
+- L8 Wider, resizable compact panel in the Step mode split view: the default
+  width is 40 percent of the Playground area, minimum 380 px, maximum 560 px.
+  A drag handle sits between the chat and the diagram. It works with the mouse
+  and the keyboard: a focusable separator with role="separator",
+  aria-orientation="vertical", and aria-valuenow. The left and right arrow keys
+  change the width by 20 px. The browser remembers the width (localStorage).
+  The compact diagram text scales with the panel width, so that the labels
+  stay readable. The strip below 1100 px does not change. Step mode off does
+  not change. (Added on 08 Nov 2026 at 20:57 SGT after the user test, approved
+  by the user.)
+
 ## Acceptance criteria
 
 - All existing browser tests pass.
@@ -29,6 +40,9 @@
   1280x800, the strip at 1024x700, and the marked arrow follows each card.
 - New browser test for L7: the tab exists, has role=tab, opens with the
   keyboard, shows the sections, and makes no network request when it opens.
+- New browser tests for L8: the default width is in range at 1280x800, the
+  drag and keyboard resize stay between the minimum and the maximum, the width
+  persists after reload, and the strip does not change at 1024x700.
 - A real browser test by the user on the deployed client.
 
 ## Out of scope
