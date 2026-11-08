@@ -167,164 +167,164 @@
           <footer class="am-footer">Facts tested in a demo project in November 2026. Items marked inference are not confirmed.</footer>
         </section>
         <div id="playground-panel" class="playground-panel split" role="tabpanel" aria-labelledby="tab-play">
-        <!-- agentic-demos change: chat column, and the compact 3LO view + settings on the right. -->
-        <div class="chat-column">
-        <div class="sample-prompts" id="play-sample-prompts" aria-label="Sample prompts for 3LO GitHub">
-          <button type="button" class="play-sample-prompt sample-prompt" data-prompt="list my repositories">list my repositories</button>
-          <button type="button" class="play-sample-prompt sample-prompt" data-prompt="list my recent PRs">list my recent PRs</button>
-        </div>
-        <!-- Message History Container -->
-        <div id="messages-container" class="messages-container"></div>
-        <!-- Input Area -->
-        <footer class="input-container">
-          <input
-            type="text"
-            id="user-input"
-            placeholder="Type a message to your agent..."
-            autofocus
-            autocomplete="off"
-          />
+          <!-- Left column: 3LO controls and configuration -->
+          <div id="settings-sidebar" class="sidebar">
+            <div class="sidebar-header">
+              <h2>Configuration &amp; Demo Controls</h2>
+              <button type="button" id="presentation-toggle" class="presentation-toggle"
+                aria-controls="settings-form" aria-expanded="true"
+                aria-label="Fold the configuration panel (presentation mode)"
+                title="Fold the configuration panel (presentation mode)">
+                <span class="material-symbols-outlined" aria-hidden="true">left_panel_close</span>
+              </button>
+            </div>
+            <div class="settings-form" id="settings-form">
+              <!-- Active Agent & Session Profile Pane -->
+              <div id="agent-info-pane" class="agent-info-pane">
+                <h4>Active Agent Profile</h4>
+                <div class="info-grid">
+                  <div class="info-row">
+                    <span class="info-label">Mode:</span>
+                    <span class="info-value" id="info-agent-mode">Remote Vertex AI</span>
+                  </div>
+                  <div class="info-row" id="info-row-local-agent" style="display: none;">
+                    <span class="info-label">Local Agent:</span>
+                    <span class="info-value" id="info-local-agent">-</span>
+                  </div>
+                  <div class="info-row" id="info-row-project-id">
+                    <span class="info-label">Project ID:</span>
+                    <span class="info-value" id="info-project-id">-</span>
+                  </div>
+                  <div class="info-row" id="info-row-location">
+                    <span class="info-label">Location:</span>
+                    <span class="info-value" id="info-location">-</span>
+                  </div>
+                  <div class="info-row" id="info-row-agent-id">
+                    <span class="info-label">Target ID:</span>
+                    <span class="info-value" id="info-agent-id">-</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Session ID:</span>
+                    <span class="info-value" id="info-session-id">No active session</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">User ID:</span>
+                    <span class="info-value" id="info-user-id">default_user_id</span>
+                  </div>
+                </div>
+              </div>
 
-          <md-filled-icon-button id="send-btn" disabled>
-            <span class="material-symbols-outlined">send</span>
-          </md-filled-icon-button>
-        </footer>
-        </div>
-        <!-- agentic-demos change: drag handle for the compact 3LO view (L8). -->
-        <div id="compact-resizer" class="compact-resizer" role="separator"
-          aria-orientation="vertical" aria-controls="compact-flow"
-          aria-label="Resize the 3LO diagram. Use the left and right arrow keys."
-          aria-valuemin="380" aria-valuemax="560" aria-valuenow="380" tabindex="0"></div>
+              <!-- agentic-demos change: Demo controls panel. DEMO ONLY. -->
+              <details id="demo-controls" class="demo-controls" open>
+                <summary>
+                  Demo controls <span class="demo-badge">Demo only</span>
+                </summary>
+                <p class="demo-note">
+                  To see the GitHub consent page again, also revoke the GitHub
+                  token: open
+                  <a id="demo-github-link" href="https://github.com/settings/developers"
+                    target="_blank" rel="noopener">GitHub OAuth Apps</a>,
+                  select the app, and click "Revoke all user tokens".
+                </p>
+                <md-outlined-button id="demo-reset-btn" class="btn-full">
+                  <span class="material-symbols-outlined" slot="icon">restart_alt</span>
+                  Reset Auth Manager consent
+                </md-outlined-button>
+                <md-outlined-button id="demo-summary-btn" class="btn-full">
+                  <span class="material-symbols-outlined" slot="icon">table_view</span>
+                  Show access summary
+                </md-outlined-button>
+                <div id="demo-table" class="demo-table"></div>
+                <pre id="demo-output" class="demo-output">$ </pre>
+              </details>
+
+              <!-- Collapsed connection settings -->
+              <details id="connection-settings" class="connection-settings">
+                <summary>Connection settings</summary>
+                <div class="connection-settings-body">
+                  <md-outlined-select id="agent-type-select" label="Agent Type">
+                    <md-select-option value="local">
+                      <div slot="headline">Local Agent</div>
+                    </md-select-option>
+                    <md-select-option value="remote" selected>
+                      <div slot="headline">Remote Agent (Vertex AI)</div>
+                    </md-select-option>
+                  </md-outlined-select>
+
+                  <div id="local-settings" style="display: none;">
+                    <md-outlined-select id="local-agent-select" label="Select Local Agent">
+                      <md-select-option value="">
+                        <div slot="headline">Select an agent...</div>
+                      </md-select-option>
+                    </md-outlined-select>
+                    <input type="hidden" id="local-agent" />
+                  </div>
+
+                  <div id="remote-settings">
+                    <md-outlined-select id="project-id" label="Project ID" required>
+                    </md-outlined-select>
+                    <md-outlined-select id="location" label="Location" required>
+                    </md-outlined-select>
+
+                    <md-filled-button id="load-agents-btn" class="btn-full">
+                      <span class="material-symbols-outlined" slot="icon">sync</span>
+                      Load Remote Agents
+                    </md-filled-button>
+
+                    <md-outlined-select id="agent-select" label="Select Engine">
+                      <md-select-option value="">
+                        <div slot="headline">Select an engine...</div>
+                      </md-select-option>
+                    </md-outlined-select>
+                    <input type="hidden" id="agent-id" />
+                  </div>
+
+                  <md-outlined-text-field
+                    id="user-id"
+                    label="User ID"
+                    value="default_user_id"
+                    required
+                  ></md-outlined-text-field>
+
+                  <md-filled-button id="save-settings" class="btn-full">
+                    <span class="material-symbols-outlined" slot="icon">save</span>
+                    Save & Apply Settings
+                  </md-filled-button>
+                </div>
+              </details>
+            </div>
+          </div>
+          <!-- Middle column: chat and sample prompts -->
+          <div class="chat-column">
+            <div class="sample-prompts" id="play-sample-prompts" aria-label="Sample prompts for 3LO GitHub">
+              <button type="button" class="play-sample-prompt sample-prompt" data-prompt="list my repositories">list my repositories</button>
+              <button type="button" class="play-sample-prompt sample-prompt" data-prompt="list my recent PRs">list my recent PRs</button>
+            </div>
+            <!-- Message History Container -->
+            <div id="messages-container" class="messages-container"></div>
+            <!-- Input Area -->
+            <footer class="input-container">
+              <input
+                type="text"
+                id="user-input"
+                placeholder="Type a message to your agent..."
+                autofocus
+                autocomplete="off"
+              />
+
+              <md-filled-icon-button id="send-btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+              </md-filled-icon-button>
+            </footer>
+          </div>
+          <!-- Right column: drag handle and compact 3LO diagram -->
+          <div id="compact-resizer" class="compact-resizer" role="separator"
+            aria-orientation="vertical" aria-controls="compact-flow"
+            aria-label="Resize the 3LO diagram. Use the left and right arrow keys."
+            aria-valuemin="380" aria-valuemax="560" aria-valuenow="380" tabindex="0"></div>
           <aside id="compact-flow" class="compact-flow" aria-label="3LO flow, compact view">
             <div id="compact-diagram" class="compact-diagram"></div>
             <ol id="compact-strip" class="compact-strip"></ol>
-            <!-- Docked 3LO controls and configuration below the 3LO flowchart -->
-            <div id="settings-sidebar" class="sidebar">
-              <div class="sidebar-header">
-                <h2>Configuration &amp; Demo Controls</h2>
-                <button type="button" id="presentation-toggle" class="presentation-toggle"
-                  aria-controls="settings-form" aria-expanded="true"
-                  aria-label="Fold the configuration panel (presentation mode)"
-                  title="Fold the configuration panel (presentation mode)">
-                  <span class="material-symbols-outlined" aria-hidden="true">left_panel_close</span>
-                </button>
-              </div>
-              <div class="settings-form" id="settings-form">
-                <!-- Active Agent & Session Profile Pane -->
-                <div id="agent-info-pane" class="agent-info-pane">
-                  <h4>Active Agent Profile</h4>
-                  <div class="info-grid">
-                    <div class="info-row">
-                      <span class="info-label">Mode:</span>
-                      <span class="info-value" id="info-agent-mode">Remote Vertex AI</span>
-                    </div>
-                    <div class="info-row" id="info-row-local-agent" style="display: none;">
-                      <span class="info-label">Local Agent:</span>
-                      <span class="info-value" id="info-local-agent">-</span>
-                    </div>
-                    <div class="info-row" id="info-row-project-id">
-                      <span class="info-label">Project ID:</span>
-                      <span class="info-value" id="info-project-id">-</span>
-                    </div>
-                    <div class="info-row" id="info-row-location">
-                      <span class="info-label">Location:</span>
-                      <span class="info-value" id="info-location">-</span>
-                    </div>
-                    <div class="info-row" id="info-row-agent-id">
-                      <span class="info-label">Target ID:</span>
-                      <span class="info-value" id="info-agent-id">-</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Session ID:</span>
-                      <span class="info-value" id="info-session-id">No active session</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">User ID:</span>
-                      <span class="info-value" id="info-user-id">default_user_id</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- agentic-demos change: Demo controls panel. DEMO ONLY. -->
-                <details id="demo-controls" class="demo-controls" open>
-                  <summary>
-                    Demo controls <span class="demo-badge">Demo only</span>
-                  </summary>
-                  <p class="demo-note">
-                    To see the GitHub consent page again, also revoke the GitHub
-                    token: open
-                    <a id="demo-github-link" href="https://github.com/settings/developers"
-                      target="_blank" rel="noopener">GitHub OAuth Apps</a>,
-                    select the app, and click "Revoke all user tokens".
-                  </p>
-                  <md-outlined-button id="demo-reset-btn" class="btn-full">
-                    <span class="material-symbols-outlined" slot="icon">restart_alt</span>
-                    Reset Auth Manager consent
-                  </md-outlined-button>
-                  <md-outlined-button id="demo-summary-btn" class="btn-full">
-                    <span class="material-symbols-outlined" slot="icon">table_view</span>
-                    Show access summary
-                  </md-outlined-button>
-                  <div id="demo-table" class="demo-table"></div>
-                  <pre id="demo-output" class="demo-output">$ </pre>
-                </details>
-
-                <!-- Collapsed connection settings -->
-                <details id="connection-settings" class="connection-settings">
-                  <summary>Connection settings</summary>
-                  <div class="connection-settings-body">
-                    <md-outlined-select id="agent-type-select" label="Agent Type">
-                      <md-select-option value="local">
-                        <div slot="headline">Local Agent</div>
-                      </md-select-option>
-                      <md-select-option value="remote" selected>
-                        <div slot="headline">Remote Agent (Vertex AI)</div>
-                      </md-select-option>
-                    </md-outlined-select>
-
-                    <div id="local-settings" style="display: none;">
-                      <md-outlined-select id="local-agent-select" label="Select Local Agent">
-                        <md-select-option value="">
-                          <div slot="headline">Select an agent...</div>
-                        </md-select-option>
-                      </md-outlined-select>
-                      <input type="hidden" id="local-agent" />
-                    </div>
-
-                    <div id="remote-settings">
-                      <md-outlined-select id="project-id" label="Project ID" required>
-                      </md-outlined-select>
-                      <md-outlined-select id="location" label="Location" required>
-                      </md-outlined-select>
-
-                      <md-filled-button id="load-agents-btn" class="btn-full">
-                        <span class="material-symbols-outlined" slot="icon">sync</span>
-                        Load Remote Agents
-                      </md-filled-button>
-
-                      <md-outlined-select id="agent-select" label="Select Engine">
-                        <md-select-option value="">
-                          <div slot="headline">Select an engine...</div>
-                        </md-select-option>
-                      </md-outlined-select>
-                      <input type="hidden" id="agent-id" />
-                    </div>
-
-                    <md-outlined-text-field
-                      id="user-id"
-                      label="User ID"
-                      value="default_user_id"
-                      required
-                    ></md-outlined-text-field>
-
-                    <md-filled-button id="save-settings" class="btn-full">
-                      <span class="material-symbols-outlined" slot="icon">save</span>
-                      Save & Apply Settings
-                    </md-filled-button>
-                  </div>
-                </details>
-              </div>
-            </div>
           </aside>
         </div>
 

@@ -62,14 +62,19 @@ def test_presentation_mode_folds_the_panel(new_page):
 
 
 def test_step_mode_off_chat_area_unchanged(new_page):
-  """L6: 3LO GitHub shows the two-column split layout and header stays at x=0."""
+  """L6: 3LO GitHub shows three columns below a full-width header at x=0."""
   page = new_page()
   assert not page.is_checked("#step-mode-switch")
-  header = page.locator(".chat-header").bounding_box()
-  assert header["x"] == 0
-  messages = page.locator("#messages-container").bounding_box()
-  compact = page.locator("#compact-flow").bounding_box()
-  assert compact["x"] >= messages["x"] + messages["width"] - 1
+  for tab_id in ("#tab-play", "#tab-egress", "#tab-ingress", "#tab-how", "#tab-auth-manager"):
+    page.click(tab_id)
+    assert page.locator(".chat-header").bounding_box()["x"] == 0
+  page.click("#tab-play")
+  sidebar = page.locator("#playground-panel > #settings-sidebar").bounding_box()
+  chat_col = page.locator("#playground-panel > .chat-column").bounding_box()
+  compact = page.locator("#playground-panel > #compact-flow").bounding_box()
+  assert sidebar["x"] == 0
+  assert chat_col["x"] >= sidebar["x"] + sidebar["width"] - 1
+  assert compact["x"] >= chat_col["x"] + chat_col["width"] - 1
   assert page.locator("#user-input").is_visible()
   assert page.locator("#play-sample-prompts .play-sample-prompt").count() == 2
 
@@ -261,11 +266,11 @@ def test_marked_arrow_follows_each_card(new_page, stats):  # pylint: disable=unu
 
 
 def test_no_compact_diagram_with_step_mode_off(new_page):
-  """L6: the compact diagram and right-docked controls stay visible."""
+  """L6: the compact diagram and left controls stay visible in 3LO GitHub."""
   page = new_page(1280, 800)
   assert not page.is_checked("#step-mode-switch")
   assert page.locator(COMPACT).is_visible()
-  assert page.locator("#compact-flow #settings-sidebar").is_visible()
+  assert page.locator("#playground-panel > #settings-sidebar").is_visible()
   _step_on(page)
   assert page.locator(COMPACT).is_visible()
   page.click(".step-switch")

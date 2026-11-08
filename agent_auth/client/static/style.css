@@ -44,7 +44,7 @@ body {
    Styles the pinned left navigation drawer housing agent and user settings.
    ========================================================================== */
 .sidebar {
-  width: 320px;
+  width: 300px;
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -1199,13 +1199,11 @@ body {
   flex: 0 0 var(--compact-width, 384px);
   width: var(--compact-width, 384px);
   border-left: none;
-  overflow-y: auto;
-  overflow-x: hidden;
-  gap: 12px;
+  overflow: hidden;
 }
 
 .playground-panel.split .compact-diagram {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   align-items: flex-start;
@@ -1213,24 +1211,11 @@ body {
 }
 
 .playground-panel.split .compact-svg {
-  height: auto;
-  max-height: 360px;
+  height: 100%;
+  max-height: 100%;
   width: auto;
   max-width: 100%;
   display: block;
-}
-
-#compact-flow .sidebar {
-  width: 100%;
-  height: auto;
-  border-right: none;
-  border-top: 1px solid var(--border-color);
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-#compact-flow .sidebar.folded {
-  width: 48px;
 }
 
 #play-sample-prompts {
@@ -1271,7 +1256,7 @@ body {
     display: none;
   }
 
-  #compact-flow .sidebar {
+  #playground-panel > .sidebar {
     display: none;
   }
 }
