@@ -32,6 +32,9 @@ The client does three things:
 | `static/index.html`, `static/script.js`, `static/style.css` | New collapsible "Demo controls" panel with a terminal-style output box and an access summary table. |
 | `main.py`, `static/index.html`, `static/script.js` | Project ID and Location are dropdowns. New `GET /config` endpoint returns the options from `PROJECT_OPTIONS` and `LOCATION_OPTIONS` (comma-separated). The defaults are `GOOGLE_CLOUD_PROJECT` and `GOOGLE_CLOUD_LOCATION`. |
 | `static/script.js` | The access summary table shows times in the browser local time with the zone, and in UTC. The output box keeps the raw API JSON in UTC. The zone name comes from the browser language (for example `SGT` for en-SG, `GMT+8` for en-US). |
+| `main.py`, `static/script.js` | Robust resume after consent. The `/validateUserId` success page sends a same-origin signal (BroadcastChannel, `window.opener.postMessage`, and a localStorage event), then closes itself. The main page resumes the agent exactly once, on the first signal or when the popup closes. Before this change, the page resumed only when the popup closed. If the user did not close the popup, the agent did not resume. |
+| `static/index.html`, `static/script.js`, `static/style.css` | Loading states in the chat: typing dots before the first event, a spinner while the consent popup is open, and a spinner after consent until the first answer text. After 30 seconds, a note says that the first run can take up to 2 minutes. An error removes all spinners. |
+| `static/index.html`, `static/script.js`, `static/style.css` | Two tabs in the main area: "Playground" and "How 3LO works". The second tab draws the 12-step 3LO flow as an inline SVG, highlights the current step of the Playground run, lists the steps as text, and shows a timings table of the last run (browser memory only). A chip in the header shows the current step as text. |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Security

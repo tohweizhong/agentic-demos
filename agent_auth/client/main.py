@@ -604,6 +604,11 @@ async def validate_user_id(request: Request):
     await asyncio.to_thread(client.finalize_credentials, finalize_request)
 
     # Return a simple HTML page to indicate OAuth success
+    # agentic-demos change: the page tells the main page that the consent is
+    # complete, then closes itself. The main page then resumes the agent once.
+    # It uses three same-origin channels, because GitHub can cut the
+    # window.opener link: BroadcastChannel, window.opener.postMessage, and a
+    # localStorage "storage" event.
     html_content = """
     <!DOCTYPE html>
     <html>
@@ -612,6 +617,23 @@ async def validate_user_id(request: Request):
     </head>
     <body>
         <p>Authorization successful! You can close this window.</p>
+        <script>
+          const msg = {type: "agent-auth-complete", at: Date.now()};
+          try {
+            const bc = new BroadcastChannel("agent-auth");
+            bc.postMessage(msg);
+            bc.close();
+          } catch (e) {}
+          try {
+            if (window.opener) {
+              window.opener.postMessage(msg, window.location.origin);
+            }
+          } catch (e) {}
+          try {
+            localStorage.setItem("agent-auth-complete", String(msg.at));
+          } catch (e) {}
+          setTimeout(() => window.close(), 1000);
+        </script>
     </body>
     </html>
     """

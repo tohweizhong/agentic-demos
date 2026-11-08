@@ -146,9 +146,62 @@
             <div class="agent-info">
               <h1>Agent Playground</h1>
             </div>
+            <!-- agentic-demos change: current 3LO step, as text. -->
+            <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
           </div>
-          <div class="header-right"></div>
+          <div class="header-right">
+            <!-- agentic-demos change: tabs for the main area. -->
+            <div class="tabs" role="tablist" aria-label="Main views">
+              <button type="button" class="tab" role="tab" id="tab-play"
+                aria-selected="true" aria-controls="playground-panel">Playground</button>
+              <button type="button" class="tab" role="tab" id="tab-how"
+                aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
+            </div>
+          </div>
         </header>
+        <!-- agentic-demos change: "How 3LO works" panel. -->
+        <section id="how-panel" class="how-panel" role="tabpanel" aria-labelledby="tab-how" hidden>
+          <h2>How 3-legged OAuth (3LO) works in this demo</h2>
+          <p class="how-intro">
+            The highlighted step is the current step in the Playground. The
+            list under the diagram shows the same steps as text.
+          </p>
+          <div id="flow-diagram" class="flow-diagram"></div>
+          <div class="flow-legend" aria-label="What each party never sees">
+            <h3>What each party never sees</h3>
+            <ul>
+              <li>The demo client never sees the GitHub authorization code or the GitHub token.</li>
+              <li>The agent never sees the GitHub password. It gets only the token, from Auth Manager.</li>
+              <li>GitHub never sees the Google identity of the agent.</li>
+            </ul>
+          </div>
+          <div class="flow-reset">
+            <h3>Reset</h3>
+            <p>
+              To see the GitHub consent page again, do both resets:
+              (1) revoke the consent in Auth Manager, and (2) revoke the user
+              tokens of the OAuth app in GitHub. Use the
+              <a href="#demo-controls" id="open-demo-controls">Demo controls panel</a>.
+            </p>
+          </div>
+          <ol id="flow-steps" class="flow-steps"></ol>
+          <div class="flow-timings">
+            <h3>Timings of the last run</h3>
+            <p class="how-intro">
+              The browser records these times. Steps 7 and 8 run on the
+              servers, so they are in one row with steps 9 and 10. The page
+              keeps the times only in memory.
+            </p>
+            <table class="timings-table">
+              <thead>
+                <tr><th scope="col">Step</th><th scope="col">Local time</th><th scope="col">Seconds from previous step</th></tr>
+              </thead>
+              <tbody id="timings-body"></tbody>
+            </table>
+            <md-outlined-button id="clear-timings">Clear timings</md-outlined-button>
+          </div>
+        </section>
+        <div id="playground-panel" class="playground-panel" role="tabpanel" aria-labelledby="tab-play">
         <!-- Message History Container -->
         <div id="messages-container" class="messages-container"></div>
         <!-- Input Area -->
@@ -165,6 +218,7 @@
             <span class="material-symbols-outlined">send</span>
           </md-filled-icon-button>
         </footer>
+        </div>
       </div>
     </div>
 

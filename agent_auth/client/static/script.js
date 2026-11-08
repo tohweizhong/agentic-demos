@@ -19,6 +19,294 @@ $(function() {
 
   let currentSessionId = null;
 
+  // ==========================================================================
+  // agentic-demos change: 3LO flow view, step highlight, timings, loading
+  // states, and a robust resume after consent.
+  // ==========================================================================
+
+  // Parties in the diagram, left to right.
+  const FLOW_PARTIES = [
+    {id: 'user', name: 'User', sub: '(browser)'},
+    {id: 'client', name: 'Demo client', sub: '(Cloud Run + IAP)'},
+    {id: 'agent', name: 'Agent', sub: '(Agent Runtime, SPIFFE ID)'},
+    {id: 'am', name: 'Auth Manager', sub: '(agentidentity)'},
+    {id: 'gh', name: 'GitHub', sub: '(consent + token)'},
+    {id: 'mcp', name: 'GitHub MCP', sub: '(server)'},
+  ];
+
+  // The 12 steps of the flow. "from" and "to" are party IDs.
+  const FLOW_STEPS = [
+    {n: 1, from: 'user', to: 'client', text: 'User sends prompt (IAP login gives user ID)'},
+    {n: 2, from: 'client', to: 'agent', text: 'Client calls agent stream_query'},
+    {n: 3, from: 'agent', to: 'am', text: 'Agent asks Auth Manager for a token for this user (no token yet)'},
+    {n: 4, from: 'agent', to: 'client', text: 'Agent returns adk_request_credential (consent URL + nonce)'},
+    {n: 5, from: 'client', to: 'gh', text: 'Client opens popup to GitHub consent. Nonce kept in a cookie'},
+    {n: 6, from: 'user', to: 'gh', text: 'User approves on github.com (password only on GitHub)'},
+    {n: 7, from: 'gh', to: 'am', text: 'GitHub sends the code to the Auth Manager redirectUrl (not to the client)'},
+    {n: 8, from: 'am', to: 'am', text: 'Auth Manager swaps code for token, stores it in its vault'},
+    {n: 9, from: 'am', to: 'client', text: 'Browser goes to the client continue_uri /validateUserId'},
+    {n: 10, from: 'client', to: 'am', text: 'Client calls credentials:finalize with validation state + nonce'},
+    {n: 11, from: 'agent', to: 'mcp', text: 'Agent gets the token from Auth Manager and calls the GitHub MCP server'},
+    {n: 12, from: 'agent', to: 'user', text: 'Answer streams back to the user'},
+  ];
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const svgEl = (tag, attrs, text) => {
+    const el = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+    if (text !== undefined) el.textContent = text;
+    return el;
+  };
+
+  // Draws the flow as an inline SVG sequence diagram, and the text list.
+  const buildFlowDiagram = () => {
+    const colW = 160;
+    const left = 80;
+    const top = 70;
+    const rowH = 40;
+    const width = left * 2 + colW * (FLOW_PARTIES.length - 1);
+    const height = top + rowH * FLOW_STEPS.length + 40;
+    const x = {};
+    FLOW_PARTIES.forEach((p, i) => { x[p.id] = left + i * colW; });
+
+    const svg = svgEl('svg', {
+      viewBox: `0 0 ${width} ${height}`, role: 'img',
+      'aria-labelledby': 'flow-title flow-desc', class: 'flow-svg'});
+    svg.appendChild(svgEl('title', {id: 'flow-title'}, '3LO flow diagram'));
+    svg.appendChild(svgEl('desc', {id: 'flow-desc'},
+        'Sequence diagram with six parties and twelve numbered steps. ' +
+        'The list under the diagram has the same steps as text.'));
+    const defs = svgEl('defs');
+    ['normal', 'active'].forEach((kind) => {
+      const marker = svgEl('marker', {
+        id: `arrow-${kind}`, viewBox: '0 0 10 10', refX: '9', refY: '5',
+        markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse'});
+      marker.appendChild(svgEl('path', {d: 'M0,0 L10,5 L0,10 z', class: `arrow-head-${kind}`}));
+      defs.appendChild(marker);
+    });
+    svg.appendChild(defs);
+
+    FLOW_PARTIES.forEach((p) => {
+      svg.appendChild(svgEl('line', {
+        x1: x[p.id], y1: top - 10, x2: x[p.id], y2: height - 10, class: 'lifeline'}));
+      svg.appendChild(svgEl('rect', {
+        x: x[p.id] - 70, y: 6, width: 140, height: 46, rx: 8, class: 'party-box'}));
+      svg.appendChild(svgEl('text', {x: x[p.id], y: 25, class: 'party-name'}, p.name));
+      svg.appendChild(svgEl('text', {x: x[p.id], y: 42, class: 'party-sub'}, p.sub));
+    });
+
+    FLOW_STEPS.forEach((s, i) => {
+      const y = top + rowH * i + 20;
+      const g = svgEl('g', {class: 'flow-step', id: `flow-step-${s.n}`});
+      if (s.from === s.to) {
+        const x0 = x[s.from];
+        g.appendChild(svgEl('path', {
+          d: `M${x0},${y - 8} h40 v16 h-38`, class: 'step-line', fill: 'none',
+          'marker-end': 'url(#arrow-normal)'}));
+        g.appendChild(svgEl('text', {x: x0 + 48, y: y + 4, class: 'step-label', 'text-anchor': 'start'},
+            `${s.n}. ${s.text}`));
+      } else {
+        const x1 = x[s.from];
+        const x2 = x[s.to];
+        const dir = x2 > x1 ? 1 : -1;
+        g.appendChild(svgEl('line', {
+          x1: x1 + dir * 4, y1: y, x2: x2 - dir * 4, y2: y, class: 'step-line',
+          'marker-end': 'url(#arrow-normal)'}));
+        const midX = (x1 + x2) / 2;
+        g.appendChild(svgEl('text', {x: midX, y: y - 6, class: 'step-label'},
+            `${s.n}. ${s.text}`));
+      }
+      // Text marker, so that the highlight does not depend on color only.
+      g.appendChild(svgEl('text', {x: 8, y: y + 4, class: 'step-now', 'text-anchor': 'start'}, 'NOW'));
+      svg.appendChild(g);
+    });
+
+    $('#flow-diagram').empty().append(svg);
+
+    const $list = $('#flow-steps').empty();
+    FLOW_STEPS.forEach((s) => {
+      $list.append($('<li>').attr('id', `flow-item-${s.n}`).attr('value', s.n).text(s.text));
+    });
+  };
+
+  const STEP_NAMES = {
+    '1,2': 'Prompt sent',
+    '4,5': 'Consent request received',
+    '6': 'Waiting for approval on GitHub',
+    '7,8,9,10': 'GitHub redirect, token stored, finalize',
+    '11': 'Agent calls GitHub with the token',
+    '12': 'Answer received',
+  };
+  let currentSteps = [];
+
+  // Highlights the given step numbers in the diagram and the list.
+  const setStep = (steps, label) => {
+    currentSteps = steps;
+    $('.flow-step').removeClass('active');
+    $('#flow-steps li').removeAttr('aria-current').removeClass('active');
+    steps.forEach((n) => {
+      $(`#flow-step-${n}`).addClass('active');
+      $(`#flow-item-${n}`).attr('aria-current', 'step').addClass('active');
+    });
+    const name = label || STEP_NAMES[steps.join(',')] || '';
+    $('#step-chip').text(steps.length ?
+        `3LO step ${steps.join('-')}: ${name}` : `3LO step: ${label || 'none'}`);
+  };
+
+  // ---- Timings of the last run. Browser memory only. ----
+  const TIMING_EVENTS = [
+    {key: 'send', label: 'Steps 1-2: prompt sent'},
+    {key: 'credential', label: 'Steps 3-4: consent request received'},
+    {key: 'popup', label: 'Steps 5-6: popup opened'},
+    {key: 'validated', label: 'Steps 7-10: GitHub redirect, token stored, finalize'},
+    {key: 'resume', label: 'Step 11: resume sent to the agent'},
+    {key: 'firstText', label: 'Step 12: first answer text'},
+    {key: 'lastText', label: 'Step 12: last answer text'},
+  ];
+  let timings = {};
+
+  const fmtLocal = (ms) => {
+    const d = new Date(ms);
+    const t = d.toLocaleTimeString('en-GB', {hour12: false});
+    const zonePart = new Intl.DateTimeFormat(undefined, {timeZoneName: 'short'})
+        .formatToParts(d).find((p) => p.type === 'timeZoneName');
+    return `${t}${zonePart ? ' ' + zonePart.value : ''}`;
+  };
+
+  const renderTimings = () => {
+    const $body = $('#timings-body').empty();
+    let prev = null;
+    let first = null;
+    let last = null;
+    TIMING_EVENTS.forEach((e) => {
+      const t = timings[e.key];
+      if (t === undefined) return;
+      if (first === null) first = t;
+      last = t;
+      const delta = prev === null ? '-' : ((t - prev) / 1000).toFixed(1);
+      $body.append($('<tr>')
+          .append($('<td>').text(e.label))
+          .append($('<td>').text(fmtLocal(t)))
+          .append($('<td>').text(delta)));
+      prev = t;
+    });
+    if (first === null) {
+      $body.append($('<tr>').append($('<td>').attr('colspan', 3)
+          .text('No run yet. Send a message in the Playground.')));
+    } else {
+      $body.append($('<tr>').addClass('timings-total')
+          .append($('<td>').text('Total'))
+          .append($('<td>').text(''))
+          .append($('<td>').text(((last - first) / 1000).toFixed(1))));
+    }
+  };
+
+  const markTiming = (key, overwrite = false) => {
+    if (overwrite || timings[key] === undefined) {
+      timings[key] = Date.now();
+      renderTimings();
+    }
+  };
+
+  // ---- Loading states in the chat. ----
+  const waitTimers = new Set();
+  const clearWaits = () => {
+    waitTimers.forEach((t) => clearTimeout(t));
+    waitTimers.clear();
+    $('.wait-indicator').remove();
+  };
+  const showWait = ($container, kind, text) => {
+    const $w = $('<div>').addClass('wait-indicator')
+                   .attr({'role': 'status', 'aria-live': 'polite'});
+    if (kind === 'dots') {
+      $w.append($('<span>').addClass('typing-dots').attr('aria-hidden', 'true')
+          .append('<span></span><span></span><span></span>'));
+    } else {
+      $w.append($('<span>').addClass('material-symbols-outlined icon-spin')
+          .attr('aria-hidden', 'true').text('sync'));
+    }
+    $w.append($('<span>').addClass('wait-text').text(text));
+    $container.append($w);
+    const timer = setTimeout(() => {
+      $w.append($('<div>').addClass('wait-hint')
+          .text('This can take up to 2 minutes on the first run.'));
+      waitTimers.delete(timer);
+    }, 30000);
+    waitTimers.add(timer);
+    $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
+    return $w;
+  };
+
+  // ---- Resume after consent, exactly once. ----
+  // The resume starts when the first of these signals arrives:
+  // - a message from the /validateUserId page (BroadcastChannel,
+  //   window.postMessage, or a localStorage "storage" event),
+  // - the popup window is closed.
+  let pendingAuth = null;
+  // Each chat request gets a number. Only the latest request clears the
+  // loading states when its stream ends.
+  let latestRequestId = 0;
+
+  const completeAuth = (source) => {
+    if (!pendingAuth || pendingAuth.done) return;
+    pendingAuth.done = true;
+    clearInterval(pendingAuth.timer);
+    const resume = pendingAuth.resume;
+    pendingAuth = null;
+    console.log(`Consent complete (signal: ${source}). Resuming once.`);
+    resume();
+  };
+
+  const isAuthMessage = (data) => data && data.type === 'agent-auth-complete';
+  try {
+    const channel = new BroadcastChannel('agent-auth');
+    channel.onmessage = (e) => { if (isAuthMessage(e.data)) completeAuth('broadcast'); };
+  } catch (e) {
+    console.warn('BroadcastChannel is not available.');
+  }
+  window.addEventListener('message', (e) => {
+    if (e.origin === window.location.origin && isAuthMessage(e.data)) {
+      completeAuth('postMessage');
+    }
+  });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'agent-auth-complete') completeAuth('storage');
+  });
+
+  // ---- Tabs. ----
+  const selectTab = (which) => {
+    const isHow = which === 'how';
+    $('#tab-play').attr({'aria-selected': String(!isHow), 'tabindex': isHow ? '-1' : '0'});
+    $('#tab-how').attr({'aria-selected': String(isHow), 'tabindex': isHow ? '0' : '-1'});
+    $('#how-panel').prop('hidden', !isHow);
+    $('#playground-panel').prop('hidden', isHow);
+  };
+  $('#tab-play').on('click', () => selectTab('play'));
+  $('#tab-how').on('click', () => selectTab('how'));
+  $('.tabs').on('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const toHow = $('#tab-play').attr('aria-selected') === 'true';
+      selectTab(toHow ? 'how' : 'play');
+      $(toHow ? '#tab-how' : '#tab-play').trigger('focus');
+    }
+  });
+  $('#open-demo-controls').on('click', (e) => {
+    e.preventDefault();
+    const details = document.getElementById('demo-controls');
+    if (details) {
+      details.open = true;
+      details.scrollIntoView({behavior: 'smooth'});
+      $('#demo-reset-btn').trigger('focus');
+    }
+  });
+  $('#clear-timings').on('click', () => {
+    timings = {};
+    renderTimings();
+  });
+
+  buildFlowDiagram();
+  renderTimings();
+
   /**
    * Updates the active agent profile information panel in the sidebar
    * based on the currently selected agent mode, local or remote parameters.
@@ -403,10 +691,19 @@ $(function() {
       $contentDiv = $agentMessageDiv.find('.message-content');
       isFirstEvent = false;
     } else {
-      $agentMessageDiv = appendMessage(
-          '<div class="agent-loader"><span class="material-symbols-outlined icon-spin">sync</span> Thinking...</div>',
-          'agent-message');
+      $agentMessageDiv = appendMessage('', 'agent-message');
       $contentDiv = $agentMessageDiv.find('.message-content');
+    }
+
+    // agentic-demos change: loading state, step highlight, and timing.
+    const requestId = ++latestRequestId;
+    if (!isAuthResume) {
+      clearWaits();
+      pendingAuth = null;
+      timings = {};
+      markTiming('send');
+      setStep([1, 2]);
+      showWait($contentDiv, 'dots', 'The agent is working...');
     }
 
     const agentType = $('#agent-type-select').val() || 'remote';
@@ -467,6 +764,14 @@ $(function() {
             errorDetail}`);
       }
 
+      if (isAuthResume) {
+        markTiming('resume');
+        // Show steps 7-10 for a short time before step 11.
+        setTimeout(() => {
+          if (currentSteps.join(',') === '7,8,9,10') setStep([11]);
+        }, 1200);
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
@@ -497,6 +802,7 @@ $(function() {
               }
 
               if (isFirstEvent) {
+                clearWaits();
                 $contentDiv.empty();
                 isFirstEvent = false;
               }
@@ -509,29 +815,53 @@ $(function() {
                 const currentUserId = $('#user-id').val();
                 document.cookie =
                     `consent_user_id=${currentUserId}; path=/; samesite=lax`;
+                // agentic-demos change: resume exactly once, on the first
+                // completion signal (see completeAuth), or when the popup
+                // closes.
+                clearWaits();
+                markTiming('credential');
+                setStep([4, 5]);
+                pendingAuth = {
+                  done: false,
+                  timer: null,
+                  resume: () => {
+                    clearWaits();
+                    markTiming('validated');
+                    setStep([7, 8, 9, 10]);
+                    $contentDiv.append(
+                        '<br><em>Authentication complete. Resuming session...</em><br>');
+                    showWait($contentDiv, 'spinner', 'Getting your data from GitHub...');
+                    executeChatRequest(
+                        '', true, data.auth_request_function_call_id,
+                        data.auth_config, $agentMessageDiv[0]);
+                  },
+                };
+                const thisAuth = pendingAuth;
                 const popup = window.open(data.popup_auth_uri, '_blank');
                 if (popup) {
-                  const timer = setInterval(() => {
-                    if (popup.closed) {
-                      clearInterval(timer);
-                      $contentDiv.append(
-                          '<br><em>Authentication complete. Resuming session...</em><br>');
-                      $messagesContainer.scrollTop(
-                          $messagesContainer.prop('scrollHeight'));
-                      executeChatRequest(
-                          '', true, data.auth_request_function_call_id,
-                          data.auth_config, $agentMessageDiv[0]);
+                  markTiming('popup');
+                  setTimeout(() => {
+                    if (pendingAuth === thisAuth) setStep([6]);
+                  }, 1500);
+                  thisAuth.timer = setInterval(() => {
+                    if (popup.closed && pendingAuth === thisAuth) {
+                      completeAuth('popup closed');
                     }
                   }, 500);
                 }
                 $contentDiv.append(
                     `<span>Please log in to complete authorization in the popup. <a href="${
                         data.popup_auth_uri}" target="_blank">Open login window manually.</a></span>`);
+                showWait($contentDiv, 'spinner',
+                         'Waiting for your approval in the GitHub window...');
               }
 
               const errorMsg = data.error || data.error_message ||
                   data.errorMessage || data.error_code || data.errorCode;
               if (errorMsg) {
+                clearWaits();
+                pendingAuth = null;
+                setStep([], 'stopped on an error');
                 const $err = $('<div>')
                                  .addClass('error-header')
                                  .text(`Error: ${errorMsg}`);
@@ -547,6 +877,10 @@ $(function() {
               } else if (data.content && data.content.parts) {
                 data.content.parts.forEach(part => {
                   if (part.text) {
+                    clearWaits();
+                    markTiming('firstText');
+                    markTiming('lastText', true);
+                    setStep([12]);
                     $contentDiv.append(
                         $('<div>').html(formatAgentText(part.text)));
                   }
@@ -565,8 +899,14 @@ $(function() {
           }
         }
       }
+      // agentic-demos change: the stream ended. Keep the consent spinner
+      // only while the consent is pending.
+      if (!pendingAuth && requestId === latestRequestId) clearWaits();
     } catch (error) {
       console.error('Error during query stream processing:', error);
+      clearWaits();
+      pendingAuth = null;
+      setStep([], 'stopped on an error');
       if (isFirstEvent) {
         $contentDiv.empty();
       }
