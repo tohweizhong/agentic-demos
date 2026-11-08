@@ -193,3 +193,76 @@ def test_folded_card_opens_again(new_page, stats):  # pylint: disable=unused-arg
   assert cards.count() == 5
   assert cards.nth(3).locator(".step-fold").is_visible()
   assert "✓ Step 4:" in cards.nth(3).locator(".step-fold").inner_text()
+
+
+# ---- Phase 3: split view, strip, and compact diagram (L4, L5, L6) ----
+COMPACT = "#compact-flow"
+
+
+def _step_on(page):
+  if not page.is_checked("#step-mode-switch"):
+    page.click(".step-switch")
+  page.wait_for_timeout(300)
+
+
+def test_split_view_at_1280(new_page):
+  """L4: chat on the left, compact diagram on the right, short labels."""
+  page = new_page(1280, 800)
+  _step_on(page)
+  compact = page.locator(COMPACT)
+  assert compact.is_visible()
+  chat = page.locator("#messages-container").bounding_box()
+  box = compact.bounding_box()
+  assert box["x"] >= chat["x"] + chat["width"] - 1
+  svg = page.locator(f"{COMPACT} svg.compact-svg")
+  assert svg.is_visible()
+  assert svg.locator(".flow-step").count() == 12
+  labels = svg.locator(".step-label").all_text_contents()
+  assert "4 Consent request" in labels
+  assert page.locator("#user-input").is_visible()
+
+
+def test_strip_at_1024(new_page):
+  """L5: on a narrow screen, the compact diagram is a strip above the chat."""
+  page = new_page(1024, 700)
+  _step_on(page)
+  strip = page.locator(f"{COMPACT} .compact-strip")
+  assert strip.is_visible()
+  assert not page.locator(f"{COMPACT} svg.compact-svg").is_visible()
+  chat = page.locator("#messages-container").bounding_box()
+  box = strip.bounding_box()
+  assert box["y"] + box["height"] <= chat["y"] + 1
+  assert strip.locator("li").count() == 12
+  assert "4 Consent request" in strip.locator("li").all_inner_texts()
+  assert page.locator("#user-input").is_visible()
+
+
+def test_marked_arrow_follows_each_card(new_page, stats):  # pylint: disable=unused-argument
+  """L4: the marked arrow follows each card, in the compact view and the tab."""
+  page = new_page(1280, 800)
+  _step_on(page)
+  page.fill("#user-input", "token")
+  page.press("#user-input", "Enter")
+  page.wait_for_selector(CARD, timeout=5000)
+  for n in range(1, 13):
+    if n > 1:
+      _click_next(page)
+    marked = page.locator(f"{COMPACT} .flow-step.active")
+    assert marked.count() == 1
+    assert marked.get_attribute("data-flow-step") == str(n)
+    assert page.locator(f"#flow-step-{n}.active").count() == 1
+    strip_marked = page.locator(f"{COMPACT} .compact-strip li.active")
+    assert strip_marked.get_attribute("aria-current") == "step"
+    assert strip_marked.get_attribute("data-flow-step") == str(n)
+
+
+def test_no_compact_diagram_with_step_mode_off(new_page):
+  """L6: with Step mode off, there is no compact diagram."""
+  page = new_page(1280, 800)
+  assert not page.is_checked("#step-mode-switch")
+  assert not page.locator(COMPACT).is_visible()
+  _step_on(page)
+  assert page.locator(COMPACT).is_visible()
+  page.click(".step-switch")
+  page.wait_for_timeout(300)
+  assert not page.locator(COMPACT).is_visible()
