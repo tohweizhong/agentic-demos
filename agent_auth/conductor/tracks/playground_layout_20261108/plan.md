@@ -15,13 +15,13 @@
   - [x] Add the presentation mode button with `aria-expanded` and
         `aria-controls`, and store the state in localStorage.
   - [x] Run all browser tests. All must pass.
-- [~] Task: Write failing tests for the "Auth Manager" tab (L7, added on 08 Nov 20:18 SGT)
-  - [ ] The tab exists after "How 3LO works", has role=tab, and opens with
+- [x] Task: Write failing tests for the "Auth Manager" tab (L7, added on 08 Nov 20:18 SGT) b184749
+  - [x] The tab exists after "How 3LO works", has role=tab, and opens with
         the keyboard.
-  - [ ] The panel shows all sections, with headings and the two tables, and
+  - [x] The panel shows all sections, with headings and the two tables, and
         the footer.
-  - [ ] Opening the tab makes no network request.
-- [ ] Task: Implement the "Auth Manager" tab
+  - [x] Opening the tab makes no network request.
+- [~] Task: Implement the "Auth Manager" tab
   - [ ] Add the third tab and a static panel with the approved text.
   - [ ] Make the tab code work for three tabs (click and arrow keys).
   - [ ] Add an in-page link to Demo controls.
