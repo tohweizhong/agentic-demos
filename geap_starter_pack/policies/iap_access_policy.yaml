@@ -1,0 +1,27 @@
+# IAP access policy (policy version V2) for agent egress through the Agent Gateway.
+#
+# Allows: the reference agent can call every destination that is registered in
+#         Agent Registry in the region of the mini build. This includes the Google
+#         API endpoints and the sample MCP server.
+# Denies: the reference agent cannot call the update_status tool. Deny rules are
+#         evaluated before allow rules.
+# Mode:   set by iap_enforcement_mode in terraform.tfvars. DRY_RUN logs the
+#         decision in the IAP Data Access audit log and does not block. ENFORCE blocks.
+#
+# Terraform replaces ${region} and sets the principal to the reference agent.
+# The permission for every rule is iap.googleapis.com/resources.egressViaIAP.
+
+access_policy_id: geap-agent-egress
+display_name: GEAP mini build agent egress
+
+rules:
+  - description: Allow registered destinations in the region.
+    effect: ALLOW
+    expression: >-
+      destination.is_registered == true &&
+      destination.agent_registry.location == '${region}'
+
+  - description: Deny the write tool on the sample MCP server.
+    effect: DENY
+    expression: >-
+      destination.agent_registry.mcp_server.tool.name == 'update_status'

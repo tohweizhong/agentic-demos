@@ -1,0 +1,31 @@
+# Model Armor settings for the Agent Gateway (CONTENT_AUTHZ).
+#
+# Allows: prompts and tool responses that pass the filters below.
+# Denies: content that matches a filter at the given confidence level. With
+#         INSPECT_AND_BLOCK, the gateway blocks the content.
+# Mode:   enforcement_type. INSPECT_ONLY logs the finding and does not block.
+#
+# Terraform uses these settings for two templates: one for requests and one for
+# responses.
+
+enforcement_type: INSPECT_AND_BLOCK
+
+prompt_injection_and_jailbreak:
+  enforcement: ENABLED
+  confidence_level: MEDIUM_AND_ABOVE
+
+malicious_uri:
+  enforcement: ENABLED
+
+sensitive_data_protection_basic:
+  enforcement: ENABLED
+
+responsible_ai:
+  - filter_type: DANGEROUS
+    confidence_level: MEDIUM_AND_ABOVE
+  - filter_type: HARASSMENT
+    confidence_level: MEDIUM_AND_ABOVE
+  - filter_type: HATE_SPEECH
+    confidence_level: MEDIUM_AND_ABOVE
+  - filter_type: SEXUALLY_EXPLICIT
+    confidence_level: MEDIUM_AND_ABOVE

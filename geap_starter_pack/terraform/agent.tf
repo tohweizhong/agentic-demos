@@ -1,0 +1,83 @@
+# Component 4 (reference agent): the ADK agent on Agent Runtime with Agent
+# Identity, Sessions, and the egress gateway binding. The binding is in
+# Terraform, so that the security owner controls it.
+
+locals {
+  agent_archive_path = "${path.module}/${var.agent_source_archive}"
+}
+
+resource "google_vertex_ai_reasoning_engine" "agent" {
+  project      = var.project_id
+  region       = var.region
+  display_name = "${var.name_prefix}-reference-agent"
+  description  = "Reference agent of the GEAP starter pack mini build."
+  labels       = local.labels
+
+  # Delete the agent together with its sessions.
+  deletion_policy = "FORCE"
+
+  spec {
+    agent_framework = "google-adk"
+    identity_type   = "AGENT_IDENTITY"
+    class_methods   = jsonencode(jsondecode(file("${path.module}/adk_class_methods.json")))
+
+    source_code_spec {
+      inline_source {
+        source_archive = fileexists(local.agent_archive_path) ? filebase64(local.agent_archive_path) : null
+      }
+
+      # Container deploy: Agent Runtime builds ../agent-template/Dockerfile.
+      # With an egress gateway, use this path. The python_spec path failed: the
+      # Agent Runtime start-up gRPC call did not trust the gateway root CA.
+      image_spec {
+        build_args = {
+          AGENT_GATEWAY_ROOT_CERTIFICATES = join("\n", google_network_services_agent_gateway.egress.agent_gateway_card[0].root_certificates)
+        }
+      }
+    }
+
+    deployment_spec {
+      min_instances = 1
+      max_instances = 2
+
+      agent_gateway_config {
+        agent_to_anywhere_config {
+          agent_gateway = google_network_services_agent_gateway.egress.id
+        }
+      }
+
+      env {
+        name  = "MCP_SERVER_URL"
+        value = "${google_cloud_run_v2_service.mcp.uri}/mcp"
+      }
+      env {
+        name  = "MCP_INVOKER_SERVICE_ACCOUNT"
+        value = google_service_account.mcp_invoker.email
+      }
+      env {
+        name  = "MODEL_ID"
+        value = var.model_id
+      }
+      env {
+        name  = "MODEL_LOCATION"
+        value = var.model_location
+      }
+      # The Dockerfile installs the gateway root CA and sets SSL_CERT_FILE,
+      # REQUESTS_CA_BUNDLE, and GRPC_DEFAULT_SSL_ROOTS_FILE_PATH.
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = fileexists(local.agent_archive_path)
+      error_message = "The agent source archive is missing. Run scripts/package_agent.sh first."
+    }
+  }
+
+  depends_on = [
+    google_project_service.this,
+    google_network_security_authz_policy.iap,
+    # The container needs the base roles when it starts.
+    google_project_iam_member.agent_base,
+  ]
+}

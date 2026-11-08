@@ -1,0 +1,14 @@
+# Copy this file to terraform.tfvars and put the real values there.
+# terraform.tfvars is gitignored. Never commit real IDs.
+
+project_id      = "PROJECT_ID"
+project_number  = "PROJECT_NUMBER"
+organization_id = "ORG_ID"
+region          = "us-central1"
+
+# Start in DRY_RUN. Change to ENFORCE in step 6 of the demo.
+iap_enforcement_mode = "DRY_RUN"
+
+# Set to true only if the organization uses domain restricted sharing and the
+# organization admin approves the project-level exception.
+allow_google_managed_members = false

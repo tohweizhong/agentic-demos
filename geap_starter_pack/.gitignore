@@ -1,0 +1,19 @@
+# Terraform state, plans, and real settings
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfplan
+terraform/tfplan*
+terraform/terraform.tfvars
+terraform/crash.log
+terraform/build/
+
+# Python
+agent-template/.venv/
+agent-template/.coverage
+agent-template/htmlcov/
+__pycache__/
+
+# Go
+mcp-server/coverage.out
+mcp-server/mcp-server
