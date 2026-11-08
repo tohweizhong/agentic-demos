@@ -36,6 +36,8 @@ def base_url():
   env = dict(os.environ)
   env.setdefault("GOOGLE_CLOUD_PROJECT", "test-project")
   env.setdefault("GOOGLE_CLOUD_LOCATION", "us-central1")
+  env.setdefault("INGRESS_AGENT_ID", "ingress-engine-test")
+  env.setdefault("EGRESS_AGENT_ID", "egress-engine-test")
   proc = subprocess.Popen(
       [sys.executable, os.path.join(TESTS_DIR, "fake_agent_server.py"),
        "--port", str(port)],

@@ -896,17 +896,19 @@ $(function() {
   });
 
   // ---- Tabs. ----
-  // agentic-demos change: three tabs (Playground, How 3LO works, Auth
-  // Manager). Each entry is [tab name, tab button ID, panel ID].
+  // agentic-demos change: five tabs (Playground, How 3LO works, Auth
+  // Manager, Ingress gateway, Egress gateway).
   const TABS = [
     ['play', '#tab-play', '#playground-panel'],
     ['how', '#tab-how', '#how-panel'],
     ['auth', '#tab-auth-manager', '#auth-manager-panel'],
+    ['ingress', '#tab-ingress', '#ingress-panel'],
+    ['egress', '#tab-egress', '#egress-panel'],
   ];
 
   /**
    * Shows one tab and hides the other tabs.
-   * @param {string} which The tab name: 'play', 'how', or 'auth'.
+   * @param {string} which The tab name.
    */
   const selectTab = (which) => {
     TABS.forEach(([name, tabId, panelId]) => {
@@ -914,6 +916,10 @@ $(function() {
       $(tabId).attr({'aria-selected': String(selected), 'tabindex': selected ? '0' : '-1'});
       $(panelId).prop('hidden', !selected);
     });
+    if ((which === 'ingress' || which === 'egress') &&
+        !$(`#${which}-log-table table`).length) {
+      fetchGatewayLogs(which);
+    }
   };
   TABS.forEach(([name, tabId]) => {
     $(tabId).on('click', () => selectTab(name));
@@ -1276,9 +1282,275 @@ $(function() {
     }
   };
 
+  // ---- Gateway tabs (track gateway_tabs_20261108). ----
+  const gatewayState = {
+    ingress: {agentId: '', sessionId: null, pollTimer: null, pollEndAt: 0},
+    egress: {agentId: '', sessionId: null, pollTimer: null, pollEndAt: 0},
+  };
+
+  /**
+   * Draws a three-box gateway architecture diagram as inline SVG.
+   * @param {string} prefix ID prefix for SVG elements.
+   * @param {!Array<!Array<string>>} boxes [title, subtitle] for the 3 boxes.
+   * @return {!SVGElement}
+   */
+  const drawGatewaySvg = (prefix, boxes) => {
+    const svg = svgEl('svg', {
+      viewBox: '0 0 460 66', role: 'img',
+      'aria-label': boxes.map((b) => `${b[0]} ${b[1]}`).join(' -> '),
+      class: 'gateway-svg',
+    });
+    const xs = [10, 155, 320];
+    const ws = [115, 135, 130];
+    boxes.forEach(([title, sub], i) => {
+      const bx = xs[i];
+      const bw = ws[i];
+      svg.appendChild(svgEl('rect', {
+        x: bx, y: 8, width: bw, height: 48, rx: 6, class: 'party-box',
+      }));
+      svg.appendChild(svgEl('text', {
+        x: bx + bw / 2, y: 28, class: 'party-name',
+      }, title));
+      svg.appendChild(svgEl('text', {
+        x: bx + bw / 2, y: 44, class: 'party-sub',
+      }, sub));
+      if (i < 2) {
+        const x1 = bx + bw + 4;
+        const x2 = xs[i + 1] - 4;
+        svg.appendChild(svgEl('line', {
+          x1: x1, y1: 32, x2: x2, y2: 32, class: 'step-line',
+        }));
+      }
+    });
+    return svg;
+  };
+
+  $('#ingress-diagram').empty().append(drawGatewaySvg('ing-', [
+    ['Client', '(Browser)'],
+    ['Ingress Gateway', '(Model Armor)'],
+    ['Agent', '(Agent Runtime)'],
+  ]));
+  $('#egress-diagram').empty().append(drawGatewaySvg('egr-', [
+    ['Agent', '(Agent Runtime)'],
+    ['Egress Gateway', '(IAP Policy)'],
+    ['MCP Server', '(Tools)'],
+  ]));
+
+  const renderGatewayLogTable = (kind, rows) => {
+    const $wrap = $(`#${kind}-log-table`).empty();
+    const $table = $('<table>');
+    const $head = $('<tr>');
+    ['Time', 'Decision', 'Target', 'Detail'].forEach((c) => {
+      $head.append($('<th>').attr('scope', 'col').text(c));
+    });
+    $table.append($('<thead>').append($head));
+    const $tbody = $('<tbody>');
+    if (!rows || !rows.length) {
+      $tbody.append($('<tr>').append(
+          $('<td>').attr('colspan', 4).text('No log entries found yet.')));
+    } else {
+      rows.forEach((r) => {
+        const allowed = r.decision === 'Allowed';
+        const $badge = $('<span>')
+            .addClass(`decision-badge ${allowed ? 'state-allowed' : 'state-blocked'}`)
+            .text(allowed ? 'Allowed' : 'Blocked');
+        $tbody.append($('<tr>')
+            .append($('<td>').text(formatTime(r.timestamp)))
+            .append($('<td>').append($badge))
+            .append($('<td>').text(r.target || ''))
+            .append($('<td>').text(r.detail || '')));
+      });
+    }
+    $table.append($tbody);
+    $wrap.append($table);
+  };
+
+  async function fetchGatewayLogs(kind) {
+    try {
+      const resp = await fetch(`/demo/gateway-logs?kind=${kind}`);
+      const data = await resp.json();
+      if (data.command) {
+        $(`#${kind}-gcloud-cmd`).text(`$ ${data.command}`);
+      }
+      renderGatewayLogTable(kind, data.rows || []);
+    } catch (e) {
+      $(`#${kind}-log-status`).text(`Log error: ${e.message}`);
+    }
+  }
+
+  const startGatewayPoll = (kind) => {
+    const st = gatewayState[kind];
+    if (st.pollTimer) clearInterval(st.pollTimer);
+    $(`#${kind}-log-status`).text('Waiting for the log...');
+    const interval = window.GATEWAY_POLL_INTERVAL_MS || 15000;
+    st.pollEndAt = Date.now() + 180000;
+    st.pollTimer = setInterval(() => {
+      fetchGatewayLogs(kind);
+      if (Date.now() >= st.pollEndAt) {
+        clearInterval(st.pollTimer);
+        st.pollTimer = null;
+        $(`#${kind}-log-status`).text('');
+      }
+    }, interval);
+  };
+
+  const resetGatewayChat = (kind) => {
+    const st = gatewayState[kind];
+    st.sessionId = null;
+    if (st.pollTimer) {
+      clearInterval(st.pollTimer);
+      st.pollTimer = null;
+    }
+    $(`#${kind}-log-status`).text('');
+    $(`#${kind}-messages`).html(
+        '<div class="gateway-hint">' +
+        'Click a sample prompt above or type a message below.' +
+        '</div>');
+  };
+
+  const isGatewayBlockedText = (t) => {
+    const s = String(t || '').toLowerCase();
+    return s.includes('mcp session connection lost') ||
+        s.includes('blocked') ||
+        s.includes('cannot provide') ||
+        s.includes('permission denied') ||
+        s.includes('violated');
+  };
+
+  const gatewayBannerText = (kind) => (kind === 'ingress' ?
+      'Blocked by Ingress Gateway (Model Armor): the SDP filter detected ' +
+      'sensitive data (such as a Social Security Number) and blocked the response.' :
+      'Blocked by Egress Gateway (IAP policy): the access policy denied the ' +
+      'outbound MCP tool call (such as send_email) and closed the MCP connection.');
+
+  async function sendGatewayMessage(kind, promptText) {
+    const $input = $(`#${kind}-input`);
+    const $btn = $(`#${kind}-send-btn`);
+    const $msgs = $(`#${kind}-messages`);
+    const text = (promptText !== undefined ? promptText : $input.val()).trim();
+    if (!text) return;
+    $input.val('');
+    $btn.prop('disabled', true);
+
+    const $userDiv = $('<div>').addClass('message user-message')
+        .append($('<div>').addClass('message-content').text(text));
+    $msgs.append($userDiv);
+
+    const $agentDiv = $('<div>').addClass('message agent-message');
+    const $contentDiv = $('<div>').addClass('message-content');
+    $agentDiv.append($contentDiv);
+    $msgs.append($agentDiv);
+    showWait($contentDiv, 'dots', 'The agent is working...');
+    startGatewayPoll(kind);
+
+    const st = gatewayState[kind];
+    const body = {
+      message: text,
+      agent_type: 'remote',
+      project_id: $('#project-id').val() || '',
+      location: $('#location').val() || '',
+      agent_id: st.agentId,
+      user_id: $('#user-id').val() || 'default_user_id',
+    };
+    if (st.sessionId) body.session_id = st.sessionId;
+
+    const addBlockBannerIfNeeded = (raw) => {
+      if (isGatewayBlockedText(raw) &&
+          !$contentDiv.find('.gateway-block-banner').length) {
+        $contentDiv.prepend(
+            $('<div>').addClass('gateway-block-banner state-blocked')
+                .text(gatewayBannerText(kind)));
+      }
+    };
+
+    try {
+      const resp = await fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buf = '';
+      while (true) {
+        const {value, done} = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, {stream: true});
+        while (true) {
+          const end = buf.indexOf('\n\n');
+          if (end === -1) break;
+          const ev = buf.substring(0, end);
+          buf = buf.substring(end + 2);
+          if (!ev.startsWith('data: ')) continue;
+          const data = JSON.parse(ev.substring(6));
+          if (data.session_id) {
+            st.session_id = data.session_id;
+            st.sessionId = data.session_id;
+            continue;
+          }
+          const err = data.error || data.error_message || data.errorMessage;
+          if (err) {
+            $contentDiv.find('.wait-indicator').remove();
+            addBlockBannerIfNeeded(err);
+            $contentDiv.append($('<div>').addClass('error-header').text(`Error: ${err}`));
+            $agentDiv.addClass('error-message');
+          } else if (data.content && data.content.parts) {
+            data.content.parts.forEach((p) => {
+              if (p.text) {
+                $contentDiv.find('.wait-indicator').remove();
+                addBlockBannerIfNeeded(p.text);
+                appendAnswer($contentDiv, p.text);
+              }
+            });
+          } else if (data.text) {
+            $contentDiv.find('.wait-indicator').remove();
+            addBlockBannerIfNeeded(data.text);
+            appendAnswer($contentDiv, data.text);
+          }
+        }
+      }
+      $contentDiv.find('.wait-indicator').remove();
+      finalizeAnswers($contentDiv);
+    } catch (e) {
+      $contentDiv.find('.wait-indicator').remove();
+      addBlockBannerIfNeeded(e.message);
+      $contentDiv.append($('<div>').addClass('error-header').text(`Error: ${e.message}`));
+      $agentDiv.addClass('error-message');
+    }
+    $msgs.scrollTop($msgs.prop('scrollHeight'));
+  }
+
+  ['ingress', 'egress'].forEach((kind) => {
+    resetGatewayChat(kind);
+    $(`#${kind}-panel .sample-prompt`).on('click', function() {
+      sendGatewayMessage(kind, $(this).text());
+    });
+    $(`#${kind}-input`).on('input', function() {
+      $(`#${kind}-send-btn`).prop('disabled', $(this).val().trim() === '');
+    });
+    $(`#${kind}-input`).on('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendGatewayMessage(kind);
+      }
+    });
+    $(`#${kind}-send-btn`).on('click', () => sendGatewayMessage(kind));
+    $(`#${kind}-new-conversation`).on('click', () => resetGatewayChat(kind));
+    $(`#${kind}-refresh-logs`).on('click', () => {
+      $(`#${kind}-log-status`).text('');
+      fetchGatewayLogs(kind);
+    });
+  });
+
   $.getJSON('/demo/config').done((cfg) => {
     if (cfg && cfg.github_app_url) {
       $('#demo-github-link').attr('href', cfg.github_app_url);
+    }
+    if (cfg) {
+      gatewayState.ingress.agentId = cfg.ingressAgentId || '';
+      gatewayState.egress.agentId = cfg.egressAgentId || '';
+      $('#ingress-agent-id').text(gatewayState.ingress.agentId || '-');
+      $('#egress-agent-id').text(gatewayState.egress.agentId || '-');
     }
   });
 

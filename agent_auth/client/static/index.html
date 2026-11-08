@@ -164,6 +164,10 @@
                 aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
               <button type="button" class="tab" role="tab" id="tab-auth-manager"
                 aria-selected="false" aria-controls="auth-manager-panel" tabindex="-1">Auth Manager</button>
+              <button type="button" class="tab" role="tab" id="tab-ingress"
+                aria-selected="false" aria-controls="ingress-panel" tabindex="-1">Ingress gateway</button>
+              <button type="button" class="tab" role="tab" id="tab-egress"
+                aria-selected="false" aria-controls="egress-panel" tabindex="-1">Egress gateway</button>
             </div>
           </div>
           <div class="header-right header-actions">
@@ -316,11 +320,81 @@
           aria-orientation="vertical" aria-controls="compact-flow"
           aria-label="Resize the 3LO diagram. Use the left and right arrow keys."
           aria-valuemin="380" aria-valuemax="560" aria-valuenow="380" tabindex="0"></div>
-        <aside id="compact-flow" class="compact-flow" aria-label="3LO flow, compact view">
-          <div id="compact-diagram" class="compact-diagram"></div>
-          <ol id="compact-strip" class="compact-strip"></ol>
-        </aside>
+          <aside id="compact-flow" class="compact-flow" aria-label="3LO flow, compact view">
+            <div id="compact-diagram" class="compact-diagram"></div>
+            <ol id="compact-strip" class="compact-strip"></ol>
+          </aside>
         </div>
+
+        <!-- agentic-demos change: Ingress gateway tab (G1). -->
+        <section id="ingress-panel" class="gateway-panel" role="tabpanel" aria-labelledby="tab-ingress" hidden>
+          <div class="gateway-chat-col">
+            <div class="gateway-bar">
+              <div class="gateway-meta">
+                <strong>Ingress Gateway (Model Armor)</strong>
+                <span class="gateway-engine">Target engine: <code id="ingress-agent-id">-</code></span>
+              </div>
+              <md-outlined-button id="ingress-new-conversation">New conversation</md-outlined-button>
+            </div>
+            <div class="sample-prompts" aria-label="Sample prompts for Ingress gateway">
+              <button type="button" class="sample-prompt">what are the names of our west customers?</button>
+              <button type="button" class="sample-prompt">what are ssn's for bob johnson and alice brown?</button>
+              <button type="button" class="sample-prompt">what are bob johnson's and alice brown's email addresses?</button>
+            </div>
+            <div id="ingress-messages" class="messages-container"></div>
+            <footer class="input-container">
+              <input type="text" id="ingress-input" placeholder="Send a prompt through the Ingress Gateway..." autocomplete="off" />
+              <md-filled-icon-button id="ingress-send-btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+              </md-filled-icon-button>
+            </footer>
+          </div>
+          <aside class="gateway-decision-col" aria-label="Ingress gateway decisions">
+            <h3>Ingress flow &amp; Model Armor decisions</h3>
+            <div id="ingress-diagram" class="gateway-diagram"></div>
+            <div class="gateway-log-header">
+              <md-outlined-button id="ingress-refresh-logs">Refresh logs</md-outlined-button>
+              <span id="ingress-log-status" class="gateway-log-status" aria-live="polite"></span>
+            </div>
+            <div id="ingress-log-table" class="gateway-log-table"></div>
+            <pre id="ingress-gcloud-cmd" class="demo-output">$ gcloud logging read ...</pre>
+          </aside>
+        </section>
+
+        <!-- agentic-demos change: Egress gateway tab (G2). -->
+        <section id="egress-panel" class="gateway-panel" role="tabpanel" aria-labelledby="tab-egress" hidden>
+          <div class="gateway-chat-col">
+            <div class="gateway-bar">
+              <div class="gateway-meta">
+                <strong>Egress Gateway (IAP Access Policy)</strong>
+                <span class="gateway-engine">Target engine: <code id="egress-agent-id">-</code></span>
+              </div>
+              <md-outlined-button id="egress-new-conversation">New conversation</md-outlined-button>
+            </div>
+            <div class="sample-prompts" aria-label="Sample prompts for Egress gateway">
+              <button type="button" class="sample-prompt">I am reviewing the Sterling family's current application. Can you summarize their 2024 and 2025 tax returns and verify if their total household income meets our 2026 debt-to-income requirements?</button>
+              <button type="button" class="sample-prompt">Can you send a summary of this to my email jane@example.com?</button>
+              <button type="button" class="sample-prompt">Can you read my latest emails from the corporate inbox?</button>
+            </div>
+            <div id="egress-messages" class="messages-container"></div>
+            <footer class="input-container">
+              <input type="text" id="egress-input" placeholder="Send a prompt to test Egress Gateway MCP policy..." autocomplete="off" />
+              <md-filled-icon-button id="egress-send-btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+              </md-filled-icon-button>
+            </footer>
+          </div>
+          <aside class="gateway-decision-col" aria-label="Egress gateway decisions">
+            <h3>Egress flow &amp; IAP policy decisions</h3>
+            <div id="egress-diagram" class="gateway-diagram"></div>
+            <div class="gateway-log-header">
+              <md-outlined-button id="egress-refresh-logs">Refresh logs</md-outlined-button>
+              <span id="egress-log-status" class="gateway-log-status" aria-live="polite"></span>
+            </div>
+            <div id="egress-log-table" class="gateway-log-table"></div>
+            <pre id="egress-gcloud-cmd" class="demo-output">$ gcloud logging read ...</pre>
+          </aside>
+        </section>
       </div>
     </div>
 

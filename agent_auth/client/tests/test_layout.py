@@ -89,7 +89,7 @@ def test_auth_manager_tab(new_page):
   """L7: the Auth Manager tab shows static text and makes no request."""
   page = new_page()
   tabs = page.locator(".tabs [role=tab]")
-  assert tabs.count() == 3
+  assert tabs.count() == 5
   assert tabs.nth(2).inner_text() == "Auth Manager"
   assert tabs.nth(2).get_attribute("role") == "tab"
   # Open it with the keyboard: arrow keys move along the tabs.

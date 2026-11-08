@@ -35,7 +35,33 @@ import uvicorn
 
 import main  # pylint: disable=g-import-not-at-top
 
-STATS = {"chat": 0, "resume": 0, "finalize": 0, "no_session": 0}
+STATS = {
+    "chat": 0,
+    "resume": 0,
+    "finalize": 0,
+    "no_session": 0,
+    "last_agent_id": "",
+    "last_session_id": "",
+}
+
+FAKE_LOGS = {
+    "ingress": [
+        {
+            "timestamp": "2026-11-08T08:38:39.024848689Z",
+            "decision": "Allowed",
+            "target": "User prompt",
+            "detail": "No match (agw-request-template)",
+        }
+    ],
+    "egress": [
+        {
+            "timestamp": "2026-11-08T08:38:00.000000000Z",
+            "decision": "Allowed",
+            "target": "tools/list",
+            "detail": "iap.webServiceVersions.egressViaIAP",
+        }
+    ],
+}
 
 # Markdown answer. It also holds unsafe HTML, to test the sanitizer.
 ANSWER_MD = (
@@ -65,7 +91,9 @@ class FakeCredentialsClient:
 
 main.AuthProviderCredentialsServiceClient = FakeCredentialsClient
 main.app.router.routes = [
-    r for r in main.app.router.routes if getattr(r, "path", "") != "/chat"
+    r
+    for r in main.app.router.routes
+    if getattr(r, "path", "") not in ("/chat", "/demo/gateway-logs")
 ]
 
 
@@ -73,21 +101,118 @@ def _event(obj: dict) -> str:
   return "data: " + json.dumps(obj) + "\n\n"
 
 
+@main.app.get("/demo/gateway-logs")
+async def fake_gateway_logs(kind: str = "ingress"):
+  """Returns fake normalized Cloud Logging entries for browser tests."""
+  rows = list(FAKE_LOGS.get(kind, []))
+  return {
+      "kind": kind,
+      "command": f"gcloud logging read 'fake-{kind}' --project=test-project",
+      "http": "POST https://logging.googleapis.com/v2/entries:list",
+      "status": 200,
+      "rows": rows,
+      "entries": rows,
+  }
+
+
 @main.app.post("/chat")
 async def fake_chat(request: Request):
-  """Sends the 3LO events of the selected scenario as server-sent events."""
+  """Sends the 3LO or gateway events of the selected scenario."""
   body = await request.json()
   STATS["chat"] += 1
   if not body.get("session_id"):
     STATS["no_session"] += 1
+  agent_id = body.get("agent_id") or ""
+  STATS["last_agent_id"] = agent_id
+  STATS["last_session_id"] = body.get("session_id") or ""
   resume = bool(body.get("is_auth_resume"))
   if resume:
     STATS["resume"] += 1
-  words = (body.get("message") or "").split()
+  msg = (body.get("message") or "").strip()
+  msg_lower = msg.lower()
+  words = msg.split()
   mode = words[0] if words else "fast"
 
   async def generate():
-    yield _event({"session_id": f"session-{STATS['chat']}"})
+    session_id = body.get("session_id") or f"session-{STATS['chat']}"
+    yield _event({"session_id": session_id})
+    if agent_id == os.environ.get("INGRESS_AGENT_ID", "ingress-engine-test"):
+      await asyncio.sleep(0.2)
+      if "ssn" in msg_lower:
+        FAKE_LOGS["ingress"].insert(
+            0,
+            {
+                "timestamp": "2026-11-08T08:40:00.000000000Z",
+                "decision": "Blocked",
+                "target": "Model response",
+                "detail": "SDP (SSN)",
+            },
+        )
+        yield _event({
+            "content": {
+                "parts": [{
+                    "text": (
+                        "I cannot provide Social Security Numbers. "
+                        "The response was blocked by the Model Armor filter."
+                    )
+                }]
+            }
+        })
+      else:
+        FAKE_LOGS["ingress"].insert(
+            0,
+            {
+                "timestamp": "2026-11-08T08:39:30.000000000Z",
+                "decision": "Allowed",
+                "target": "User prompt",
+                "detail": "No match (agw-request-template)",
+            },
+        )
+        yield _event({
+            "content": {
+                "parts": [{
+                    "text": "West customers: Bob Johnson and Alice Brown."
+                }]
+            }
+        })
+      return
+
+    if agent_id == os.environ.get("EGRESS_AGENT_ID", "egress-engine-test"):
+      await asyncio.sleep(0.2)
+      if "send" in msg_lower or "jane@example.com" in msg_lower:
+        FAKE_LOGS["egress"].insert(
+            0,
+            {
+                "timestamp": "2026-11-08T08:41:00.000000000Z",
+                "decision": "Blocked",
+                "target": "tools/call: send_email",
+                "detail": "iap.webServiceVersions.egressViaIAP",
+            },
+        )
+        yield _event({
+            "error": "MCP session connection lost while calling send_email",
+        })
+      else:
+        FAKE_LOGS["egress"].insert(
+            0,
+            {
+                "timestamp": "2026-11-08T08:40:30.000000000Z",
+                "decision": "Allowed",
+                "target": "tools/call: read_email",
+                "detail": "iap.webServiceVersions.egressViaIAP",
+            },
+        )
+        yield _event({
+            "content": {
+                "parts": [{
+                    "text": (
+                        "Sterling family 2024 and 2025 tax returns verified."
+                    )
+                }]
+            }
+        })
+      return
+
     await asyncio.sleep(1.5)
     if resume or mode in ("md", "token"):
       yield _event({"content": {"parts": [{"function_call": {
@@ -135,8 +260,26 @@ async def stats():
 @main.app.post("/test/stats/reset")
 async def stats_reset():
   """Sets all request counters to zero."""
-  for key in STATS:
+  for key in ("chat", "resume", "finalize", "no_session"):
     STATS[key] = 0
+  STATS["last_agent_id"] = ""
+  STATS["last_session_id"] = ""
+  FAKE_LOGS["ingress"] = [
+      {
+          "timestamp": "2026-11-08T08:38:39.024848689Z",
+          "decision": "Allowed",
+          "target": "User prompt",
+          "detail": "No match (agw-request-template)",
+      }
+  ]
+  FAKE_LOGS["egress"] = [
+      {
+          "timestamp": "2026-11-08T08:38:00.000000000Z",
+          "decision": "Allowed",
+          "target": "tools/list",
+          "detail": "iap.webServiceVersions.egressViaIAP",
+      }
+  ]
   return STATS
 
 

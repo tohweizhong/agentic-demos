@@ -42,6 +42,7 @@ The client does three things:
 | `static/index.html`, `static/script.js`, `static/style.css` | New "Step mode" switch and step cards. See [Step mode](#step-mode). |
 | `tests/` | New browser tests (fake agent, headless Chrome) and backend unit tests. See [tests/README.md](tests/README.md). |
 | `static/index.html`, `static/script.js`, `static/style.css` | Layout: tabs under the title, a real "Step mode" switch with an On/Off text label, presentation mode, an "Auth Manager" tab, folded step cards, a resizable split view (40% default, 380–560 px) with a compact 3LO diagram, and a unified Google blue colour scheme (red only for warnings and errors, green only for allowed). See [Layout](#layout). |
+| `main.py`, `static/index.html`, `static/script.js`, `static/style.css` | Gateway tabs: "Ingress gateway" (`CLIENT_TO_AGENT` with Model Armor inspection) and "Egress gateway" (`AGENT_TO_ANYWHERE` with IAP access policy on MCP tools). Each tab connects to its own remote agent (`INGRESS_AGENT_ID`, `EGRESS_AGENT_ID`), provides three sample prompts, shows a friendly banner when a gateway blocks a request or tool call, and displays a live Cloud Logging decision panel (`GET /demo/gateway-logs?kind=ingress\|egress`). |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Step mode
