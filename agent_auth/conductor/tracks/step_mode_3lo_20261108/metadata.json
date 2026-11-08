@@ -1,8 +1,8 @@
 {
   "track_id": "step_mode_3lo_20261108",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "description": "Step mode in the Playground: show the live 3LO flow one step at a time, gated by clicks",
   "created_at": "2026-11-08T09:39:00Z",
-  "updated_at": "2026-11-08T09:39:00Z"
+  "updated_at": "2026-11-08T12:12:22Z"
 }
