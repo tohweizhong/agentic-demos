@@ -67,12 +67,12 @@
 
 ## Phase 4: Deploy and real test
 
-- [~] Task: Deploy and verify
+- [x] Task: Deploy and verify eeb1508
   - [x] Coverage of more than 60 percent for the `script.js` changes (95.3 percent of changed code lines).
   - [x] Update `client/README.md` (change list, layout notes). eeb1508
   - [x] Secret scan and hygiene script. Commit and push on the track branch.
-  - [ ] Tell the parent agent before the deploy, and wait for the go-ahead.
-  - [ ] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy
-        logs.
-- [ ] Task: Real browser test on the deployed client, by the user
+  - [x] Tell the parent agent before the deploy, and wait for the go-ahead.
+  - [x] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy
+        logs. (revision agent-auth-client-00009-5v9, upload 74 KB)
+- [~] Task: Real browser test on the deployed client, by the user
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
