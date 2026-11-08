@@ -1,0 +1,1 @@
+Task: Write failing tests for folded cards (layout Phase 2). tests/test_layout.py: test_past_cards_fold_to_one_line, test_folded_card_opens_again. tests/test_step_mode.py: the title and Skipped checks of past cards use text_content(), because folded cards hide their body (the intent of the checks does not change). Red phase: 2 failed.
