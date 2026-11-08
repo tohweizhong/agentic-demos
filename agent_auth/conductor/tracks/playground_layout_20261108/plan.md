@@ -68,9 +68,9 @@
 ## Phase 4: Deploy and real test
 
 - [~] Task: Deploy and verify
-  - [ ] Coverage of more than 60 percent for the `script.js` changes.
-  - [ ] Update `client/README.md` (change list, layout notes).
-  - [ ] Secret scan and hygiene script. Commit and push on the track branch.
+  - [x] Coverage of more than 60 percent for the `script.js` changes (95.3 percent of changed code lines).
+  - [x] Update `client/README.md` (change list, layout notes). eeb1508
+  - [x] Secret scan and hygiene script. Commit and push on the track branch.
   - [ ] Tell the parent agent before the deploy, and wait for the go-ahead.
   - [ ] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy
         logs.
