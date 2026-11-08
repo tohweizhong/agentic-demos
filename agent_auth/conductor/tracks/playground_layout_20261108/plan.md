@@ -91,11 +91,22 @@ Amendment L8 approved at 20:57 SGT.
         and the width stays between 380 px and 560 px.
   - [x] The width persists after reload.
   - [x] At 1024x700 the strip does not change, and the separator does not show.
-- [~] Task: Implement the resizable compact panel (L8)
-  - [ ] Add the separator, the drag and keyboard handlers, and the localStorage
+- [x] Task: Implement the resizable compact panel (L8) 5528dab
+  - [x] Add the separator, the drag and keyboard handlers, and the localStorage
         key.
-  - [ ] Set the width with a CSS variable, so that the strip layout below
+  - [x] Set the width with a CSS variable, so that the strip layout below
         1100 px does not change.
+  - [x] Run all browser tests. All must pass.
+- [~] Task: Write failing tests for the colour scheme (L9, added on 08 Nov 21:02 SGT)
+  - [ ] The main buttons, the tabs, the switch, the step chip, and the links
+        use the main colour. No purple.
+  - [ ] Red only for the "Demo only" label and border, and for errors.
+  - [ ] Contrast check: 4.5:1 for normal text, 3:1 for UI parts.
+- [ ] Task: Implement the colour scheme (L9)
+  - [ ] Add the palette as CSS variables (main, main dark, warning, allowed,
+        and text colours), and the Material web colour variables.
+  - [ ] Use the variables in the header, the cards, the tabs, the strip, and
+        the Demo controls.
   - [ ] Run all browser tests. All must pass.
 - [ ] Task: Deploy and verify the review fix
   - [ ] Coverage, README change list, secret scan, commit and push.

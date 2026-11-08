@@ -33,6 +33,19 @@
   not change. (Added on 08 Nov 2026 at 20:57 SGT after the user test, approved
   by the user.)
 
+- L9 One colour scheme, with CSS variables for the palette. (Added on 08 Nov
+  2026 at 21:02 SGT, approved by the user.)
+  - One main colour, Google blue, for all buttons (also "Save & Apply
+    Settings" and "Load Remote Agents"), the tabs, the Step mode switch, the
+    step chip, and the links.
+  - Red only for warnings: the "Demo only" label and border, errors, and
+    blocked decisions.
+  - Green only for "allowed". The token is defined now, for the later gateway
+    tabs.
+  - Each state also has a text label, not colour only.
+  - All text meets WCAG AA contrast: 4.5:1 for normal text, 3:1 for large text
+    and UI parts.
+
 ## Acceptance criteria
 
 - All existing browser tests pass.
@@ -43,6 +56,9 @@
 - New browser tests for L8: the default width is in range at 1280x800, the
   drag and keyboard resize stay between the minimum and the maximum, the width
   persists after reload, and the strip does not change at 1024x700.
+- New browser test for L9: an automated contrast check for the main buttons,
+  the tabs, the step chip, the links, and the "Demo only" label, and no purple
+  main buttons.
 - A real browser test by the user on the deployed client.
 
 ## Out of scope
