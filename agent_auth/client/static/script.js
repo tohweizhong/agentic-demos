@@ -231,6 +231,75 @@ $(function() {
 
   $('#load-agents-btn').on('click', () => loadRemoteAgents(true));
 
+  // agentic-demos change: Demo controls panel. DEMO ONLY.
+  // The server acts only for the IAP user. The page sends no user ID.
+  const showDemoResult = (data, httpStatus) => {
+    const lines = [];
+    if (data.command) lines.push(`$ ${data.command}`);
+    if (data.http) lines.push(`# ${data.http}`);
+    lines.push(`# HTTP status: ${data.status !== undefined ? data.status : httpStatus}`);
+    lines.push(JSON.stringify(data.response !== undefined ? data.response : data, null, 2));
+    $('#demo-output').text(lines.join('\n'));
+  };
+
+  const shortName = (value) => (value ? String(value).split('/').pop() : '');
+
+  const showSummaryTable = (summaries) => {
+    const $table = $('<table>');
+    const columns = ['userId', 'workloadId', 'authProvider', 'scopes',
+                     'firstAccessTime', 'lastAccessTime'];
+    const $head = $('<tr>');
+    columns.forEach((c) => $head.append($('<th>').text(c)));
+    $table.append($head);
+    summaries.forEach((s) => {
+      const $row = $('<tr>');
+      $row.append($('<td>').text(s.userId || ''));
+      $row.append($('<td>').text(shortName(s.workloadId)));
+      $row.append($('<td>').text(shortName(s.authProvider)));
+      $row.append($('<td>').text((s.scopes || []).join(' ')));
+      $row.append($('<td>').text(s.firstAccessTime || ''));
+      $row.append($('<td>').text(s.lastAccessTime || ''));
+      $table.append($row);
+    });
+    $('#demo-table').empty().append($table);
+  };
+
+  const callDemo = async (method, url) => {
+    $('#demo-output').text(`$ (running ${method} ${url})`);
+    try {
+      const resp = await fetch(url, {method: method});
+      const data = await resp.json();
+      showDemoResult(data, resp.status);
+      return data;
+    } catch (e) {
+      $('#demo-output').text(`# Error: ${e}`);
+      return null;
+    }
+  };
+
+  $.getJSON('/demo/config').done((cfg) => {
+    if (cfg && cfg.github_app_url) {
+      $('#demo-github-link').attr('href', cfg.github_app_url);
+    }
+  });
+
+  $('#demo-reset-btn').on('click', async () => {
+    const userId = $('#user-id').val();
+    if (!confirm(`Reset the Auth Manager consent for ${userId}? ` +
+                 'The agent will ask for consent again.')) {
+      return;
+    }
+    $('#demo-table').empty();
+    await callDemo('POST', '/demo/reset-consent');
+  });
+
+  $('#demo-summary-btn').on('click', async () => {
+    $('#demo-table').empty();
+    const data = await callDemo('GET', '/demo/access-summaries');
+    const summaries = data && data.response && data.response.accessSummaries;
+    if (summaries) showSummaryTable(summaries);
+  });
+
   // Initialize
   loadSettings();
 

@@ -289,3 +289,78 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(60, 64, 67, 0.35);
 }
+
+/* ==========================================================================
+   agentic-demos change: Demo controls panel. DEMO ONLY.
+   ========================================================================== */
+.demo-controls {
+  border: 1px dashed #c5221f;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fff8f7;
+}
+
+.demo-controls summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.demo-controls[open] > *:not(summary) {
+  margin-top: 12px;
+}
+
+.demo-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #c5221f;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.demo-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.demo-output {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Roboto Mono', Consolas, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 10px;
+  border-radius: 6px;
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre;
+}
+
+.demo-output * {
+  font-family: inherit;
+}
+
+.demo-table {
+  overflow-x: auto;
+}
+
+.demo-table table {
+  border-collapse: collapse;
+  font-size: 11px;
+  width: 100%;
+}
+
+.demo-table th,
+.demo-table td {
+  border: 1px solid var(--border-color);
+  padding: 3px 5px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.demo-table th {
+  background-color: var(--sidebar-bg);
+}

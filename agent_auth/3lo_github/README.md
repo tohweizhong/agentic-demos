@@ -93,6 +93,8 @@ user. The agent holds no GitHub secret.
 | Build service account | `roles/cloudbuild.builds.builder` | Project | Cloud Build builds the client image. |
 | IAP service agent | `roles/run.invoker` | Cloud Run service | IAP forwards requests to the client. |
 | `IAP_MEMBER` | `roles/iap.httpsResourceAccessor` | Cloud Run service | The person can open the client. |
+| Client service account | Custom role `agentAuthDemoRevoke` (`agentidentity.authProviders.revokeAuthorizations`) | Auth provider | Demo controls: reset consent. |
+| Client service account | Custom role `agentAuthDemoSummaries` (`agentidentity.accessSummaries.list`) | Project | Demo controls: list access summaries. |
 
 ### Build service account
 
@@ -128,6 +130,22 @@ token. Behind IAP, the client takes the user ID from the email that IAP
 verified (the `X-Goog-Authenticated-User-Email` header). It ignores the form
 value. The chat request and the consent finalize step use the same email, so
 the token belongs to the person who signed in.
+
+## Demo controls
+
+The client has a "Demo controls" panel for presenters. It can reset the Auth
+Manager consent of the signed-in user, and show the access summaries. See the
+[client README](../client/README.md#demo-controls-demo-only). No predefined
+role is small enough for these actions. `03_iam_grants.sh` makes two custom
+roles with one permission each. A production client must not expose these
+actions.
+
+To repeat the full consent flow:
+
+1. In the panel, click **Reset Auth Manager consent**.
+2. In GitHub, open the OAuth app and click **Revoke all user tokens**. GitHub
+   shows its consent page again only after this step.
+3. Send a GitHub question to the agent again.
 
 ## Known limits
 

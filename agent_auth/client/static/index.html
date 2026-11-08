@@ -118,6 +118,30 @@
               </div>
             </div>
           </div>
+
+          <!-- agentic-demos change: Demo controls panel. DEMO ONLY. -->
+          <details id="demo-controls" class="demo-controls">
+            <summary>
+              Demo controls <span class="demo-badge">Demo only</span>
+            </summary>
+            <p class="demo-note">
+              To see the GitHub consent page again, also revoke the GitHub
+              token: open
+              <a id="demo-github-link" href="https://github.com/settings/developers"
+                target="_blank" rel="noopener">GitHub OAuth Apps</a>,
+              select the app, and click "Revoke all user tokens".
+            </p>
+            <md-outlined-button id="demo-reset-btn" class="btn-full">
+              <span class="material-symbols-outlined" slot="icon">restart_alt</span>
+              Reset Auth Manager consent
+            </md-outlined-button>
+            <md-outlined-button id="demo-summary-btn" class="btn-full">
+              <span class="material-symbols-outlined" slot="icon">table_view</span>
+              Show access summary
+            </md-outlined-button>
+            <div id="demo-table" class="demo-table"></div>
+            <pre id="demo-output" class="demo-output">$ </pre>
+          </details>
         </div>
       </div>
 

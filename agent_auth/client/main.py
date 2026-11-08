@@ -167,6 +167,101 @@ async def whoami(http_request: Request):
   return {"iap": user_id is not None, "user_id": user_id}
 
 
+# agentic-demos change: "Demo controls" endpoints. DEMO ONLY.
+# These endpoints let a presenter reset the Auth Manager consent of the
+# signed-in user and show the access summaries. A production client must not
+# expose these actions. Each endpoint acts only for the IAP user, and returns
+# 403 when there is no IAP header. No endpoint runs a shell or a subprocess.
+AGENT_IDENTITY_API = "https://agentidentity.googleapis.com/v1"
+# Full resource name: projects/P/locations/L/authProviders/A
+DEMO_AUTH_PROVIDER_NAME = os.environ.get("AUTH_PROVIDER_NAME", "")
+DEMO_GITHUB_APP_URL = os.environ.get(
+    "GITHUB_APP_URL", "https://github.com/settings/developers"
+)
+
+
+def _demo_call(method: str, url: str, body: dict | None = None):
+  """Calls the Agent Identity API with the client service account."""
+  credentials, _ = google.auth.default(
+      scopes=["https://www.googleapis.com/auth/cloud-platform"]
+  )
+  session = google.auth.transport.requests.AuthorizedSession(credentials)
+  resp = session.request(method, url, json=body, timeout=30)
+  try:
+    data = resp.json()
+  except ValueError:
+    data = {"text": resp.text}
+  return resp.status_code, data
+
+
+def _demo_provider_parts():
+  # projects/P/locations/L/authProviders/A -> (P, L, A)
+  parts = DEMO_AUTH_PROVIDER_NAME.split("/")
+  if len(parts) != 6 or parts[0] != "projects" or parts[4] != "authProviders":
+    return None
+  return parts[1], parts[3], parts[5]
+
+
+@app.get("/demo/config")
+async def demo_config():
+  parts = _demo_provider_parts()
+  return {
+      "github_app_url": DEMO_GITHUB_APP_URL,
+      "auth_provider": parts[2] if parts else None,
+  }
+
+
+@app.post("/demo/reset-consent")
+async def demo_reset_consent(http_request: Request, response: Response):
+  user_id = iap_user_id(http_request)
+  if not user_id:
+    response.status_code = 403
+    return {"error": "Demo controls work only behind IAP."}
+  parts = _demo_provider_parts()
+  if not parts:
+    response.status_code = 500
+    return {"error": "Set AUTH_PROVIDER_NAME on the client."}
+  _, location, provider = parts
+  url = f"{AGENT_IDENTITY_API}/{DEMO_AUTH_PROVIDER_NAME}:revokeAuthorization"
+  status, data = await asyncio.to_thread(
+      _demo_call, "POST", url, {"userId": user_id}
+  )
+  return {
+      "command": (
+          "gcloud alpha agent-identity auth-providers revoke-authorization"
+          f" {provider} --location={location} --user-id={user_id}"
+      ),
+      "http": f"POST {url}",
+      "status": status,
+      "response": data,
+  }
+
+
+@app.get("/demo/access-summaries")
+async def demo_access_summaries(http_request: Request, response: Response):
+  if not iap_user_id(http_request):
+    response.status_code = 403
+    return {"error": "Demo controls work only behind IAP."}
+  parts = _demo_provider_parts()
+  if not parts:
+    response.status_code = 500
+    return {"error": "Set AUTH_PROVIDER_NAME on the client."}
+  project, location, _ = parts
+  url = (
+      f"{AGENT_IDENTITY_API}/projects/{project}/locations/{location}"
+      "/accessSummaries"
+  )
+  status, data = await asyncio.to_thread(_demo_call, "GET", url)
+  return {
+      "command": (
+          f"gcloud agent-identity access-summaries list --location={location}"
+      ),
+      "http": f"GET {url}",
+      "status": status,
+      "response": data,
+  }
+
+
 class ChatRequest(BaseModel):
   message: str = ""
   agent_type: str = "remote"

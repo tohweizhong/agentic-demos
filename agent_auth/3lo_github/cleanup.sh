@@ -5,6 +5,7 @@
 # - The agent AGENT_ID.
 # - The client service account CLIENT_SA_NAME and its project role.
 # - The build service account BUILD_SA_NAME and its project role.
+# - The demo controls custom roles agentAuthDemoRevoke and agentAuthDemoSummaries.
 # - The IAM bindings that this demo added on the auth provider.
 # - The auth provider, only if AUTH_PROVIDER_OWNED_BY_DEMO=true.
 #
@@ -17,6 +18,7 @@ echo "  Agent: ${AGENT_ID:+projects/${PROJECT_ID}/locations/${REGION}/reasoningE
 echo "  Service account: ${CLIENT_SA_EMAIL}"
 [[ -n "${BUILD_SA_NAME:-}" ]] && echo "  Build service account: ${BUILD_SA_EMAIL}"
 echo "  Auth provider bindings for the agent and the client service account"
+echo "  Custom roles: agentAuthDemoRevoke, agentAuthDemoSummaries"
 if [[ "${AUTH_PROVIDER_OWNED_BY_DEMO:-false}" == "true" ]]; then
   echo "  Auth provider: ${AUTH_PROVIDER_NAME}"
 fi
@@ -45,6 +47,15 @@ gcloud agent-identity auth-providers remove-iam-policy-binding "${AUTH_PROVIDER_
   --project="${PROJECT_ID}" --location="${REGION}" \
   --role="roles/agentidentity.user" \
   --member="serviceAccount:${CLIENT_SA_EMAIL}" >/dev/null
+gcloud agent-identity auth-providers remove-iam-policy-binding "${AUTH_PROVIDER_ID}" \
+  --project="${PROJECT_ID}" --location="${REGION}" \
+  --role="projects/${PROJECT_ID}/roles/agentAuthDemoRevoke" \
+  --member="serviceAccount:${CLIENT_SA_EMAIL}" >/dev/null
+gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${CLIENT_SA_EMAIL}" \
+  --role="projects/${PROJECT_ID}/roles/agentAuthDemoSummaries" --condition=None >/dev/null
+gcloud iam roles delete agentAuthDemoRevoke --project="${PROJECT_ID}" --quiet
+gcloud iam roles delete agentAuthDemoSummaries --project="${PROJECT_ID}" --quiet
 gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${CLIENT_SA_EMAIL}" \
   --role="roles/aiplatform.user" --condition=None >/dev/null

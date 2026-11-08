@@ -28,6 +28,8 @@ The client does three things:
 | `main.py` | Behind IAP, `/chat`, `/validateUserId`, and `/commit` take the user ID from the `X-Goog-Authenticated-User-Email` header. They ignore the user ID from the form and from cookies. Without the header, the upstream behaviour applies, and the server logs one warning. |
 | `main.py` | New `/whoami` endpoint. It returns the IAP user email, or `iap: false` when there is no IAP header. |
 | `static/script.js` | The page calls `/whoami`. Behind IAP, it shows the IAP email in the User ID field and disables the field. |
+| `main.py` | New "Demo controls" endpoints: `GET /demo/config`, `POST /demo/reset-consent`, and `GET /demo/access-summaries`. They act only for the IAP user, and return 403 without the IAP header. |
+| `static/index.html`, `static/script.js`, `static/style.css` | New collapsible "Demo controls" panel with a terminal-style output box and an access summary table. |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Security
@@ -54,3 +56,25 @@ export AGENT_ID=YOUR_ENGINE_ID
 
 Open `http://localhost:8080`. Use `localhost`, not `127.0.0.1`. The agent
 continue URI must match the client URL.
+
+## Demo controls (demo only)
+
+The settings sidebar has a collapsible "Demo controls" panel. A presenter
+uses it to repeat the consent flow.
+
+| Control | API call | Equivalent gcloud command |
+|---|---|---|
+| Reset Auth Manager consent | `POST .../authProviders/PROVIDER:revokeAuthorization` with body `{"userId": IAP_EMAIL}` | `gcloud alpha agent-identity auth-providers revoke-authorization PROVIDER --location=LOCATION --user-id=IAP_EMAIL` |
+| Show access summary | `GET .../locations/LOCATION/accessSummaries` | `gcloud agent-identity access-summaries list --location=LOCATION` |
+
+- The server makes the API calls with the client service account. No endpoint
+  runs a shell or a subprocess.
+- The reset acts only for the IAP user. The page cannot send another user ID.
+- The output box shows the command, the HTTP status, and the raw API response.
+- The panel also links to the GitHub OAuth app settings (`GITHUB_APP_URL`).
+  The GitHub token revoke stays manual. GitHub's revoke API needs the user
+  token, and only Auth Manager holds that token.
+
+> [!WARNING]
+> A production client must not expose these actions. The access summary shows
+> the user IDs of all users of the project.

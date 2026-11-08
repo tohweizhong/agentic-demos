@@ -39,6 +39,35 @@ gcloud agent-identity auth-providers add-iam-policy-binding "${AUTH_PROVIDER_ID}
   --role="roles/agentidentity.user" \
   --member="serviceAccount:${CLIENT_SA_EMAIL}" >/dev/null
 
+# Demo controls (DEMO ONLY). Two custom roles, each with one permission.
+# No predefined role is small enough: revokeAuthorizations is only in the
+# editor and admin roles.
+# - agentAuthDemoRevoke on the auth provider: reset consent for a user.
+# - agentAuthDemoSummaries on the project: list access summaries.
+ensure_custom_role() {
+  local role_id="$1" title="$2" permission="$3"
+  if ! gcloud iam roles describe "${role_id}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+    echo "Creating custom role ${role_id}."
+    gcloud iam roles create "${role_id}" --project="${PROJECT_ID}" \
+      --title="${title}" --permissions="${permission}" --stage=GA >/dev/null
+  fi
+}
+ensure_custom_role agentAuthDemoRevoke "Agent auth demo: revoke consent" \
+  agentidentity.authProviders.revokeAuthorizations
+ensure_custom_role agentAuthDemoSummaries "Agent auth demo: list access summaries" \
+  agentidentity.accessSummaries.list
+
+echo "Granting the demo controls roles to the client."
+gcloud agent-identity auth-providers add-iam-policy-binding "${AUTH_PROVIDER_ID}" \
+  --project="${PROJECT_ID}" \
+  --location="${REGION}" \
+  --role="projects/${PROJECT_ID}/roles/agentAuthDemoRevoke" \
+  --member="serviceAccount:${CLIENT_SA_EMAIL}" >/dev/null
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${CLIENT_SA_EMAIL}" \
+  --role="projects/${PROJECT_ID}/roles/agentAuthDemoSummaries" \
+  --condition=None >/dev/null
+
 echo
 echo "Auth provider IAM policy:"
 gcloud agent-identity auth-providers get-iam-policy "${AUTH_PROVIDER_ID}" \
