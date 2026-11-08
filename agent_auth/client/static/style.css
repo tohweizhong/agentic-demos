@@ -283,12 +283,14 @@ body {
 .info-label {
   color: var(--text-muted);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .info-value {
   color: var(--text-color);
   font-weight: 600;
-  word-break: break-all;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 /* Custom scrollbars */
@@ -1343,12 +1345,29 @@ body {
 }
 
 md-outlined-button {
-  --md-outlined-button-leading-space: 18px;
-  --md-outlined-button-trailing-space: 18px;
-  padding: 0 18px;
+  --md-outlined-button-leading-space: 16px;
+  --md-outlined-button-trailing-space: 16px;
+  padding: 0 16px;
   min-width: max-content;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.demo-controls md-outlined-button {
+  --md-outlined-button-leading-space: 10px;
+  --md-outlined-button-trailing-space: 10px;
+  padding: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 0.82rem;
+}
+
+.sidebar-header {
+  flex-shrink: 0;
+  background-color: var(--sidebar-bg);
+  z-index: 2;
 }
 
 .tab:focus-visible,
