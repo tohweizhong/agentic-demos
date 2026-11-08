@@ -41,6 +41,7 @@ The client does three things:
 | `static/style.css` | Fix: the 3LO diagram showed as a thin strip, because the scrolling flex panel shrank it. The panel children now keep their size. |
 | `static/index.html`, `static/script.js`, `static/style.css` | New "Step mode" switch and step cards. See [Step mode](#step-mode). |
 | `tests/` | New browser tests (fake agent, headless Chrome) and backend unit tests. See [tests/README.md](tests/README.md). |
+| `static/index.html`, `static/script.js`, `static/style.css` | Layout: tabs under the title, a real "Step mode" switch, presentation mode, an "Auth Manager" tab, folded step cards, and a split view with a compact 3LO diagram. See [Layout](#layout). |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Step mode
@@ -68,6 +69,23 @@ default. The browser remembers the choice.
 - "New conversation" removes the cards and clears the queue.
 
 With Step mode off, the Playground works as before.
+
+## Layout
+
+- **Header:** the tabs are under the title. The "Step mode" switch and
+  "New conversation" are on the right.
+- **Presentation mode:** the button in the configuration panel header folds
+  the panel to a thin bar, and unfolds it. The browser remembers the choice.
+- **Tabs:** "Playground", "How 3LO works", and "Auth Manager". The
+  "Auth Manager" tab is information only. It makes no API call.
+- **Folded cards:** in Step mode, only the current card stays open. Each past
+  card is one line, for example "✓ Step 3: The agent asks Auth Manager for a
+  token". A click, Enter, or Space opens the card again.
+- **Split view:** in Step mode, the chat is on the left, and a compact 3LO
+  diagram with short labels is on the right. On a window narrower than
+  1100 px, the compact view is a strip above the chat. The current step is
+  marked in the compact view, the strip, and the "How 3LO works" tab.
+- With Step mode off, the chat uses the full width.
 
 ## Vendored libraries
 
