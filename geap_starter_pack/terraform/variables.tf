@@ -3,6 +3,16 @@ variable "project_id" {
   type        = string
 }
 
+variable "project_number" {
+  description = "The project number of the sandbox project. Get it with: gcloud projects describe PROJECT_ID --format='value(projectNumber)'."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9]+$", var.project_number))
+    error_message = "project_number must be the numeric project number."
+  }
+}
+
 variable "organization_id" {
   description = "The numeric ID of the organization of the project. Agent Identity principals use it in the trust domain."
   type        = string

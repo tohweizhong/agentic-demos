@@ -7,12 +7,10 @@ provider "google" {
   billing_project       = var.project_id
 }
 
-data "google_project" "this" {
-  project_id = var.project_id
-}
-
 locals {
-  project_number = data.google_project.this.number
+  # A variable, not a data source, so that `terraform plan` makes no API call
+  # before the APIs are on.
+  project_number = var.project_number
 
   # Labels for the resources that support labels. Clean-up uses `terraform destroy`.
   labels = {

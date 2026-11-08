@@ -2,12 +2,6 @@
 # need no credentials. Run: terraform test
 
 mock_provider "google" {
-  mock_data "google_project" {
-    defaults = {
-      number = "123456789012"
-    }
-  }
-
   mock_resource "google_vertex_ai_reasoning_engine" {
     defaults = {
       name = "1111111111111111111"
@@ -45,6 +39,7 @@ mock_provider "time" {}
 
 variables {
   project_id      = "example-project"
+  project_number  = "123456789012"
   organization_id = "111111111111"
   # Any file that exists. The plan only checks that the archive is there.
   agent_source_archive = "adk_class_methods.json"

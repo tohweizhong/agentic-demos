@@ -2,6 +2,7 @@
 # terraform.tfvars is gitignored. Never commit real IDs.
 
 project_id      = "PROJECT_ID"
+project_number  = "PROJECT_NUMBER"
 organization_id = "ORG_ID"
 region          = "us-central1"
 

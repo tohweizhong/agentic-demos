@@ -38,7 +38,7 @@ on the project. Use a dedicated project. The mini build uses `us-central1`.
 ```bash
 cd geap_starter_pack
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-# Edit terraform/terraform.tfvars: project_id and organization_id.
+# Edit terraform/terraform.tfvars: project_id, project_number, and organization_id.
 
 gcloud auth application-default login
 scripts/package_agent.sh
