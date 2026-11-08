@@ -5,6 +5,18 @@
 Return the mini build to the start state of the 10-minute demo: the IAP policy is in `DRY_RUN`,
 the sample data is new, and the next question starts a new session.
 
+## Idle cost
+
+The mini build stays up between demos, so it has a cost when nobody uses it. Two settings keep
+instances running all the time:
+
+- The agent on Agent Runtime: `min_instances = 1` in `terraform/agent.tf`.
+- The MCP server on Cloud Run: `min_instance_count = 1` in `terraform/registry.tf`. A cold start
+  takes longer than the MCP timeout of the agent.
+
+The Agent Gateway, the authz extensions, and Model Armor can also have a cost. Check the Billing
+report for the project, grouped by SKU. Run `scripts/cleanup.sh` after the last demo.
+
 ## Before you start
 
 - The mini build is deployed.

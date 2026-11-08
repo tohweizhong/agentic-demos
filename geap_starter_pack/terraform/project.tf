@@ -2,12 +2,18 @@
 # APIs, Data Access audit logs for IAP, a regional log bucket, and a log sink.
 
 locals {
+  # Terraform needs these two APIs to read and turn on the other APIs. In a new
+  # project they can be off, so Terraform turns them on first.
+  bootstrap_services = [
+    "cloudresourcemanager.googleapis.com",
+    "serviceusage.googleapis.com",
+  ]
+
   services = [
     "aiplatform.googleapis.com",
     "agentregistry.googleapis.com",
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
-    "cloudresourcemanager.googleapis.com",
     "cloudtrace.googleapis.com",
     "compute.googleapis.com",
     "iam.googleapis.com",
@@ -20,10 +26,23 @@ locals {
     "networkservices.googleapis.com",
     "orgpolicy.googleapis.com",
     "run.googleapis.com",
-    "serviceusage.googleapis.com",
     "storage.googleapis.com",
     "telemetry.googleapis.com",
   ]
+}
+
+resource "google_project_service" "bootstrap" {
+  for_each = toset(local.bootstrap_services)
+
+  project            = var.project_id
+  service            = each.value
+  disable_on_destroy = false
+}
+
+# A new API can take some time before other calls can use it.
+resource "time_sleep" "bootstrap_services" {
+  create_duration = "60s"
+  depends_on      = [google_project_service.bootstrap]
 }
 
 resource "google_project_service" "this" {
@@ -34,6 +53,18 @@ resource "google_project_service" "this" {
 
   # Keep the APIs on after destroy. Other work in the project can need them.
   disable_on_destroy = false
+
+  depends_on = [time_sleep.bootstrap_services]
+}
+
+moved {
+  from = google_project_service.this["cloudresourcemanager.googleapis.com"]
+  to   = google_project_service.bootstrap["cloudresourcemanager.googleapis.com"]
+}
+
+moved {
+  from = google_project_service.this["serviceusage.googleapis.com"]
+  to   = google_project_service.bootstrap["serviceusage.googleapis.com"]
 }
 
 # IAP writes the gateway allow and deny decisions, and the dry-run results, to
@@ -74,8 +105,9 @@ resource "google_logging_project_sink" "audit" {
     "(logName=\"projects/${var.project_id}/logs/cloudaudit.googleapis.com%2Fdata_access\" AND protoPayload.serviceName=\"iap.googleapis.com\")",
   ])
 
-  # A sink to a log bucket in the same project does not need a separate writer identity.
-  unique_writer_identity = false
+  # The API always sets a unique writer identity. A sink to a log bucket in the
+  # same project needs no extra grant for it.
+  unique_writer_identity = true
 }
 
 # Optional: a project-level exception to domain restricted sharing. The gateway
