@@ -7,5 +7,5 @@
 
 ---
 
-- [ ] **Track: Playground layout for Step mode: folded cards, presentation mode, tidier header, split view with a compact 3LO diagram**
+- [~] **Track: Playground layout for Step mode: folded cards, presentation mode, tidier header, split view with a compact 3LO diagram**
   *Link: [./tracks/playground_layout_20261108/index.md](./tracks/playground_layout_20261108/index.md)*
