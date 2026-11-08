@@ -139,10 +139,16 @@ requirements from these folders. It runs from a clean clone with its own files o
 - The reference agent calls the MCP server through the gateway. The trace shows the call.
 - In `DRY_RUN`, a call that the policy does not allow passes. The IAP Data Access audit log
   (`cloudaudit.googleapis.com/data_access`, service `iap.googleapis.com`) records it with
-  `metadata.dryRun=true` and `granted=false`. The gateway request log does not show a denial.
+  `request.dryRun=true` and `granted=false`. The gateway request log does not show a denial.
 - After the change to enforce, the same call is denied. The agent can show a connection error
   ("MCP session connection lost"), not a clear `403`.
 - The IAP Data Access audit log records the denied call.
 - The 10-minute demo runs from start to end. The "reset the demo" runbook returns it to its start
   state.
 - The clean-up script removes all mini build resources and nothing else.
+
+## Backlog
+
+| Item | Status |
+|---|---|
+| Test option C: replace `iam.allowedPolicyMemberDomains` on the project with `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names the gateway Service Extensions account. Production pattern for customers | Not tested |

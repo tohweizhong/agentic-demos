@@ -41,12 +41,31 @@ Each task ends with its checks and one commit. Mark a task `[x]` when its commit
 
 ## Phase 5: Cloud verification (needs approval)
 
-- [~] Task 5.1: `terraform plan` in the approved project. Show the plan summary. Wait for approval.
+- [x] Task 5.1: `terraform plan` in the approved project. Show the plan summary. Wait for approval.
   - [x] `terraform plan` has no error: 56 to add, 0 to change, 0 to destroy.
-  - [ ] Approval of the plan summary.
-- [ ] Task 5.2: `terraform apply`. Run the success criteria in product.md. Record the results.
+  - [x] Approval of the plan summary.
+- [x] Task 5.2: `terraform apply`. Run the success criteria in product.md. Record the results.
+
+## Results of the cloud test (08 Nov 2026)
+
+| Success criterion (product.md) | Result | Evidence |
+|---|---|---|
+| `terraform apply` creates the mini build from a clean clone, with no manual grant | Partly met | Fixes were needed: API bootstrap order, base roles before the agent, the container deploy path, and the `adk api_server` query flag. The 3 Model Armor grants needed a temporary domain restricted sharing exception (option B) |
+| The agent calls the MCP server through the gateway. The trace shows the call | Met (call). Trace not checked | Gateway request log: `tools/call get_status`, IAP and Model Armor `ALLOWED`. Cloud Trace was not examined |
+| `DRY_RUN`: a call that the policy does not allow passes, and the IAP audit log records it | Pass: met. Log: not met | `update_status` passed. The IAP log had entries only for MCP base methods, with `request.dryRun=true` |
+| After the change to enforce, the same call is denied | Met | `update_status` returned "MCP tool execution failed". It did not get to Cloud Run. The gateway used the new mode 1 to 3 minutes after the apply |
+| The IAP Data Access audit log records the denied call | Not met | No IAP entry and no gateway entry for the denied call, 30 minutes later |
+| The 10-minute demo runs. The reset runbook returns it to the start state | Not tested | |
+| The clean-up script removes all mini build resources and nothing else | Not tested | The resources stay for demos |
+
+Model Armor (added test): a prompt injection message returned `403 Security Policy Violation` from
+the gateway. A normal question passed.
+
 
 ## Notes
+
+- A source deploy with `python_spec` failed behind the egress gateway. The Agent Runtime start-up
+  gRPC call did not trust the gateway root CA. The container path (`image_spec`) works.
 
 - Terraform tasks 3.1 to 3.5 are in one commit, because the files depend on each other and do not
   validate alone.

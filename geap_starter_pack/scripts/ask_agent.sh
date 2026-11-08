@@ -55,5 +55,6 @@ call "${API}:streamQuery?alt=sse" "${body}" | while IFS= read -r line; do
     if .function_call then "[tool call] \(.function_call.name) \(.function_call.args | tostring)"
     elif .function_response then "[tool result] \(.function_response.name): \(.function_response.response | tostring | .[0:300])"
     elif .text then "[agent] \(.text)"
-    else empty end' 2>/dev/null || echo "${line}"
+    else empty end,
+    (if .error_code then "[error] \(.error_code): \(.error_message)" else empty end)' 2>/dev/null || echo "${line}"
 done

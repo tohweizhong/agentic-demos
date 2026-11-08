@@ -71,4 +71,5 @@ report for the project, grouped by SKU. Run `scripts/cleanup.sh` after the last 
 ## Restore
 
 There is nothing to restore. To go back to the enforced state, set
-`iap_enforcement_mode = "ENFORCE"` and run `terraform apply`.
+`iap_enforcement_mode = "ENFORCE"` and run `terraform apply`. Wait 3 minutes before you test. In
+the mini build test, the gateway used the new mode 1 to 3 minutes after the apply finished.

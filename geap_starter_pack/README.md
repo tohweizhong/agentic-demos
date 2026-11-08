@@ -62,8 +62,8 @@ The organization admin must choose one option before the apply:
 
 | Option | Use |
 |---|---|
-| Managed constraint `iam.managed.allowedPolicyMembers` that names the gateway service account | Production choice. **Not tested** |
-| Temporary exception for the project, removed after the grants | Short tests |
+| Option C: managed constraint `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names the gateway Service Extensions account, in place of `iam.allowedPolicyMemberDomains` on the project | Production choice. **Not tested.** It is in the backlog in [product.md](conductor/product.md) |
+| Option B: temporary project-level exception. Set `allow_google_managed_members = true`, apply the org policy and the 3 grants with `-target`, then set it to `false` and apply again. The grants remain. The grants failed for about 3 minutes after the exception was set | Used for the mini build |
 | Project-level `allowAll` (`allow_google_managed_members = true` in this Terraform) | Sandbox only |
 
 ## Demo: identity, catalog, gateway control, audit (10 minutes)
@@ -74,11 +74,18 @@ Run [reset the demo](runbooks/reset_demo.md) before you start.
 |---|---|---|
 | 0 to 2 | **Identity.** The agent has its own Agent Identity principal. All grants go to it, and there is no project-level token creator role | `terraform output agent_principal`. IAM page of the project |
 | 2 to 4 | **Catalog.** The MCP server and the Google API endpoints are in Agent Registry. The tool spec marks `get_status` as read-only | Agent Registry page. [`tool_spec.json`](mcp-server/tool_spec.json) |
-| 4 to 7 | **Gateway control.** In `DRY_RUN`, ask "Set ITEM-003 to closed". The call passes. Change to `ENFORCE` and ask again. The call is denied. The agent can show "MCP session connection lost", not a clear `403` | `scripts/ask_agent.sh "Set ITEM-003 to closed"`. [`policies/iap_access_policy.yaml`](policies/iap_access_policy.yaml) |
+| 4 to 7 | **Gateway control.** In `DRY_RUN`, ask "Set ITEM-003 to closed". The call passes. Change to `ENFORCE`, wait 3 minutes, and ask again. The call is denied. The agent can show "MCP session connection lost", not a clear `403` | `scripts/ask_agent.sh "Set ITEM-003 to closed"`. [`policies/iap_access_policy.yaml`](policies/iap_access_policy.yaml) |
 | 7 to 10 | **Audit.** The IAP Data Access audit log shows the dry-run entry (`DRY_RUN` true, `GRANTED` false) and the enforced denial | `scripts/read_audit_log.sh 15m` |
 
-The change to `ENFORCE` takes some minutes. For a 10-minute demo, prepare a second terminal, or
-show the enforced result from an earlier run.
+The change to `ENFORCE` takes about 2 minutes to apply, and the gateway uses it 1 to 3 minutes
+later. For a 10-minute demo, prepare a second terminal, or show the enforced result from an earlier
+run.
+
+> [!WARNING]
+> Known gap (08 Nov 2026 test, IAP policy V2): the IAP Data Access audit log had entries only for
+> MCP base methods (`initialize`, `notifications/initialized`). It had no entry for the `tools/call`
+> decisions, including the enforced denial. The gateway request log also had no entry for the
+> denied call. Show the denial in the agent reply until this gap is solved.
 
 ## Clean up
 

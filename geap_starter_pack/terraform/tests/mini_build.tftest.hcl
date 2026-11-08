@@ -45,9 +45,15 @@ variables {
   agent_source_archive = "adk_class_methods.json"
   # Never call Cloud Build from a test.
   build_mcp_image = false
+  # Set every value that a local terraform.tfvars can change. terraform test
+  # also reads terraform.tfvars.
+  region                       = "us-central1"
+  iap_enforcement_mode         = "DRY_RUN"
+  allow_google_managed_members = false
+  authz_fail_open              = false
 }
 
-run "dry_run_is_the_default" {
+run "dry_run_mode_sets_the_dry_run_field" {
   command = apply
 
   assert {
