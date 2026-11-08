@@ -266,3 +266,86 @@ def test_no_compact_diagram_with_step_mode_off(new_page):
   page.click(".step-switch")
   page.wait_for_timeout(300)
   assert not page.locator(COMPACT).is_visible()
+
+
+# ---- Phase 5 review fix: resizable compact panel (L8) ----
+RESIZER = "#compact-resizer"
+MIN_W, MAX_W = 380, 560
+
+
+def _compact_width(page):
+  return page.locator(COMPACT).bounding_box()["width"]
+
+
+def test_compact_default_width(new_page):
+  """L8: the default width is 40 percent of the Playground area, in range."""
+  page = new_page(1280, 800)
+  _step_on(page)
+  panel = page.locator("#playground-panel").bounding_box()["width"]
+  width = _compact_width(page)
+  assert MIN_W - 1 <= width <= MAX_W + 1
+  expected = min(MAX_W, max(MIN_W, 0.4 * panel))
+  assert abs(width - expected) < 3
+  sep = page.locator(RESIZER)
+  assert sep.is_visible()
+  assert sep.get_attribute("role") == "separator"
+  assert sep.get_attribute("aria-orientation") == "vertical"
+  assert sep.get_attribute("tabindex") == "0"
+  assert abs(int(sep.get_attribute("aria-valuenow")) - width) < 3
+
+
+def test_compact_resize_with_drag_and_keys(new_page):
+  """L8: a drag and the arrow keys change the width, within min and max."""
+  page = new_page(1280, 800)
+  _step_on(page)
+  start = _compact_width(page)
+  box = page.locator(RESIZER).bounding_box()
+  cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+  page.mouse.move(cx, cy)
+  page.mouse.down()
+  page.mouse.move(cx - 100, cy, steps=5)
+  page.mouse.up()
+  assert abs(_compact_width(page) - min(MAX_W, start + 100)) < 4
+  # Far left: the width stops at the maximum.
+  box = page.locator(RESIZER).bounding_box()
+  page.mouse.move(box["x"] + 2, cy)
+  page.mouse.down()
+  page.mouse.move(box["x"] - 600, cy, steps=5)
+  page.mouse.up()
+  assert abs(_compact_width(page) - MAX_W) < 2
+  # Keyboard: the right arrow key makes the panel narrower by 20 px.
+  page.focus(RESIZER)
+  page.keyboard.press("ArrowRight")
+  assert abs(_compact_width(page) - (MAX_W - 20)) < 2
+  assert page.get_attribute(RESIZER, "aria-valuenow") == str(MAX_W - 20)
+  page.keyboard.press("ArrowLeft")
+  assert abs(_compact_width(page) - MAX_W) < 2
+  for _ in range(20):
+    page.keyboard.press("ArrowRight")
+  assert abs(_compact_width(page) - MIN_W) < 2
+
+
+def test_compact_width_persists(new_page):
+  """L8: the browser remembers the width."""
+  page = new_page(1280, 800)
+  _step_on(page)
+  page.focus(RESIZER)
+  for _ in range(3):
+    page.keyboard.press("ArrowLeft")
+  width = _compact_width(page)
+  page.reload()
+  page.wait_for_timeout(800)
+  assert abs(_compact_width(page) - width) < 2
+
+
+def test_strip_has_no_resizer_at_1024(new_page):
+  """L8: the strip below 1100 px does not change, and no separator shows."""
+  page = new_page(1024, 700)
+  _step_on(page)
+  assert not page.locator(RESIZER).is_visible()
+  strip = page.locator(f"{COMPACT} .compact-strip")
+  assert strip.is_visible()
+  chat = page.locator("#messages-container").bounding_box()
+  box = strip.bounding_box()
+  assert box["y"] + box["height"] <= chat["y"] + 1
+  assert abs(box["width"] - page.locator("#playground-panel").bounding_box()["width"]) < 30
