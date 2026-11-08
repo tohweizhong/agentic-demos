@@ -1,0 +1,1 @@
+Task: Write failing tests for the resizable compact panel (L8, review fix). test_compact_default_width, test_compact_resize_with_drag_and_keys, test_compact_width_persists, test_strip_has_no_resizer_at_1024. Red phase: 3 failed; the strip guard passed, as expected.
