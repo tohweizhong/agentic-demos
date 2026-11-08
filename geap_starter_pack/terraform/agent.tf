@@ -60,24 +60,14 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
         name  = "MODEL_LOCATION"
         value = var.model_location
       }
-      env {
-        name  = "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY"
-        value = "true"
-      }
-      # The gateway inspects TLS with its own CA. Agent Runtime adds the CA to the
-      # system store. These settings make httpx, requests, and gRPC use that store.
-      env {
-        name  = "SSL_CERT_FILE"
-        value = "/etc/ssl/certs/ca-certificates.crt"
-      }
-      env {
-        name  = "REQUESTS_CA_BUNDLE"
-        value = "/etc/ssl/certs/ca-certificates.crt"
-      }
-      env {
-        name  = "GRPC_DEFAULT_SSL_ROOTS_FILE_PATH"
-        value = "/etc/ssl/certs/ca-certificates.crt"
-      }
+      # Do not set GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY. With it, the
+      # Agent Runtime server looks up the project over gRPC at start. Through the
+      # egress gateway this call failed with CERTIFICATE_VERIFY_FAILED, and the
+      # container did not start. AdkApp still sends traces (enable_tracing).
+      #
+      # Do not set SSL_CERT_FILE, REQUESTS_CA_BUNDLE, or
+      # GRPC_DEFAULT_SSL_ROOTS_FILE_PATH. For a source deploy, the Agent Runtime
+      # build installs the gateway root CA and sets these variables.
     }
   }
 
