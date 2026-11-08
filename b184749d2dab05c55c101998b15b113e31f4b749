@@ -1,0 +1,1 @@
+Task: Write failing tests for the Auth Manager tab (L7). test_auth_manager_tab: three tabs, role=tab, opens with the arrow keys, panel role=tabpanel, all ten section headings, two tables with column headers, the footer, no buttons, one link to #demo-controls, and no network request. Red phase: failed (2 tabs, not 3).
