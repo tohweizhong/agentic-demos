@@ -1,1 +1,3 @@
 Layout Phase 4 part 1: README change list and a Layout section. Coverage: script.js lines changed since effd3dc: 161 of 169 code lines covered (95.3 percent). Whole script.js 82.5 percent. 44 tests passed.
+
+Layout Phase 4 deploy: revision agent-auth-client-00009-5v9 at 20:47 SGT. Checks: 302 to IAP on / and /static/script.js; run invoker holds only the IAP service agent (no allUsers); iap-enabled=true; startup probe OK, Uvicorn running. Upload size 74,423 bytes (the earlier deploy without .gcloudignore uploaded 145,254,455 bytes).
