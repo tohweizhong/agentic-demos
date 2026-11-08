@@ -1,0 +1,1 @@
+Task: Implement folded cards (layout Phase 2). Files: client/static/script.js (step-fold button and step-body wrapper in showStepCard, foldStepCard, toggleFoldedCard), style.css (folded card style). Why: L1. Result: 40 passed, script.js line coverage 81.7 percent.
