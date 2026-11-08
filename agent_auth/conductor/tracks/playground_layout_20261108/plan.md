@@ -97,12 +97,12 @@ Amendment L8 approved at 20:57 SGT.
   - [x] Set the width with a CSS variable, so that the strip layout below
         1100 px does not change.
   - [x] Run all browser tests. All must pass.
-- [~] Task: Write failing tests for the colour scheme (L9, added on 08 Nov 21:02 SGT)
-  - [ ] The main buttons, the tabs, the switch, the step chip, and the links
+- [x] Task: Write failing tests for the colour scheme (L9, added on 08 Nov 21:02 SGT) fb330c5
+  - [x] The main buttons, the tabs, the switch, the step chip, and the links
         use the main colour. No purple.
-  - [ ] Red only for the "Demo only" label and border, and for errors.
-  - [ ] Contrast check: 4.5:1 for normal text, 3:1 for UI parts.
-- [ ] Task: Implement the colour scheme (L9)
+  - [x] Red only for the "Demo only" label and border, and for errors.
+  - [x] Contrast check: 4.5:1 for normal text, 3:1 for UI parts.
+- [~] Task: Implement the colour scheme (L9)
   - [ ] Add the palette as CSS variables (main, main dark, warning, allowed,
         and text colours), and the Material web colour variables.
   - [ ] Use the variables in the header, the cards, the tabs, the strip, and
