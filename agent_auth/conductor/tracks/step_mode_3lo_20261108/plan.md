@@ -13,10 +13,10 @@
 
 ## Phase 2: Event queue and switch
 
-- [~] Task: Write failing tests for the switch and the queue
-  - [ ] Switch is off by default, and its state persists after reload (F1).
-  - [ ] With Step mode on, events are queued and no answer text shows (F4).
-- [ ] Task: Implement the switch and the event queue
+- [x] Task: Write failing tests for the switch and the queue 49d8bd7
+  - [x] Switch is off by default, and its state persists after reload (F1).
+  - [x] With Step mode on, events are queued and no answer text shows (F4).
+- [~] Task: Implement the switch and the event queue
   - [ ] Add the "Step mode" switch to the chat header, with localStorage.
   - [ ] Route agent events through a queue when Step mode is on.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
