@@ -32,23 +32,26 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
 | `geap-preflight` | `.agents/skills/geap-preflight/SKILL.md` | Runs `scripts/preflight.sh` and checks the JSON readiness report (`GO` or `NO_GO`) |
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Packages the agent source, runs offline unit tests, runs `terraform plan`, and pauses for human approval before `terraform apply` |
 | `geap-verify` | `.agents/skills/geap-verify/SKILL.md` | Verifies the deployed agent, Model Armor content screening, IAP tool authorization, and Cloud Logging entries |
+| `geap-doctor` | `.agents/skills/geap-doctor/SKILL.md` | Runs `scripts/doctor.sh` to check live posture across all 5 tiers, verify `iap_enforcement_mode`, and flag ungoverned (rogue) agents |
+| `geap-audit-tools` | `.agents/skills/geap-audit-tools/SKILL.md` | Runs `scripts/check_tool_policy.sh` to verify that every non-read-only tool in `mcp-server/tool_spec.json` is governed in `policies/iap_access_policy.yaml` |
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Returns `iap_enforcement_mode` to `DRY_RUN` and resets the sample MCP server state |
 | `geap-teardown` | `.agents/skills/geap-teardown/SKILL.md` | Destroys all Terraform resources and sweeps any out-of-state GEAP resources in the project (requires human confirmation) |
 
-`settings.json` allows read-only checks (`scripts/preflight.sh`, `terraform plan`, and unit tests) and requires human approval before `terraform apply`, `terraform destroy`, or `scripts/cleanup.sh`.
+`settings.json` allows read-only checks (`scripts/preflight.sh`, `scripts/doctor.sh`, `scripts/check_tool_policy.sh`, `terraform plan`, and unit tests) and requires human approval before `terraform apply`, `terraform destroy`, or `scripts/cleanup.sh`.
 
 #### Load and Run the Skills
 
 1. **Workspace-local loading (no copy needed):** Open the `geap_starter_pack/` folder directly as your workspace root in the Antigravity IDE, or run `cd geap_starter_pack` before you start `agy`. Antigravity automatically loads `AGENTS.md`, `settings.json`, and `.agents/skills/geap-*`.
-2. **Global user skills (when opening the parent repository root):** If you open the parent `agentic-demos/` folder or want the five skills available in any workspace, copy them into your user skills directory:
+2. **Global user skills (when opening the parent repository root):** Run `scripts/install_harness.sh` to copy all seven `geap-*` skills into `~/.gemini/config/skills/` (pass `--claude` to also generate `.claude/commands/geap-*.md`):
    ```bash
-   mkdir -p ~/.gemini/config/skills
-   cp -r geap_starter_pack/.agents/skills/geap-* ~/.gemini/config/skills/
+   scripts/install_harness.sh
    ```
 3. **How to run a skill:** Invoke any skill by name in the Antigravity chat or CLI prompt:
    - `"Run geap-preflight to check my project readiness."`
    - `"Run geap-deploy to package the agent, run unit tests, and create a Terraform plan."`
    - `"Run geap-verify to test the deployed agent, Model Armor, and IAP rules."`
+   - `"Run geap-doctor to check live governance posture and detect any rogue agents."`
+   - `"Run geap-audit-tools to verify that every non-read-only MCP tool is governed in IAP."`
    - `"Run geap-reset to switch IAP back to DRY_RUN and reset the sample MCP server."`
    - `"Run geap-teardown to destroy all GEAP resources in my sandbox project."`
 
@@ -210,8 +213,10 @@ In `ENFORCE` mode, `scripts/ask_agent.sh "Set ITEM-001 to in_progress."` returns
 > [!WARNING]
 > Known limitation with IAP policy V2: `cloudaudit.googleapis.com/data_access` (`iap.googleapis.com`) logs MCP base session methods (`initialize` and `notifications/initialized`) with `protoPayload.request.dryRun` and `protoPayload.request.policy_version`, but omits individual `tools/call` decisions. In addition, `networkservices.googleapis.com/gateway_requests` omits `403 DENIED` entries under V2 (whereas legacy V1 policies log `403 DENIED` in `gateway_requests`). Until Google resolves this logging gap, verify tool denials with the agent tool error response and the absence of a matching request in the Cloud Run request log.
 
-## 7. Day-2 Operations: Promote Policies, Onboard Agents, and Tear Down
+## 7. Day-2 Operations: Audit Posture, Promote Policies, Onboard Agents, and Tear Down
 
+- **Audit live posture and detect rogue agents (`geap-doctor`):** Run `scripts/doctor.sh` to verify that all enabled governance tiers match `terraform/terraform.tfvars`, check the live `iap_enforcement_mode` on the IAP extension, and flag any Reasoning Engine missing `AGENT_IDENTITY`, `agentToAnywhereConfig`, or `clientToAgentConfig`.
+- **Lint MCP tool policies (`geap-audit-tools`):** Run `scripts/check_tool_policy.sh` whenever you add or edit tools in `mcp-server/tool_spec.json` to ensure every tool where `annotations.readOnlyHint` is not `true` is governed in `policies/iap_access_policy.yaml`.
 - **Promote or roll back gateway policies (`geap-reset`):** Start new agents or tools with `iap_enforcement_mode = "DRY_RUN"` in `terraform/terraform.tfvars`, verify tool traffic, and switch to `iap_enforcement_mode = "ENFORCE"` for production enforcement. To return the environment to `DRY_RUN` and reset the sample MCP server state, follow [runbooks/switch_policy_mode.md](runbooks/switch_policy_mode.md) (which also documents the idle hourly and daily resource costs).
 - **Onboard a new agent:** Follow [runbooks/add_agent.md](runbooks/add_agent.md) to deploy an additional ADK agent, bind it to the shared gateways, and scope its single agent principal in IAM and `policies/iap_access_policy.yaml`.
 - **Tear down the foundation (`geap-teardown`):** Run `scripts/cleanup.sh` to destroy all Terraform-managed resources in the project, sweep any out-of-state GEAP resources and bindings, and delete the regional Cloud Build source bucket. By default, `--keep-log-bucket` keeps the audit log bucket active so a subsequent `terraform apply` does not hit the 7-day Cloud Logging soft-delete lock (pass `--purge-all` to delete the log bucket as well).
