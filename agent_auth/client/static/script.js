@@ -424,8 +424,79 @@ $(function() {
   $stepSwitch.on('change', function() {
     localStorage.setItem(STEP_MODE_KEY, this.checked ? '1' : '0');
     applyStepLayout();
+    applyCompactWidth();
   });
   applyStepLayout();
+
+  // ---- Resizable compact panel (layout track L8). ----
+  const COMPACT_WIDTH_KEY = 'agentAuthCompactWidth';
+  const COMPACT_MIN = 380;
+  const COMPACT_MAX = 560;
+  const COMPACT_KEY_STEP = 20;
+  const $panel = $('#playground-panel');
+  const $resizer = $('#compact-resizer');
+
+  /** @return {number} A width between the minimum and the maximum. */
+  const clampCompact = (w) => Math.round(Math.min(COMPACT_MAX, Math.max(COMPACT_MIN, w)));
+
+  /** @return {number} The saved width, or 40 percent of the Playground area. */
+  const compactWidth = () => {
+    const saved = Number(localStorage.getItem(COMPACT_WIDTH_KEY));
+    return clampCompact(saved > 0 ? saved : 0.4 * $panel.width());
+  };
+
+  /**
+   * Sets the width of the compact panel with a CSS variable. The strip
+   * layout below 1100 px does not use this variable.
+   * @param {number=} width The new width. Default: the saved width.
+   * @param {boolean=} save True to save the width in localStorage.
+   */
+  const applyCompactWidth = (width = undefined, save = false) => {
+    const w = width === undefined ? compactWidth() : clampCompact(width);
+    $panel[0].style.setProperty('--compact-width', `${w}px`);
+    $resizer.attr('aria-valuenow', String(w));
+    if (save) {
+      localStorage.setItem(COMPACT_WIDTH_KEY, String(w));
+    }
+  };
+  applyCompactWidth();
+  $(window).on('resize', () => {
+    if (!localStorage.getItem(COMPACT_WIDTH_KEY)) {
+      applyCompactWidth();
+    }
+  });
+
+  // Mouse or touch drag: the width changes by the distance that the pointer
+  // moves. A move to the left makes the panel wider.
+  $resizer.on('pointerdown', (e) => {
+    e.preventDefault();
+    const el = $resizer[0];
+    el.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const startWidth = Number($resizer.attr('aria-valuenow')) || compactWidth();
+    const widthAt = (ev) => startWidth + (startX - ev.clientX);
+    const onMove = (ev) => applyCompactWidth(widthAt(ev));
+    const onUp = (ev) => {
+      applyCompactWidth(widthAt(ev), true);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+    };
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+  });
+
+  // Keyboard: the left arrow key makes the panel wider, the right arrow key
+  // makes it narrower.
+  $resizer.on('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    const now = Number($resizer.attr('aria-valuenow')) || compactWidth();
+    const delta = e.key === 'ArrowLeft' ? COMPACT_KEY_STEP : -COMPACT_KEY_STEP;
+    applyCompactWidth(now + delta, true);
+  });
 
   /** @return {boolean} True when the Step mode switch is on. */
   const isStepMode = () => $stepSwitch.prop('checked') === true;
@@ -804,8 +875,9 @@ $(function() {
     if (['input', 'textarea', 'select'].includes(tag) || e.target.isContentEditable) {
       return;
     }
-    // The arrow keys on the tabs move between the tabs.
-    if ($(e.target).closest('.tabs').length) {
+    // The arrow keys on the tabs move between the tabs. The arrow keys on
+    // the separator resize the compact panel.
+    if ($(e.target).closest('.tabs, .compact-resizer').length) {
       return;
     }
     // Enter on a button already clicks that button.

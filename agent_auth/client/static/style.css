@@ -1173,3 +1173,41 @@ body {
     display: flex;
   }
 }
+
+/* agentic-demos change: resizable compact panel (layout track L8). */
+.playground-panel.split .compact-flow {
+  flex: 0 0 var(--compact-width, 384px);
+  width: var(--compact-width, 384px);
+  border-left: none;
+}
+
+.compact-resizer {
+  display: none;
+}
+
+.playground-panel.split .compact-resizer {
+  display: block;
+  flex: 0 0 8px;
+  cursor: col-resize;
+  background-color: var(--border-color);
+  border-left: 3px solid var(--chat-bg);
+  border-right: 3px solid var(--chat-bg);
+  touch-action: none;
+}
+
+.playground-panel.split .compact-resizer:hover,
+.playground-panel.split .compact-resizer:focus-visible {
+  background-color: #1a73e8;
+  outline: none;
+}
+
+@media (max-width: 1100px) {
+  .playground-panel.split .compact-flow {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  .playground-panel.split .compact-resizer {
+    display: none;
+  }
+}
