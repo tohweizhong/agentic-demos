@@ -1,1 +1,3 @@
 Task: Implement the switch and the event queue (Phase 2). Files: client/static/index.html (switch, role=switch, help text), script.js (STEP_MODE_KEY in localStorage, isStepMode, createStepRun state, hidden bubble, onEvent/onCredential/onStreamEnd/onError hooks, live step and wait guards, New conversation clears the run), style.css (switch, sr-only). Why: F1 and F4 of the spec. Result: 28 passed, script.js line coverage 75.5 percent.
+
+Phase 2 verification (Event queue and switch), 08 Nov 17:52 SGT. Automated: CI=true .venv/bin/python -m pytest tests -q -s -> 28 passed, script.js line coverage 75.5 percent. Confirmation: the parent agent approved the Phase 2 checkpoint at 17:52 SGT (no change to main.py, no real IDs in the diff).
