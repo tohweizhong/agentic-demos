@@ -10,6 +10,9 @@ Agent Gateway, and audit logs.
 This folder holds the **mini build**. The mini build proves the pattern in one sandbox project. The
 product definition is in [conductor/product.md](conductor/product.md).
 
+**Start here:** [GUIDE.md](GUIDE.md) is the step-by-step guide from an empty project to a working
+mini build, with the known problems and their fixes.
+
 ## How it works
 
 Terraform creates every resource in the diagram. The agent calls tools and Google APIs only through
