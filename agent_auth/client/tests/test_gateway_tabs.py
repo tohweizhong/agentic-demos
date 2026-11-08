@@ -41,9 +41,9 @@ def test_ingress_tab_prompts_chat_banner_and_logs(new_page, stats):
       "How 3LO works",
       "Auth Manager",
   ]
-  # Check decluttered sidebar on 3LO GitHub tab.
-  assert page.locator("#demo-controls").get_attribute("open") is not None
-  assert page.locator("#connection-settings").get_attribute("open") is None
+  # Check Configuration Settings sidebar on 3LO GitHub tab.
+  assert page.locator("#settings-sidebar h2").inner_text() == "Configuration Settings"
+  assert page.locator("#demo-controls").count() == 1
 
   page.click("#tab-ingress")
   panel = page.locator("#ingress-panel")

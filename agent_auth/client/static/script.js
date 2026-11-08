@@ -409,7 +409,7 @@ $(function() {
       'title': label,
     });
     $('#presentation-toggle .material-symbols-outlined')
-        .text(folded ? 'left_panel_open' : 'left_panel_close');
+        .text(folded ? 'right_panel_open' : 'right_panel_close');
     localStorage.setItem(PRESENTATION_KEY, folded ? '1' : '0');
   };
   setPresentationMode(localStorage.getItem(PRESENTATION_KEY) === '1');

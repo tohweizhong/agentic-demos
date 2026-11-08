@@ -46,7 +46,8 @@ body {
 .sidebar {
   width: 300px;
   background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  border-right: none;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -1527,7 +1528,6 @@ md-outlined-button {
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px 24px;
-  border-bottom: 1px solid var(--border-color);
 }
 
 .sample-prompt {

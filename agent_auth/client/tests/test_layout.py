@@ -69,12 +69,12 @@ def test_step_mode_off_chat_area_unchanged(new_page):
     page.click(tab_id)
     assert page.locator(".chat-header").bounding_box()["x"] == 0
   page.click("#tab-play")
-  sidebar = page.locator("#playground-panel > #settings-sidebar").bounding_box()
   chat_col = page.locator("#playground-panel > .chat-column").bounding_box()
   compact = page.locator("#playground-panel > #compact-flow").bounding_box()
-  assert sidebar["x"] == 0
-  assert chat_col["x"] >= sidebar["x"] + sidebar["width"] - 1
+  sidebar = page.locator("#playground-panel > #settings-sidebar").bounding_box()
+  assert chat_col["x"] == 0
   assert compact["x"] >= chat_col["x"] + chat_col["width"] - 1
+  assert sidebar["x"] >= compact["x"] + compact["width"] - 1
   assert page.locator("#user-input").is_visible()
   assert page.locator("#play-sample-prompts .play-sample-prompt").count() == 2
 
