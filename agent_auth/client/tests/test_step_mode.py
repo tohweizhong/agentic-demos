@@ -136,7 +136,9 @@ def test_cards_consent_path(new_page, stats):
     click_next(page)
     check_newest_only_has_next(page)
   assert cards(page).count() == 12
-  titles = [cards(page).nth(i).inner_text() for i in range(12)]
+  # Past cards are folded (layout track L1). Read their full text from the
+  # page, not only the visible text.
+  titles = [cards(page).nth(i).text_content() for i in range(12)]
   for i, title in enumerate(titles, start=1):
     assert f"Step {i} of 12" in title
   # A2: the answer shows only at step 12.
@@ -156,9 +158,10 @@ def test_cards_stored_token(new_page, stats):
     click_next(page)
   assert cards(page).count() == 12
   for i in range(4, 11):
-    assert "Skipped: token already stored" in cards(page).nth(i - 1).inner_text()
+    assert "Skipped: token already stored" in (
+        cards(page).nth(i - 1).text_content())
   for i in (1, 2, 3, 11, 12):
-    assert "Skipped" not in cards(page).nth(i - 1).inner_text()
+    assert "Skipped" not in cards(page).nth(i - 1).text_content()
   assert not opened
   page.wait_for_selector(".answer-text.markdown", timeout=5000)
   assert stats.get()["resume"] == 0

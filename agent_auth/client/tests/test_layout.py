@@ -116,3 +116,80 @@ def test_auth_manager_tab(new_page):
   links = panel.locator("a").evaluate_all("els => els.map(a => a.getAttribute('href'))")
   assert links == ["#demo-controls"]
   assert requests == []
+
+
+# ---- Phase 2: folded cards (L1) ----
+CARD = "#messages-container .step-card"
+
+
+def _step_on_and_send(page, text):
+  if not page.is_checked("#step-mode-switch"):
+    page.click(".step-switch")
+  page.fill("#user-input", text)
+  page.press("#user-input", "Enter")
+  page.wait_for_selector(CARD, timeout=5000)
+
+
+def _click_next(page):
+  page.wait_for_function(
+      """() => { const b = [...document.querySelectorAll(
+          '#messages-container .step-card .step-next')].pop();
+        return b && !b.disabled; }""", timeout=20000)
+  count = page.locator(CARD).count()
+  page.locator("#messages-container .step-card .step-next").last.click()
+  page.wait_for_function(
+      f"() => document.querySelectorAll('{CARD}').length > {count}",
+      timeout=5000)
+
+
+def test_past_cards_fold_to_one_line(new_page, stats):  # pylint: disable=unused-argument
+  """L1: only the current card is open. Past cards are one line."""
+  page = new_page()
+  _step_on_and_send(page, "token")
+  for _ in range(3):
+    _click_next(page)
+  cards = page.locator(CARD)
+  assert cards.count() == 4
+  expected = [
+      "✓ Step 1: You send the prompt",
+      "✓ Step 2: The client calls the agent",
+      "✓ Step 3: The agent asks Auth Manager for a token",
+  ]
+  for i, line in enumerate(expected):
+    fold = cards.nth(i).locator(".step-fold")
+    assert fold.is_visible()
+    assert fold.inner_text().strip() == line
+    assert fold.get_attribute("aria-expanded") == "false"
+    assert not cards.nth(i).locator(".step-body").is_visible()
+  current = cards.nth(3)
+  assert not current.locator(".step-fold").is_visible()
+  assert current.locator(".step-body").is_visible()
+  assert page.locator(f"{CARD} .step-body:visible").count() == 1
+
+
+def test_folded_card_opens_again(new_page, stats):  # pylint: disable=unused-argument
+  """L1: a click, Enter, or Space opens a folded card again."""
+  page = new_page()
+  _step_on_and_send(page, "token")
+  for _ in range(3):
+    _click_next(page)
+  cards = page.locator(CARD)
+  card2 = cards.nth(1)
+  card2.locator(".step-fold").click()
+  assert card2.locator(".step-fold").get_attribute("aria-expanded") == "true"
+  assert card2.locator(".step-body").is_visible()
+  assert "Step 2 of 12" in card2.inner_text()
+  card2.locator(".step-fold").click()
+  assert not card2.locator(".step-body").is_visible()
+  # Keyboard: Enter opens, Space closes.
+  card1 = cards.nth(0)
+  card1.locator(".step-fold").focus()
+  page.keyboard.press("Enter")
+  assert card1.locator(".step-body").is_visible()
+  page.keyboard.press("Space")
+  assert not card1.locator(".step-body").is_visible()
+  # Next step still works, and the old current card folds.
+  _click_next(page)
+  assert cards.count() == 5
+  assert cards.nth(3).locator(".step-fold").is_visible()
+  assert "✓ Step 4:" in cards.nth(3).locator(".step-fold").inner_text()
