@@ -1,0 +1,1 @@
+Phase 4 part 1: README change list and a Step mode section. Coverage check: script.js lines changed since ff8c83c: 320 of 342 code lines covered (93.6 percent). Whole script.js 80.8 percent. main.py 62 percent (no change). Not covered: error paths (failed run, blocked popup, expiry default, keyboard ignore cases).
