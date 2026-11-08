@@ -1,1 +1,3 @@
 Task: Implement the Auth Manager tab (L7). Files: client/static/index.html (third tab, auth-manager-panel with the approved text, two tables with column headers, footer), script.js (TABS table for three tabs, arrow keys, link opens Demo controls, Step mode shortcut ignores the tabs), style.css (panel and table style). One sentence added to the 'Revoke in two places' section to hold the required in-page link. Result: 38 passed, script.js line coverage 81.2 percent.
+
+Layout Phase 1 verification (Header and presentation mode, plus L7), 08 Nov 20:24 SGT. Automated: CI=true .venv/bin/python -m pytest tests -q -s -> 38 passed, script.js 81.2 percent. Confirmation: the parent agent approved the checkpoint at 20:24 SGT and kept the added sentence in 'Revoke in two places'.
