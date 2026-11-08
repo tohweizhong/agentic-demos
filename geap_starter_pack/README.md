@@ -63,7 +63,18 @@ flowchart LR
         iapx -.-> iaplog
         agent -.-> cl
     end
+
+    pipeline["Agent factory CI/CD pipeline, component 5: not built"] -.-> agent
+    ingress["Ingress Agent Gateway, CLIENT_TO_AGENT, backlog: not built"] -.-> agent
+    user -.-> ingress
+    envs["Dev, test, and prod projects with VPC-SC and CMEK, component 1: not built"] -.- project
+    dash["Dashboards, component 6: not built"] -.- logs
+
+    classDef notbuilt stroke-dasharray: 5 5,fill:#f4f4f4,color:#555
+    class pipeline,ingress,envs,dash notbuilt
 ```
+
+Legend: solid border = built in the mini build. Dashed border = not built.
 
 The request flow below is in `ENFORCE` mode. The denied call never gets to Cloud Run.
 
