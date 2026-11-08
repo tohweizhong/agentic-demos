@@ -603,15 +603,29 @@ $(function() {
     if (run.$newest) {
       run.$newest.find('.step-next').remove();
       run.$newest.find('.step-wait').remove();
+      // Layout track L1: only the current card stays open.
+      foldStepCard(run.$newest);
     }
-    const titleId = `step-card-title-${n}-${Date.now()}`;
+    const idBase = `step-card-${n}-${Date.now()}`;
+    const titleId = `${idBase}-title`;
+    const bodyId = `${idBase}-body`;
     const $card = $('<section>').addClass('step-card')
         .toggleClass('skipped', skipped)
         .attr({'role': 'group', 'aria-labelledby': titleId, 'tabindex': '-1'});
-    $card.append($('<div>').addClass('step-number').text(`Step ${n} of 12`));
     const title = override ? override.title : info.title;
-    $card.append($('<div>').addClass('step-title').attr('id', titleId).text(title));
-    $card.append($('<p>').addClass('step-text').text(
+    // The one-line form of the card. It shows when the card is folded.
+    const $fold = $('<button>').attr({
+      'type': 'button',
+      'aria-expanded': 'false',
+      'aria-controls': bodyId,
+      'hidden': true,
+    }).addClass('step-fold').text(`\u2713 Step ${n}: ${title}`);
+    $fold.on('click', () => toggleFoldedCard($card));
+    const $body = $('<div>').addClass('step-body').attr('id', bodyId);
+    $card.append($fold).append($body);
+    $body.append($('<div>').addClass('step-number').text(`Step ${n} of 12`));
+    $body.append($('<div>').addClass('step-title').attr('id', titleId).text(title));
+    $body.append($('<p>').addClass('step-text').text(
         override ? override.text : (skipped ? SKIPPED_TEXT : info.text)));
     if (!override) {
       const $details = $('<details>').addClass('step-details');
@@ -636,14 +650,14 @@ $(function() {
         $dl.append($('<dt>').text(k)).append($('<dd>').text(v));
       });
       $details.append($dl);
-      $card.append($details);
+      $body.append($details);
     }
     if (n < 12 && !(override && override.final)) {
       const $next = $('<button>').attr('type', 'button').addClass('step-next')
           .attr('aria-label', `Next step: step ${n + 1} of 12`).text('Next step');
       $next.on('click', () => onNextStep(run));
-      $card.append($next);
-      $card.append($('<span>').addClass('step-wait').attr('aria-live', 'polite'));
+      $body.append($next);
+      $body.append($('<span>').addClass('step-wait').attr('aria-live', 'polite'));
     }
     $messagesContainer.append($card);
     run.$newest = $card;
@@ -652,6 +666,28 @@ $(function() {
     const $focus = $card.find('.step-next:not(:disabled)');
     ($focus.length ? $focus : $card).trigger('focus');
     $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
+  };
+
+  /**
+   * Folds a past card to one line (layout track L1).
+   * @param {!jQuery} $card The card to fold.
+   */
+  const foldStepCard = ($card) => {
+    $card.addClass('folded');
+    $card.find('.step-fold').prop('hidden', false).attr('aria-expanded', 'false');
+    $card.find('.step-body').prop('hidden', true);
+  };
+
+  /**
+   * Opens a folded card, or folds it again.
+   * @param {!jQuery} $card The card.
+   */
+  const toggleFoldedCard = ($card) => {
+    const $fold = $card.find('.step-fold');
+    const open = $fold.attr('aria-expanded') === 'true';
+    $fold.attr('aria-expanded', String(!open));
+    $card.find('.step-body').prop('hidden', open);
+    $card.toggleClass('reopened', !open);
   };
 
   /** Opens the GitHub consent window from the step 5 click. */

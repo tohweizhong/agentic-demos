@@ -1012,3 +1012,44 @@ body {
   border-top: 1px solid var(--border-color);
   padding-top: 8px;
 }
+
+/* agentic-demos change: folded step cards (layout track L1). */
+.step-card.folded {
+  padding: 4px 12px;
+  gap: 0;
+  animation: none;
+}
+
+.step-card.folded.reopened {
+  padding: 8px 16px 12px;
+}
+
+.step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.step-fold {
+  border: none;
+  background: none;
+  padding: 4px 0;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #174ea6;
+  cursor: pointer;
+  width: 100%;
+}
+
+.step-card.skipped .step-fold {
+  color: #5f6368;
+}
+
+.step-fold:hover {
+  text-decoration: underline;
+}
+
+.step-fold:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
