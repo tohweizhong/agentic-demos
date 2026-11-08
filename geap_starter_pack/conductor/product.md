@@ -149,7 +149,17 @@ requirements from these folders. It runs from a clean clone with its own files o
 
 ## Backlog
 
-| Item | Status |
-|---|---|
-| Ingress gateway (`CLIENT_TO_AGENT`): a second Agent Gateway that controls which clients can call the agent and screens user prompts and agent answers with Model Armor. Bind it with `clientToAgentConfig` on the agent. Reference: the egress codelab is in `curated_codelabs/agent-gateway-governance`. The ingress pattern follows the public Agent Gateway ingress codelab. Do not copy its code | Not built |
-| Test option C: replace `iam.allowedPolicyMemberDomains` on the project with `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names the gateway Service Extensions account. Production pattern for customers | Not tested |
+This table is the single list of open starter pack work. [tracks.md](tracks.md) links to it.
+
+| # | Item | Status |
+|---|---|---|
+| 1 | Ingress gateway (`CLIENT_TO_AGENT`): a second Agent Gateway that controls which clients can call the agent and screens user prompts and agent answers with Model Armor. Bind it with `clientToAgentConfig` on the agent. Reference: the egress codelab is in `curated_codelabs/agent-gateway-governance`. The ingress pattern follows the public Agent Gateway ingress codelab. Do not copy its code | Not built. Plan first, then a plan summary for approval |
+| 2 | Test option C: replace `iam.allowedPolicyMemberDomains` on the project with `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names the gateway Service Extensions account. Production pattern for customers | Not tested |
+| 3 | IAP audit log gap: the IAP Data Access audit log has no entry for `tools/call` decisions, with policy V1 or V2 | Open. See item 4 |
+| 4 | V1 comparison | Done (08 Nov 2026). V1 and V2 both deny `update_status`. The IAP audit log records only MCP base methods with both versions. The gateway request log recorded the V1 denial (`403`, `DENIED`), but not the V2 denial |
+| 5 | Bug draft for the `python_spec` start failure behind an egress gateway | Drafted, not filed. Decision: repository owner |
+| 6 | Reset the demo before the next demo. `terraform.tfvars` is at `ENFORCE` | Open |
+| 7 | Keep [GUIDE.md](../GUIDE.md) current after each step | Ongoing |
+| 8 | Preflight scan: a read-only script (`scripts/preflight.sh`) that checks the target project before any change and writes a JSON go or no-go report. It checks org policies that affect the build (domain restricted sharing and others), enabled APIs, caller roles, billing, existing gateways, agents, Agent Registry entries, and Cloud Run services with the same names, and an existing Terraform state | Not built |
+| 9 | Antigravity CLI harness: skills `geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset` that call the scripts. An `AGENTS.md` with the safety rules (one project, no org-level change, stop on error). A `settings.json` permission list that allows read-only `gcloud` and `terraform plan`, and needs a person to approve `terraform apply`. Headless runs only for preflight and plan (`agy -p ... --output-format json`). The `agy` flags come from Duckie and are not checked in public docs: Not verified | Not built |
+| 10 | The repository `.gitignore` excludes `.agents/`. Options: an exception rule for `geap_starter_pack/.agents/`, or another folder for the skills | Decision: repository owner |

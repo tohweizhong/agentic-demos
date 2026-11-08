@@ -119,6 +119,10 @@ where the table says "Action".
 > (`initialize`, `notifications/initialized`), with `request.dryRun`. It had no entry for the
 > `tools/call` decisions, including the enforced denial. The gateway request log had no entry for
 > the denied call.
+>
+> V1 comparison (08 Nov 2026): with policy V1, the IAP audit log also had entries only for MCP base
+> methods. The gateway request log recorded the V1 denial: status `403`, `mcpInfo.method`
+> `tools/call`, `mcpInfo.parameter` `update_status`, IAP policy result `DENIED`.
 
 ## 7. Run the demo, reset it, and clean up
 
@@ -141,5 +145,6 @@ where the table says "Action".
 | Query returns `{"detail":"Not Found"}` | `adk api_server` runs without `--gemini_enterprise_app_name` | Add the flag to the Dockerfile `CMD` |
 | `not in permitted organization` for `gcp-sa-dep` grants | Domain restricted sharing | Step 3 |
 | A denied tool still passes after the change to `ENFORCE` | The new mode is not active yet | Wait 3 minutes |
+| No log entry for a denied tool call with policy V2 | Known gap: neither the IAP audit log nor the gateway request log recorded it | Use the agent error and the Cloud Run request log as evidence. With policy V1, the gateway request log records the denial |
 | Every plan shows `unique_writer_identity` changes on the log sink | The API always sets `true` | Set `unique_writer_identity = true` (current Terraform) |
 | `terraform test` fails after you edit `terraform.tfvars` | `terraform test` also reads `terraform.tfvars` | The test file sets every value that `terraform.tfvars` can change (current Terraform) |
