@@ -43,7 +43,7 @@ def finalize_calls(monkeypatch):
 
 
 def test_index_page(client):
-  assert "Agent Playground" in client.get("/").text
+  assert "Agent Identity" in client.get("/").text
 
 
 def test_whoami_with_and_without_iap(client):

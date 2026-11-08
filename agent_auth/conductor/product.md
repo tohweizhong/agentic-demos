@@ -63,11 +63,11 @@ on Cloud Run with IAP.
 - B1 Access summary view: filter to the current user and agent, sort newest first,
   an explanation line, and the agent display name.
 - B2 Option: "New conversation" also resets the consent (decision open).
-- B3 "Ingress gateway" tab in the demo UI: a separate agent behind an Agent Gateway
-  in `CLIENT_TO_AGENT` mode, with Model Armor on prompts and answers.
-- B4 "Egress gateway" tab in the demo UI: a separate agent behind an Agent Gateway
-  in `AGENT_TO_ANYWHERE` mode, with an IAP policy that blocks write tools.
+- B3 "Ingress gateway" tab in the demo UI: Completed (`gateway_tabs_20261108`).
+- B4 "Egress gateway" tab in the demo UI: Completed (`gateway_tabs_20261108`).
 - B5 After B3 and B4: one combined journey view (3LO, ingress, egress, audit).
+- B6 "MCP" info tab in the demo UI: explain MCP tool annotations (`readOnlyHint`,
+  `destructiveHint`), tool discovery (`tools/list`), and per-tool CEL policies.
 
 ## Out of scope
 

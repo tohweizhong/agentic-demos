@@ -14,4 +14,4 @@
 
 ## Phase 3: Deploy & Verify
 - [x] Task: Run full pytest suite, coverage check (>=80%), and git hygiene check.
-- [~] Task: Commit, push branch `feat/gateway-tabs`, and deploy to Cloud Run.
+- [x] Task: Commit, push branch `feat/gateway-tabs`, and deploy to Cloud Run.

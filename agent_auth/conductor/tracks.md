@@ -12,5 +12,5 @@
 
 ---
 
-- [~] **Track: Gateway tabs: live Ingress Gateway (Model Armor) and Egress Gateway (IAP policy) tabs with Cloud Logging decision panels**
+- [x] **Track: Gateway tabs: live Ingress Gateway (Model Armor) and Egress Gateway (IAP policy) tabs with Cloud Logging decision panels**
   *Link: [./tracks/gateway_tabs_20261108/index.md](./tracks/gateway_tabs_20261108/index.md)*
