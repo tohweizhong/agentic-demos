@@ -505,66 +505,78 @@ body {
   height: auto;
 }
 
-.flow-svg .party-box {
+.flow-svg .party-box,
+.compact-svg .party-box {
   fill: #f0f4f9;
   stroke: #5f6368;
 }
 
-.flow-svg .party-name {
+.flow-svg .party-name,
+.compact-svg .party-name {
   font-size: 13px;
   font-weight: 600;
   text-anchor: middle;
 }
 
-.flow-svg .party-sub {
+.flow-svg .party-sub,
+.compact-svg .party-sub {
   font-size: 10px;
   fill: #5f6368;
   text-anchor: middle;
 }
 
-.flow-svg .lifeline {
+.flow-svg .lifeline,
+.compact-svg .lifeline {
   stroke: #bdc1c6;
   stroke-dasharray: 4 4;
 }
 
-.flow-svg .step-line {
+.flow-svg .step-line,
+.compact-svg .step-line {
   stroke: #80868b;
   stroke-width: 1.5;
 }
 
-.flow-svg .arrow-head-normal {
+.flow-svg .arrow-head-normal,
+.compact-svg .arrow-head-normal {
   fill: #80868b;
 }
 
-.flow-svg .arrow-head-active {
+.flow-svg .arrow-head-active,
+.compact-svg .arrow-head-active {
   fill: #174ea6;
 }
 
-.flow-svg .step-label {
+.flow-svg .step-label,
+.compact-svg .step-label {
   font-size: 10.5px;
   text-anchor: middle;
   fill: #3c4043;
 }
 
-.flow-svg .step-now {
+.flow-svg .step-now,
+.compact-svg .step-now {
   font-size: 10px;
   font-weight: 700;
   fill: #174ea6;
   visibility: hidden;
 }
 
-.flow-svg .flow-step.active .step-line {
+.flow-svg .flow-step.active .step-line,
+.compact-svg .flow-step.active .step-line {
   stroke: #174ea6;
   stroke-width: 3;
-  marker-end: url(#arrow-active);
+  marker-end: url(#flow-arrow-active);
 }
 
-.flow-svg .flow-step.active .step-label {
+.flow-svg .flow-step.active .step-label,
+.compact-svg .flow-step.active .step-label {
   fill: #174ea6;
   font-weight: 700;
 }
 
-.flow-svg .flow-step.active .step-now {
+.flow-svg .flow-step.active .step-now,
+.compact-svg .flow-step.active .step-now {
   visibility: visible;
 }
 
@@ -1052,4 +1064,112 @@ body {
 .step-fold:focus-visible {
   outline: 2px solid #1a73e8;
   outline-offset: 2px;
+}
+
+/* agentic-demos change: split view and compact 3LO view (layout track L4, L5). */
+.playground-panel {
+  flex-direction: row;
+}
+
+.chat-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.compact-flow {
+  display: none;
+}
+
+.playground-panel.split .compact-flow {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 300px;
+  width: 300px;
+  border-left: 1px solid var(--border-color);
+  background-color: #fbfcfe;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.compact-svg {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+}
+
+.compact-svg .party-name {
+  font-size: 9px;
+}
+
+.compact-svg .step-label {
+  font-size: 9px;
+  paint-order: stroke;
+  stroke: #fbfcfe;
+  stroke-width: 3px;
+}
+
+.compact-svg .step-now {
+  font-size: 9px;
+}
+
+.compact-svg .flow-step.active .step-line {
+  marker-end: url(#compact-arrow-active);
+}
+
+.compact-strip {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 6px;
+}
+
+.compact-strip li {
+  flex: 0 0 auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  background-color: var(--chat-bg);
+  white-space: nowrap;
+}
+
+.compact-strip li.active {
+  border-color: #174ea6;
+  background-color: #174ea6;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.compact-strip li.active::before {
+  content: '\25B6  ';
+}
+
+/* Narrow screens: the compact view is a strip above the chat. */
+@media (max-width: 1100px) {
+  .playground-panel.split {
+    flex-direction: column;
+  }
+
+  .playground-panel.split .compact-flow {
+    order: -1;
+    flex: 0 0 auto;
+    width: auto;
+    border-left: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .playground-panel.split .compact-diagram {
+    display: none;
+  }
+
+  .playground-panel.split .compact-strip {
+    display: flex;
+  }
 }

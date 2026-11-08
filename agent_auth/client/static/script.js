@@ -58,74 +58,125 @@ $(function() {
     return el;
   };
 
-  // Draws the flow as an inline SVG sequence diagram, and the text list.
-  const buildFlowDiagram = () => {
-    const colW = 160;
-    const left = 80;
-    const top = 70;
-    const rowH = 40;
-    const width = left * 2 + colW * (FLOW_PARTIES.length - 1);
-    const height = top + rowH * FLOW_STEPS.length + 40;
-    const x = {};
-    FLOW_PARTIES.forEach((p, i) => { x[p.id] = left + i * colW; });
+  // Short labels for the compact diagram (layout track L4).
+  const FLOW_SHORT = {
+    1: 'Prompt', 2: 'Call agent', 3: 'Ask for token', 4: 'Consent request',
+    5: 'Open GitHub', 6: 'Approve', 7: 'Code to AM', 8: 'Store token',
+    9: 'Back to client', 10: 'Finalize', 11: 'Call GitHub', 12: 'Answer',
+  };
+  const FLOW_PARTY_SHORT = {
+    user: 'User', client: 'Client', agent: 'Agent', am: 'AM', gh: 'GitHub',
+    mcp: 'MCP',
+  };
 
+  /**
+   * Draws the 3LO flow as an inline SVG sequence diagram.
+   * @param {!Object} cfg Sizes, labels, and IDs for this drawing.
+   * @return {!SVGElement} The SVG element.
+   */
+  const drawSequenceSvg = (cfg) => {
+    const width = cfg.left * 2 + cfg.colW * (FLOW_PARTIES.length - 1);
+    const height = cfg.top + cfg.rowH * FLOW_STEPS.length + cfg.bottom;
+    const x = {};
+    FLOW_PARTIES.forEach((p, i) => { x[p.id] = cfg.left + i * cfg.colW; });
     const svg = svgEl('svg', {
       viewBox: `0 0 ${width} ${height}`, role: 'img',
-      'aria-labelledby': 'flow-title flow-desc', class: 'flow-svg'});
-    svg.appendChild(svgEl('title', {id: 'flow-title'}, '3LO flow diagram'));
-    svg.appendChild(svgEl('desc', {id: 'flow-desc'},
-        'Sequence diagram with six parties and twelve numbered steps. ' +
-        'The list under the diagram has the same steps as text.'));
+      'aria-labelledby': `${cfg.prefix}title ${cfg.prefix}desc`,
+      class: cfg.svgClass});
+    svg.appendChild(svgEl('title', {id: `${cfg.prefix}title`}, cfg.title));
+    svg.appendChild(svgEl('desc', {id: `${cfg.prefix}desc`}, cfg.desc));
     const defs = svgEl('defs');
     ['normal', 'active'].forEach((kind) => {
       const marker = svgEl('marker', {
-        id: `arrow-${kind}`, viewBox: '0 0 10 10', refX: '9', refY: '5',
+        id: `${cfg.prefix}arrow-${kind}`, viewBox: '0 0 10 10', refX: '9', refY: '5',
         markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse'});
       marker.appendChild(svgEl('path', {d: 'M0,0 L10,5 L0,10 z', class: `arrow-head-${kind}`}));
       defs.appendChild(marker);
     });
     svg.appendChild(defs);
+    const arrow = `url(#${cfg.prefix}arrow-normal)`;
 
     FLOW_PARTIES.forEach((p) => {
       svg.appendChild(svgEl('line', {
-        x1: x[p.id], y1: top - 10, x2: x[p.id], y2: height - 10, class: 'lifeline'}));
+        x1: x[p.id], y1: cfg.top - 10, x2: x[p.id], y2: height - 10, class: 'lifeline'}));
       svg.appendChild(svgEl('rect', {
-        x: x[p.id] - 70, y: 6, width: 140, height: 46, rx: 8, class: 'party-box'}));
-      svg.appendChild(svgEl('text', {x: x[p.id], y: 25, class: 'party-name'}, p.name));
-      svg.appendChild(svgEl('text', {x: x[p.id], y: 42, class: 'party-sub'}, p.sub));
+        x: x[p.id] - cfg.boxW / 2, y: 6, width: cfg.boxW, height: cfg.boxH, rx: 6,
+        class: 'party-box'}));
+      svg.appendChild(svgEl('text', {x: x[p.id], y: cfg.nameY, class: 'party-name'},
+          cfg.partyName(p)));
+      if (cfg.partySub) {
+        svg.appendChild(svgEl('text', {x: x[p.id], y: cfg.subY, class: 'party-sub'},
+            cfg.partySub(p)));
+      }
     });
 
     FLOW_STEPS.forEach((s, i) => {
-      const y = top + rowH * i + 20;
-      const g = svgEl('g', {class: 'flow-step', id: `flow-step-${s.n}`});
+      const y = cfg.top + cfg.rowH * i + 20;
+      const attrs = {'class': 'flow-step', 'data-flow-step': String(s.n)};
+      if (cfg.stepIds) {
+        attrs.id = `flow-step-${s.n}`;
+      }
+      const g = svgEl('g', attrs);
+      const label = cfg.label(s);
       if (s.from === s.to) {
         const x0 = x[s.from];
         g.appendChild(svgEl('path', {
-          d: `M${x0},${y - 8} h40 v16 h-38`, class: 'step-line', fill: 'none',
-          'marker-end': 'url(#arrow-normal)'}));
-        g.appendChild(svgEl('text', {x: x0 + 48, y: y + 4, class: 'step-label', 'text-anchor': 'start'},
-            `${s.n}. ${s.text}`));
+          d: `M${x0},${y - 8} h${cfg.loopW} v16 h-${cfg.loopW - 2}`, class: 'step-line',
+          fill: 'none', 'marker-end': arrow}));
+        g.appendChild(svgEl('text', {x: x0 + cfg.loopW + 8, y: y + 4, class: 'step-label',
+          'text-anchor': 'start'}, label));
       } else {
         const x1 = x[s.from];
         const x2 = x[s.to];
         const dir = x2 > x1 ? 1 : -1;
         g.appendChild(svgEl('line', {
           x1: x1 + dir * 4, y1: y, x2: x2 - dir * 4, y2: y, class: 'step-line',
-          'marker-end': 'url(#arrow-normal)'}));
-        const midX = (x1 + x2) / 2;
-        g.appendChild(svgEl('text', {x: midX, y: y - 6, class: 'step-label'},
-            `${s.n}. ${s.text}`));
+          'marker-end': arrow}));
+        const labelX = cfg.labelAtStart ? Math.min(x1, x2) + 3 : (x1 + x2) / 2;
+        g.appendChild(svgEl('text', {x: labelX, y: y - 5, class: 'step-label',
+          'text-anchor': cfg.labelAtStart ? 'start' : 'middle'}, label));
       }
       // Text marker, so that the highlight does not depend on color only.
-      g.appendChild(svgEl('text', {x: 8, y: y + 4, class: 'step-now', 'text-anchor': 'start'}, 'NOW'));
+      g.appendChild(svgEl('text', {x: 2, y: y + 4, class: 'step-now', 'text-anchor': 'start'},
+          cfg.nowText));
       svg.appendChild(g);
     });
+    return svg;
+  };
 
-    $('#flow-diagram').empty().append(svg);
+  // Draws the full diagram in the "How 3LO works" tab, the text list, and
+  // the compact diagram and strip of the Step mode split view.
+  const buildFlowDiagram = () => {
+    $('#flow-diagram').empty().append(drawSequenceSvg({
+      prefix: 'flow-', svgClass: 'flow-svg', stepIds: true,
+      title: '3LO flow diagram',
+      desc: 'Sequence diagram with six parties and twelve numbered steps. ' +
+          'The list under the diagram has the same steps as text.',
+      colW: 160, left: 80, top: 70, rowH: 40, bottom: 40,
+      boxW: 140, boxH: 46, nameY: 25, subY: 42, loopW: 40,
+      partyName: (p) => p.name, partySub: (p) => p.sub,
+      label: (s) => `${s.n}. ${s.text}`, labelAtStart: false, nowText: 'NOW',
+    }));
 
     const $list = $('#flow-steps').empty();
     FLOW_STEPS.forEach((s) => {
       $list.append($('<li>').attr('id', `flow-item-${s.n}`).attr('value', s.n).text(s.text));
+    });
+
+    $('#compact-diagram').empty().append(drawSequenceSvg({
+      prefix: 'compact-', svgClass: 'compact-svg', stepIds: false,
+      title: '3LO flow, compact view',
+      desc: 'Twelve numbered steps with short labels. The step card has the full text.',
+      colW: 44, left: 26, top: 36, rowH: 30, bottom: 10,
+      boxW: 40, boxH: 20, nameY: 20, subY: 0, loopW: 18,
+      partyName: (p) => FLOW_PARTY_SHORT[p.id], partySub: null,
+      label: (s) => `${s.n} ${FLOW_SHORT[s.n]}`, labelAtStart: true,
+      nowText: '\u25B6',
+    }));
+    const $strip = $('#compact-strip').empty();
+    FLOW_STEPS.forEach((s) => {
+      $strip.append($('<li>').attr('data-flow-step', String(s.n))
+          .text(`${s.n} ${FLOW_SHORT[s.n]}`));
     });
   };
 
@@ -143,10 +194,11 @@ $(function() {
   const setStep = (steps, label) => {
     currentSteps = steps;
     $('.flow-step').removeClass('active');
-    $('#flow-steps li').removeAttr('aria-current').removeClass('active');
+    $('#flow-steps li, #compact-strip li').removeAttr('aria-current').removeClass('active');
     steps.forEach((n) => {
-      $(`#flow-step-${n}`).addClass('active');
-      $(`#flow-item-${n}`).attr('aria-current', 'step').addClass('active');
+      $(`.flow-step[data-flow-step="${n}"]`).addClass('active');
+      $(`#flow-item-${n}, #compact-strip li[data-flow-step="${n}"]`)
+          .attr('aria-current', 'step').addClass('active');
     });
     const name = label || STEP_NAMES[steps.join(',')] || '';
     $('#step-chip').text(steps.length ?
@@ -365,9 +417,15 @@ $(function() {
   const STEP_MODE_KEY = 'agentAuthStepMode';
   const $stepSwitch = $('#step-mode-switch');
   $stepSwitch.prop('checked', localStorage.getItem(STEP_MODE_KEY) === '1');
+  // Layout track L4: the split view shows when Step mode is on.
+  const applyStepLayout = () => {
+    $('#playground-panel').toggleClass('split', $stepSwitch.prop('checked') === true);
+  };
   $stepSwitch.on('change', function() {
     localStorage.setItem(STEP_MODE_KEY, this.checked ? '1' : '0');
+    applyStepLayout();
   });
+  applyStepLayout();
 
   /** @return {boolean} True when the Step mode switch is on. */
   const isStepMode = () => $stepSwitch.prop('checked') === true;

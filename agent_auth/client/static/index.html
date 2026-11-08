@@ -291,6 +291,8 @@
           <footer class="am-footer">Facts tested in a demo project in November 2026. Items marked inference are not confirmed.</footer>
         </section>
         <div id="playground-panel" class="playground-panel" role="tabpanel" aria-labelledby="tab-play">
+        <!-- agentic-demos change: chat column, and the compact 3LO view for Step mode. -->
+        <div class="chat-column">
         <!-- Message History Container -->
         <div id="messages-container" class="messages-container"></div>
         <!-- Input Area -->
@@ -307,6 +309,11 @@
             <span class="material-symbols-outlined">send</span>
           </md-filled-icon-button>
         </footer>
+        </div>
+        <aside id="compact-flow" class="compact-flow" aria-label="3LO flow, compact view">
+          <div id="compact-diagram" class="compact-diagram"></div>
+          <ol id="compact-strip" class="compact-strip"></ol>
+        </aside>
         </div>
       </div>
     </div>
