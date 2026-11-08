@@ -37,12 +37,12 @@
         too (Enter or Space).
   - [x] "Next step", the keyboard shortcuts, the skip path, and New
         conversation still work with folded cards.
-- [~] Task: Implement folded cards
-  - [ ] Fold the previous card when a new card shows. Use a button with
+- [x] Task: Implement folded cards 0110492
+  - [x] Fold the previous card when a new card shows. Use a button with
         `aria-expanded` for the folded line.
-  - [ ] Keep the card text and Details in the page, so that reopen is
+  - [x] Keep the card text and Details in the page, so that reopen is
         instant.
-  - [ ] Run all browser tests. All must pass.
+  - [x] Run all browser tests. All must pass.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Split view and compact diagram
