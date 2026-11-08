@@ -3,3 +3,8 @@ Summary: added a fake agent server that runs the real client app, pytest fixture
 Files: agent_auth/client/tests/{conftest.py,fake_agent_server.py,test_playground.py,test_main.py,requirements.txt,README.md}.
 Why: acceptance A1 needs a baseline that runs before the Step mode changes, and workflow.md keeps the browser tests in the repository.
 Result: 25 passed. main.py coverage 62 percent. script.js line coverage 73.6 percent.
+
+Phase 1 verification (Test setup), 08 Nov 17:47 SGT.
+Automated: cd agent_auth/client && CI=true .venv/bin/python -m pytest tests -q --cov=main --cov-report=term -> 25 passed, main.py 62 percent, script.js 73.6 percent.
+Manual: optional run of the fake agent server and the slow scenario.
+Confirmation: the parent agent approved the Phase 1 checkpoint at 17:47 SGT after a scan of the branch diff and the notes.
