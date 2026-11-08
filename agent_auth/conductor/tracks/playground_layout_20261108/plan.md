@@ -56,13 +56,13 @@
   - [x] The marked arrow follows each card, in the compact diagram and in the
         "How 3LO works" tab (L4).
   - [x] With Step mode off: no compact diagram (L6).
-- [~] Task: Implement the split view and the compact diagram
-  - [ ] Draw the compact diagram with the same SVG builder as the tab, with
+- [x] Task: Implement the split view and the compact diagram dd0a51c
+  - [x] Draw the compact diagram with the same SVG builder as the tab, with
         short labels, and a text marker for the current arrow.
-  - [ ] Add the split layout and the strip layout with CSS (a width
+  - [x] Add the split layout and the strip layout with CSS (a width
         breakpoint). Keep the chat input usable in both layouts.
-  - [ ] Connect the compact diagram to the step cards.
-  - [ ] Run all browser tests. All must pass.
+  - [x] Connect the compact diagram to the step cards.
+  - [x] Run all browser tests. All must pass.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Deploy and real test
