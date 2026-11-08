@@ -21,7 +21,7 @@
   - [x] Route agent events through a queue when Step mode is on.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Step cards
+## Phase 3: Step cards [checkpoint: 7f9114c]
 
 - [x] Task: Write failing tests for the cards ca35612
   - [x] 12 cards in order, only the newest has "Next step" (F2, A2).
@@ -35,11 +35,11 @@
   - [x] Wire steps to the queue, the popup, the resume, and the skip path.
   - [x] Sync the step chip and the "How 3LO works" tab (F9).
   - [x] Accessibility: roles, labels, focus on the new card, reduce motion (N1).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Deploy and real test
 
-- [ ] Task: Deploy and verify
+- [~] Task: Deploy and verify
   - [ ] Coverage of more than 60 percent for the `script.js` changes.
   - [ ] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy logs.
   - [ ] Update `client/README.md` (change list, Step mode section).
