@@ -45,7 +45,7 @@
   - [x] Run all browser tests. All must pass.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Split view and compact diagram
+## Phase 3: Split view and compact diagram [checkpoint: dd0a51c]
 
 - [x] Task: Write failing tests for the split view and the strip 2fef294
   - [x] At 1280x800 with Step mode on: the chat is on the left, and the
@@ -63,11 +63,11 @@
         breakpoint). Keep the chat input usable in both layouts.
   - [x] Connect the compact diagram to the step cards.
   - [x] Run all browser tests. All must pass.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Deploy and real test
 
-- [ ] Task: Deploy and verify
+- [~] Task: Deploy and verify
   - [ ] Coverage of more than 60 percent for the `script.js` changes.
   - [ ] Update `client/README.md` (change list, layout notes).
   - [ ] Secret scan and hygiene script. Commit and push on the track branch.
