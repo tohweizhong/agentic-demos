@@ -8,19 +8,26 @@ Identity, its own grants, and the same egress gateway controls as the reference 
 ## Before you start
 
 - The mini build is deployed. `terraform output` shows `agent_resource_name`.
-- You have the agent source in a folder with `agent.py`, `agent_engine_app.py`, `tools.py`, and
-  `requirements.txt`, in the same form as [`agent-template/`](../agent-template/).
+- You have the agent source in the same form as [`agent-template/`](../agent-template/): a
+  `Dockerfile`, a `requirements.txt`, and an ADK agent package with `__init__.py` and `agent.py`.
+
+> [!IMPORTANT]
+> With an egress gateway, use the container deploy path (`image_spec` with the Dockerfile). The
+> Dockerfile must install the gateway root CA and set `SSL_CERT_FILE`, `REQUESTS_CA_BUNDLE`, and
+> `GRPC_DEFAULT_SSL_ROOTS_FILE_PATH`. A source deploy with `python_spec` failed in the mini build:
+> the Agent Runtime start-up gRPC call did not trust the gateway root CA.
 - You know which registered destinations the new agent must call.
 
 ## Steps
 
-1. Copy the agent source to a new folder next to `agent-template/`, for example `agent-orders/`.
+1. Copy `agent-template/` to a new folder, for example `agent-orders/`. Rename the package folder
+   and change the `COPY` line and the `CMD` line in the Dockerfile to match.
 2. Make a source archive for the new agent. Use the same `tar` command as
    [`scripts/package_agent.sh`](../scripts/package_agent.sh), with the new folder and a new output
    file, for example `terraform/build/agent_orders.tar.gz`.
 3. In `terraform/`, copy `agent.tf` to `agent_orders.tf`. Change the resource name, the
-   `display_name`, and the archive path. Keep `identity_type = "AGENT_IDENTITY"` and the
-   `agent_gateway_config` block. Without the gateway block, the gateway does not control the agent.
+   `display_name`, and the archive path. Keep `identity_type = "AGENT_IDENTITY"`, the `image_spec`
+   block with the gateway root CA, and the `agent_gateway_config` block. Without the gateway block, the gateway does not control the agent.
 4. Copy `iam_agent.tf` to `iam_agent_orders.tf`. Change the resource names and the principal, so
    that the grants go to the new agent only. Give the new agent only the roles that it needs.
 5. Add the new agent principal to the access policy. In `gateway.tf`, the rules use

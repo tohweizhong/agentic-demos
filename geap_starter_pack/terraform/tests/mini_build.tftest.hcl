@@ -13,7 +13,7 @@ mock_provider "google" {
       id = "projects/example-project/locations/us-central1/agentGateways/geap-egress"
       agent_gateway_card = [{
         service_extensions_service_account = "service-123456789012@gcp-sa-example.iam.gserviceaccount.com"
-        root_certificates                  = []
+        root_certificates                  = ["-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----"]
         mtls_endpoint                      = ""
       }]
     }
@@ -156,6 +156,15 @@ run "agent_uses_identity_and_gateway" {
   assert {
     condition     = google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].agent_gateway_config[0].agent_to_anywhere_config[0].agent_gateway == google_network_services_agent_gateway.egress.id
     error_message = "The agent must be bound to the egress gateway."
+  }
+}
+
+run "agent_image_trusts_the_gateway_ca" {
+  command = apply
+
+  assert {
+    condition     = strcontains(google_vertex_ai_reasoning_engine.agent.spec[0].source_code_spec[0].image_spec[0].build_args["AGENT_GATEWAY_ROOT_CERTIFICATES"], "BEGIN CERTIFICATE")
+    error_message = "The agent image build must get the gateway root CA."
   }
 }
 

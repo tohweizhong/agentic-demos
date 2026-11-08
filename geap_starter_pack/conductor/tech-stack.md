@@ -6,7 +6,7 @@
 | Terraform state | Local state for the mini build. A Cloud Storage backend is a later step for the target design |
 | Agent language | Python 3.12 or later. Agent Runtime builds the agent with Python 3.13 |
 | Agent framework | Google ADK, `google-adk[agent-identity,gcp,mcp]`, version 2.5 or later and below 3.0 |
-| Agent hosting | Agent Runtime, `google_vertex_ai_reasoning_engine` with `source_code_spec` (inline source archive) |
+| Agent hosting | Agent Runtime, `google_vertex_ai_reasoning_engine` with `source_code_spec`: an inline source archive and `image_spec` (container build of `agent-template/Dockerfile`, which runs `adk api_server`). The build installs the gateway root CA |
 | Agent identity | `identity_type = "AGENT_IDENTITY"` on the agent. No service account on the agent |
 | Sessions | Agent Runtime Sessions, used by the ADK app when it runs on Agent Runtime |
 | Model | Gemini, called in the `global` location |

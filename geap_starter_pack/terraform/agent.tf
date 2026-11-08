@@ -26,11 +26,13 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
         source_archive = fileexists(local.agent_archive_path) ? filebase64(local.agent_archive_path) : null
       }
 
-      python_spec {
-        version           = "3.13"
-        entrypoint_module = "agent_engine_app"
-        entrypoint_object = "app"
-        requirements_file = "requirements.txt"
+      # Container deploy: Agent Runtime builds ../agent-template/Dockerfile.
+      # With an egress gateway, use this path. The python_spec path failed: the
+      # Agent Runtime start-up gRPC call did not trust the gateway root CA.
+      image_spec {
+        build_args = {
+          AGENT_GATEWAY_ROOT_CERTIFICATES = join("\n", google_network_services_agent_gateway.egress.agent_gateway_card[0].root_certificates)
+        }
       }
     }
 
@@ -60,14 +62,8 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
         name  = "MODEL_LOCATION"
         value = var.model_location
       }
-      # Do not set GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY. With it, the
-      # Agent Runtime server looks up the project over gRPC at start. Through the
-      # egress gateway this call failed with CERTIFICATE_VERIFY_FAILED, and the
-      # container did not start. AdkApp still sends traces (enable_tracing).
-      #
-      # Do not set SSL_CERT_FILE, REQUESTS_CA_BUNDLE, or
-      # GRPC_DEFAULT_SSL_ROOTS_FILE_PATH. For a source deploy, the Agent Runtime
-      # build installs the gateway root CA and sets these variables.
+      # The Dockerfile installs the gateway root CA and sets SSL_CERT_FILE,
+      # REQUESTS_CA_BUNDLE, and GRPC_DEFAULT_SSL_ROOTS_FILE_PATH.
     }
   }
 

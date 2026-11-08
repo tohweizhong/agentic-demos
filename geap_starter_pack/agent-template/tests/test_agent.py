@@ -16,7 +16,7 @@ def fixture_agent_module(monkeypatch):
   monkeypatch.setenv("MODEL_LOCATION", "global")
   import importlib  # pylint: disable=g-import-not-at-top
 
-  import agent  # pylint: disable=g-import-not-at-top
+  from work_items import agent  # pylint: disable=g-import-not-at-top
 
   return importlib.reload(agent)
 
@@ -46,22 +46,3 @@ def test_model_client_uses_the_model_location(agent_module):
       vertexai=True, project="example-project", location="global"
   )
 
-
-def test_agent_engine_app_wraps_the_root_agent(agent_module):
-  del agent_module
-  import agent_engine_app  # pylint: disable=g-import-not-at-top
-
-  assert agent_engine_app.app is not None
-
-
-def test_agent_engine_app_set_up_runs(agent_module, monkeypatch):
-  """Agent Runtime calls set_up() when the container starts."""
-  del agent_module
-  monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "example-project")
-  monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-  import importlib  # pylint: disable=g-import-not-at-top
-
-  import agent_engine_app  # pylint: disable=g-import-not-at-top
-
-  app = importlib.reload(agent_engine_app).app
-  app.set_up()

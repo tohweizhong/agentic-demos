@@ -10,7 +10,7 @@ SRC="${ROOT}/agent-template"
 OUT_DIR="${ROOT}/terraform/build"
 OUT="${OUT_DIR}/agent_source.tar.gz"
 
-FILES=(agent.py agent_engine_app.py tools.py requirements.txt)
+FILES=(Dockerfile requirements.txt work_items/__init__.py work_items/agent.py work_items/tools.py)
 
 for f in "${FILES[@]}"; do
   if [[ ! -f "${SRC}/${f}" ]]; then

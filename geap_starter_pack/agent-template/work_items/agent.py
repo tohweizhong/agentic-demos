@@ -16,7 +16,7 @@ from google.adk.models import Gemini
 from google.genai import Client
 from google.genai import types
 
-from tools import work_items_toolset
+from .tools import work_items_toolset
 
 MODEL_ID = os.environ.get("MODEL_ID", "gemini-3.8-flash")
 MODEL_LOCATION = os.environ.get("MODEL_LOCATION", "global")
