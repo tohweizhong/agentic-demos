@@ -39,7 +39,35 @@ The client does three things:
 | `static/script.js`, `static/vendor/` | Agent answers render as Markdown when the stream ends (plain text while it streams). The client uses vendored copies of marked and DOMPurify, not a CDN. Raw HTML from the model is escaped, and DOMPurify sanitizes the result. Images are not rendered. Links open in a new tab with `rel="noopener noreferrer"`. |
 | `static/index.html`, `static/script.js` | New "New conversation" button. It clears the chat, the step chip, and the timings. The next message starts a new agent session. It does not remove the GitHub token that Auth Manager stores. To remove the token, use Demo controls, Reset Auth Manager consent. |
 | `static/style.css` | Fix: the 3LO diagram showed as a thin strip, because the scrolling flex panel shrank it. The panel children now keep their size. |
+| `static/index.html`, `static/script.js`, `static/style.css` | New "Step mode" switch and step cards. See [Step mode](#step-mode). |
+| `tests/` | New browser tests (fake agent, headless Chrome) and backend unit tests. See [tests/README.md](tests/README.md). |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
+
+## Step mode
+
+Step mode shows the live 3LO flow one step at a time, in the Playground chat.
+Turn it on with the "Step mode" switch in the chat header. It is off by
+default. The browser remembers the choice.
+
+- The backend runs at full speed. The page keeps the agent events in a queue.
+- Each of the 12 3LO steps shows as a card in the chat. Only the newest card
+  has a "Next step" button. The button waits until the data for the next step
+  is ready, and shows the reason.
+- Each card has a short sentence and a "Details" link: who acts, what happens,
+  what data moves, what stays hidden, where it runs, and real values from the
+  run (local time, session ID, masked nonce). The cards never show a token.
+- The click that shows step 5 opens the GitHub window. After the consent, the
+  client resumes the agent at once, in the background. The cards for steps 7
+  to 12 still wait for clicks. The answer shows at step 12.
+- When Auth Manager already has the token, steps 4 to 10 say "Skipped: token
+  already stored".
+- If the consent request is older than 10 minutes at the step 5 click, the
+  card says that it expired. Send the prompt again.
+- The right arrow key or Enter clicks "Next step". The step chip and the
+  "How 3LO works" diagram follow the current card.
+- "New conversation" removes the cards and clears the queue.
+
+With Step mode off, the Playground works as before.
 
 ## Vendored libraries
 
