@@ -40,9 +40,9 @@
 ## Phase 4: Deploy and real test
 
 - [~] Task: Deploy and verify
-  - [ ] Coverage of more than 60 percent for the `script.js` changes.
+  - [x] Coverage of more than 60 percent for the `script.js` changes (93.6 percent of changed code lines).
   - [ ] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy logs.
-  - [ ] Update `client/README.md` (change list, Step mode section).
+  - [x] Update `client/README.md` (change list, Step mode section). dd0e229
   - [ ] Secret scan and hygiene script. Commit and push on the track branch.
 - [ ] Task: Real browser test with GitHub and IAP, by the user (A5)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
