@@ -2,14 +2,14 @@
 
 ## Phase 1: Header and presentation mode
 
-- [ ] Task: Write failing tests for the header and presentation mode
-  - [ ] The tabs are under the title (L3).
-  - [ ] "Step mode" is a switch control next to "New conversation", and it
+- [x] Task: Write failing tests for the header and presentation mode c0c3fc9
+  - [x] The tabs are under the title (L3).
+  - [x] "Step mode" is a switch control next to "New conversation", and it
         keeps its role, label, and saved state (L3).
-  - [ ] The presentation mode button folds the configuration panel to a thin
+  - [x] The presentation mode button folds the configuration panel to a thin
         bar and unfolds it. The state persists after reload (L2).
-  - [ ] With Step mode off, the chat area is unchanged (L6).
-- [ ] Task: Implement the header and presentation mode
+  - [x] With Step mode off, the chat area is unchanged (L6).
+- [~] Task: Implement the header and presentation mode
   - [ ] Move the tabs under the title. Style the Step mode switch as a real
         switch (track and thumb), with keyboard focus and "reduce motion".
   - [ ] Add the presentation mode button with `aria-expanded` and
