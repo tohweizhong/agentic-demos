@@ -3,9 +3,6 @@
   "permissions": {
     "allow": [
       "Bash(scripts/preflight.sh*)",
-      "Bash(scripts/doctor.sh*)",
-      "Bash(scripts/check_tool_policy.sh*)",
-      "Bash(scripts/install_harness.sh*)",
       "Bash(scripts/package_agent.sh)",
       "Bash(scripts/ask_agent.sh*)",
       "Bash(scripts/read_audit_log.sh*)",
