@@ -9,12 +9,12 @@
   - [x] The presentation mode button folds the configuration panel to a thin
         bar and unfolds it. The state persists after reload (L2).
   - [x] With Step mode off, the chat area is unchanged (L6).
-- [~] Task: Implement the header and presentation mode
-  - [ ] Move the tabs under the title. Style the Step mode switch as a real
+- [x] Task: Implement the header and presentation mode 4878e5d
+  - [x] Move the tabs under the title. Style the Step mode switch as a real
         switch (track and thumb), with keyboard focus and "reduce motion".
-  - [ ] Add the presentation mode button with `aria-expanded` and
+  - [x] Add the presentation mode button with `aria-expanded` and
         `aria-controls`, and store the state in localStorage.
-  - [ ] Run all browser tests. All must pass.
+  - [x] Run all browser tests. All must pass.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Folded cards
