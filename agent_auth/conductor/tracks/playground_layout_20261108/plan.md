@@ -28,7 +28,7 @@
   - [x] Run all browser tests. All must pass.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Folded cards
+## Phase 2: Folded cards [checkpoint: 0110492]
 
 - [x] Task: Write failing tests for folded cards bf4c6d6
   - [x] Only the current card is open. Each past card is one line
@@ -43,11 +43,11 @@
   - [x] Keep the card text and Details in the page, so that reopen is
         instant.
   - [x] Run all browser tests. All must pass.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Split view and compact diagram
 
-- [ ] Task: Write failing tests for the split view and the strip
+- [~] Task: Write failing tests for the split view and the strip
   - [ ] At 1280x800 with Step mode on: the chat is on the left, and the
         compact diagram is on the right (L4).
   - [ ] At 1024x700 with Step mode on: the compact diagram is a strip above
