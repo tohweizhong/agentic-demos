@@ -1,11 +1,11 @@
 ---
 name: geap-reset
-description: Reset the GEAP starter pack demo back to DRY_RUN mode and verify that the write tool passes again.
+description: Switch the GEAP starter pack policy mode back to DRY_RUN and reset the sample MCP server state.
 ---
 
 # Skill: geap-reset
 
-Follow `runbooks/reset_demo.md` to return the mini build to its starting demo state.
+Follow `runbooks/switch_policy_mode.md` to switch `iap_enforcement_mode` back to `DRY_RUN` and reset the sample work item state.
 
 ## Steps
 

@@ -36,7 +36,7 @@ The six components come from the source design. No other component is in scope.
 | 3 | Catalog and control | Customer MCP servers in Agent Registry. Egress Agent Gateway with an IAP V2 policy, first `DRY_RUN`, then enforce. Regional Model Armor template | Agent Registry, Agent Gateway, Model Armor | Yes. One MCP server on Cloud Run, registered. Egress gateway, IAP policy in `DRY_RUN`, then enforce. Model Armor template. Note: the source design names only an egress gateway. The ingress gateway is a backlog addition from 08 Nov 2026. |
 | 4 | Reference agent | One ADK agent on Agent Runtime with Sessions. It calls one MCP server through the gateway. The agent factory uses it as the output template | Agent Runtime, Sessions, ADK | Yes. One ADK agent with Agent Identity and Sessions, bound to the egress gateway. |
 | 5 | Agent factory pipeline | CI/CD that takes agent factory output, registers it, deploys it, and promotes it through four stages: build, test, production, retire | Agent Registry, Agent Runtime | No |
-| 6 | Operations and handover | Dashboards, runbooks, a playbook to add a new agent, two workshops | Observability | Partial. Two runbooks: add a new agent, and reset the demo. |
+| 6 | Operations and handover | Dashboards, runbooks, a playbook to add a new agent, two workshops | Observability | Partial. Two runbooks: add a new agent (`add_agent.md`), and switch policy mode (`switch_policy_mode.md`). |
 
 ## Deliverables on handover day
 

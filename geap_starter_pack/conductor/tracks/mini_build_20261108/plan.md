@@ -37,7 +37,7 @@ Each task ends with its checks and one commit. Mark a task `[x]` when its commit
 ## Phase 4: Operations (steps 6 and 7)
 
 - [x] Task 4.1: Scripts: `ask_agent.sh`, `read_audit_log.sh`, `cleanup.sh`.
-- [x] Task 4.2: Runbooks: `add_agent.md` and `reset_demo.md`. Demo script in the README.
+- [x] Task 4.2: Runbooks: `add_agent.md` and `switch_policy_mode.md`. Walkthrough in the README.
 
 ## Phase 5: Cloud verification (needs approval)
 

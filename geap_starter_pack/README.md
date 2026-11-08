@@ -136,7 +136,7 @@ sequenceDiagram
 | [`mcp-server/`](mcp-server/) | A sample MCP server in Go, with one read-only tool and one write tool | 3 |
 | [`policies/`](policies/) | The IAP access policy and the Model Armor settings | 3 |
 | [`pipelines/`](pipelines/) | Not built (component 5) | 5 |
-| [`runbooks/`](runbooks/) | Add a new agent. Reset the demo | 6 |
+| [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state | 6 |
 | [`scripts/`](scripts/) | Preflight scan, package the agent, ask the agent, read the audit log, clean up | 6 |
 | [`.agents/skills/`](.agents/skills/) | CLI skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`), [`AGENTS.md`](AGENTS.md), and [`settings.json`](settings.json) | 6 |
 
@@ -188,7 +188,7 @@ If you want to deploy without the `gcp-sa-dep` Model Armor grants, set `enable_m
 
 ## Walkthrough: identity, catalog, gateway control, audit (10 minutes)
 
-Run [reset the environment](runbooks/reset_demo.md) before you start so `iap_enforcement_mode` is set to `DRY_RUN`.
+Run [switch policy mode](runbooks/switch_policy_mode.md) before you start so `iap_enforcement_mode` is set to `DRY_RUN`.
 
 | Minute | Show | Command or page |
 |---|---|---|
