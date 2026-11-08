@@ -1,12 +1,12 @@
 # Guide: Build the GEAP Starter Pack Foundation from Zero
 
-This guide takes an operator from an empty Google Cloud project to a governed GEAP starter pack foundation.
+This guide takes an operator from a new or existing Google Cloud project to a governed GEAP starter pack foundation.
 
 ## Placeholders
 
 | Placeholder | Meaning |
 |---|---|
-| `PROJECT_ID` | The ID of the dedicated project |
+| `PROJECT_ID` | The ID of the target project |
 | `PROJECT_NUMBER` | The numeric project number |
 | `ORG_ID` | The numeric organization ID |
 | `BILLING_ACCOUNT_ID` | The billing account ID, in the form `XXXXXX-XXXXXX-XXXXXX` |
@@ -20,7 +20,7 @@ This guide takes an operator from an empty Google Cloud project to a governed GE
 |---|---|
 | Tools | `gcloud`, Terraform 1.9 or later, `jq`, `curl`, Go 1.26 (for the MCP server tests), Python 3.12 or later (for the agent tests) |
 | Roles | Owner (`roles/owner`) on the project. Organization Policy Administrator (`roles/orgpolicy.policyAdmin`) only when Tier 4 (Model Armor) is enabled and the organization restricts policy members |
-| Project | A dedicated project with billing enabled. Do not share the project with other workloads |
+| Project | A new or existing project with billing enabled. All resources use `var.name_prefix` (default `geap`), all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` sweeps only `<name_prefix>-*` resources |
 | Region | `us-central1`. The agent, the gateways, and Agent Registry must be in the same region |
 
 ### Antigravity CLI (`agy`) Harness
@@ -52,7 +52,14 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
    - `"Run geap-reset to switch IAP back to DRY_RUN and reset the sample MCP server."`
    - `"Run geap-teardown to destroy all GEAP resources in my sandbox project."`
 
-## 2. Create the Project and Link Billing
+## 2. Create or Select the Project
+
+If you use an **existing project**, skip `gcloud projects create` and `gcloud billing projects link`:
+1. Run `gcloud projects describe PROJECT_ID --format="value(projectNumber)"` to get `PROJECT_NUMBER`.
+2. Run `scripts/preflight.sh --project PROJECT_ID` in Section 4 to check for any `geap-*` resource name collisions (or set a custom `name_prefix` in `terraform/terraform.tfvars`).
+3. Note the two project-wide settings that Terraform manages: `google_project_iam_audit_config.iap` (enables `DATA_READ` and `DATA_WRITE` audit logs for `iap.googleapis.com`) and `google_project_iam_member.agent_base` (grants `roles/aiplatform.agentDefaultAccess` to the project agent principal set).
+
+If you create a **new project**, run:
 
 ```bash
 gcloud projects create PROJECT_ID --organization=ORG_ID

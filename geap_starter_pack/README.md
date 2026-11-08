@@ -150,8 +150,10 @@ These are links only. The starter pack does not use code from them.
 
 ## Deploy the mini build
 
-Prerequisites: a sandbox project with billing, `gcloud`, Terraform 1.9 or later, and the Owner role
-on the project. Use a dedicated project. The mini build uses `us-central1`.
+Prerequisites: a new or existing Google Cloud project with billing, `gcloud`, Terraform 1.9 or
+later, and the Owner role on the project. All resources use `var.name_prefix` (default `geap`),
+all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` removes only `<name_prefix>-*`
+resources. The mini build uses `us-central1`.
 
 ```bash
 cd geap_starter_pack

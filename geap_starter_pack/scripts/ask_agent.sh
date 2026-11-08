@@ -1,26 +1,30 @@
 #!/usr/bin/env bash
 # Sends one message to the reference agent on Agent Runtime and prints the reply.
 #
-# Usage: scripts/ask_agent.sh [-u USER_ID] [-s SESSION_ID] "MESSAGE"
+# Usage: scripts/ask_agent.sh [-a AGENT_RESOURCE_NAME] [-u USER_ID] [-s SESSION_ID] "MESSAGE"
 #
 # Without -s, the script creates a new session and prints its ID. Use the same
 # -u and -s again to continue the conversation in that session.
 source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
 need terraform gcloud curl jq
 
+AGENT=""
 USER_ID="demo-user"
 SESSION_ID=""
-while getopts "u:s:" opt; do
+while getopts "a:u:s:" opt; do
   case "${opt}" in
+    a) AGENT="${OPTARG}" ;;
     u) USER_ID="${OPTARG}" ;;
     s) SESSION_ID="${OPTARG}" ;;
-    *) echo "Usage: $0 [-u USER_ID] [-s SESSION_ID] \"MESSAGE\"" >&2; exit 2 ;;
+    *) echo "Usage: $0 [-a AGENT_RESOURCE_NAME] [-u USER_ID] [-s SESSION_ID] \"MESSAGE\"" >&2; exit 2 ;;
   esac
 done
 shift $((OPTIND - 1))
 MESSAGE="${1:?Give the message as the last argument.}"
 
-AGENT="$(tf_output agent_resource_name)"
+if [[ -z "${AGENT}" ]]; then
+  AGENT="$(tf_output agent_resource_name)"
+fi
 REGION="$(tf_output region)"
 PROJECT="$(tf_output project_id)"
 API="https://${REGION}-aiplatform.googleapis.com/v1/${AGENT}"
@@ -51,10 +55,12 @@ call "${API}:streamQuery?alt=sse" "${body}" | while IFS= read -r line; do
   line="${line#data: }"
   [[ -z "${line}" ]] && continue
   echo "${line}" | jq -r '
-    (.content.parts // [])[] |
-    if .function_call then "[tool call] \(.function_call.name) \(.function_call.args | tostring)"
-    elif .function_response then "[tool result] \(.function_response.name): \(.function_response.response | tostring | .[0:300])"
-    elif .text then "[agent] \(.text)"
-    else empty end,
-    (if .error_code then "[error] \(.error_code): \(.error_message)" else empty end)' 2>/dev/null || echo "${line}"
+    ((.content.parts // [])[] |
+      if .function_call then "[tool call] \(.function_call.name) \(.function_call.args | tostring)"
+      elif .function_response then "[tool result] \(.function_response.name): \(.function_response.response | tostring | .[0:300])"
+      elif .text then "[agent] \(.text)"
+      else empty end),
+    (if .error_code then "[error] \(.error_code): \(.error_message)"
+     elif .error then "[error] \(.error | tostring)"
+     else empty end)' 2>/dev/null || echo "${line}"
 done

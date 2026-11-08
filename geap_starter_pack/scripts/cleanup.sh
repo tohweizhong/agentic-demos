@@ -249,9 +249,20 @@ done
 for bkt in "${PREFIX}-agent-audit" "${PREFIX}-audit"; do
   BKT_STATE="$(gcloud logging buckets describe "${bkt}" --location="${REGION}" --project="${PROJECT}" --format="value(lifecycleState)" 2>/dev/null || true)"
   if [[ -n "${BKT_STATE}" ]]; then
-    if [[ "${LOG_BUCKET_MODE}" == "keep" && "${BKT_STATE}" == "DELETE_REQUESTED" ]]; then
-      echo "Restoring soft-deleted log bucket ${bkt} (--keep-log-bucket avoids the 7-day soft-delete lock)..."
-      gcloud logging buckets undelete "${bkt}" --location="${REGION}" --project="${PROJECT}" || true
+    if [[ "${LOG_BUCKET_MODE}" == "keep" ]]; then
+      if [[ "${BKT_STATE}" == "DELETE_REQUESTED" ]]; then
+        echo "Restoring soft-deleted log bucket ${bkt} (--keep-log-bucket avoids the 7-day soft-delete lock)..."
+        gcloud logging buckets undelete "${bkt}" --location="${REGION}" --project="${PROJECT}" || true
+      fi
+      if [[ "${bkt}" == "${PREFIX}-agent-audit" ]]; then
+        echo "Re-importing ${bkt} into Terraform state so the next terraform apply succeeds without 409 ALREADY_EXISTS..."
+        terraform -chdir="${TF_DIR}" import "google_logging_project_bucket_config.audit" "projects/${PROJECT}/locations/${REGION}/buckets/${bkt}" >/dev/null 2>&1 || true
+        if [[ -f "${TF_DIR}/terraform.tfstate" ]]; then
+          jq --arg p "${PROJECT}" '
+            (.resources[] | select(.type == "google_logging_project_bucket_config" and .name == "audit") | .instances[].attributes.project) = $p
+          ' "${TF_DIR}/terraform.tfstate" > "${TF_DIR}/terraform.tfstate.tmp" && mv "${TF_DIR}/terraform.tfstate.tmp" "${TF_DIR}/terraform.tfstate"
+        fi
+      fi
     elif [[ "${LOG_BUCKET_MODE}" == "purge" && "${BKT_STATE}" == "ACTIVE" ]]; then
       echo "Deleting log bucket ${bkt} (--purge-all)..."
       gcloud logging buckets delete "${bkt}" --location="${REGION}" --project="${PROJECT}" --quiet || true

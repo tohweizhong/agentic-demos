@@ -59,6 +59,24 @@ if [[ -z "${PREFIX}" || "${PREFIX}" == "geap" ]]; then
   PREFIX="${from_file:-${PREFIX}}"
 fi
 
+tfvars_bool() {
+  local key="$1"
+  local def="$2"
+  local val=""
+  if [[ -f "${TFVARS}" ]]; then
+    val="$(sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*(true|false).*/\1/p" "${TFVARS}" | head -n 1)"
+  fi
+  echo "${val:-${def}}"
+}
+
+ENABLE_EGRESS="$(tfvars_bool enable_egress_gateway true)"
+ENABLE_INGRESS="$(tfvars_bool enable_ingress_gateway false)"
+ENABLE_MA="$(tfvars_bool enable_model_armor true)"
+NEEDS_MA_ROLES="false"
+if [[ "${ENABLE_MA}" == "true" && ( "${ENABLE_EGRESS}" == "true" || "${ENABLE_INGRESS}" == "true" ) ]]; then
+  NEEDS_MA_ROLES="true"
+fi
+
 if [[ -z "${PROJECT}" ]]; then
   echo "ERROR: Pass --project PROJECT_ID or set project_id in terraform/terraform.tfvars." >&2
   exit 2
@@ -207,6 +225,7 @@ REPORT="$(jq -n \
   --argjson drs_managed_enforced "${DRS_MANAGED_ENFORCED}" \
   --argjson existing_ma_roles "${EXISTING_MA_ROLES}" \
   --argjson ma_roles_count "${MA_ROLES_COUNT}" \
+  --argjson needs_ma_roles "${NEEDS_MA_ROLES}" \
   --argjson tf_state_count "${TF_STATE_COUNT}" \
   --argjson gateways "${GATEWAYS_JSON}" \
   --argjson agents "${AGENTS_JSON}" \
@@ -224,8 +243,8 @@ REPORT="$(jq -n \
       (if $log_bucket_state == "DELETE_REQUESTED" then
         "Log bucket " + $log_bucket_id + " is in DELETE_REQUESTED state (7-day soft-delete lock). Undelete it before apply: gcloud logging buckets undelete " + $log_bucket_id + " --location=" + $region + " --project=" + $project
        else empty end),
-      (if ($drs_legacy_restricted and ($ma_roles_count < 3)) then
-        "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Option B or Option C before terraform apply."
+      (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3)) then
+        "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Option B or Option C before terraform apply, or set enable_model_armor = false."
        else empty end)
     ];
   def warnings:
