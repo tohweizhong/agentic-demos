@@ -21,11 +21,11 @@
   - [x] The panel shows all sections, with headings and the two tables, and
         the footer.
   - [x] Opening the tab makes no network request.
-- [~] Task: Implement the "Auth Manager" tab
-  - [ ] Add the third tab and a static panel with the approved text.
-  - [ ] Make the tab code work for three tabs (click and arrow keys).
-  - [ ] Add an in-page link to Demo controls.
-  - [ ] Run all browser tests. All must pass.
+- [x] Task: Implement the "Auth Manager" tab bc4bae8
+  - [x] Add the third tab and a static panel with the approved text.
+  - [x] Make the tab code work for three tabs (click and arrow keys).
+  - [x] Add an in-page link to Demo controls.
+  - [x] Run all browser tests. All must pass.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Folded cards
