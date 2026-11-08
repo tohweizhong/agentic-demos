@@ -150,6 +150,15 @@
             <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
           </div>
           <div class="header-right">
+            <!-- agentic-demos change: Step mode switch. Off by default. -->
+            <label class="step-switch" for="step-mode-switch">
+              <input type="checkbox" id="step-mode-switch" role="switch"
+                aria-describedby="step-mode-help" />
+              <span>Step mode</span>
+            </label>
+            <span id="step-mode-help" class="sr-only">
+              Shows the 3LO flow one step at a time. Click Next step to see each step.
+            </span>
             <!-- agentic-demos change: start a new agent session. -->
             <md-outlined-button id="new-conversation"
               title="Clears the chat and starts a new session. It does not remove the stored GitHub token. To remove it, use Demo controls, Reset Auth Manager consent."

@@ -332,6 +332,82 @@ $(function() {
     if (e.key === 'agent-auth-complete') completeAuth('storage');
   });
 
+  // ---- Step mode (track step_mode_3lo_20261108). ----
+  // With Step mode on, the backend runs at full speed. The page keeps the
+  // agent events in a queue, and the answer stays hidden until step 12.
+  const STEP_MODE_KEY = 'agentAuthStepMode';
+  const $stepSwitch = $('#step-mode-switch');
+  $stepSwitch.prop('checked', localStorage.getItem(STEP_MODE_KEY) === '1');
+  $stepSwitch.on('change', function() {
+    localStorage.setItem(STEP_MODE_KEY, this.checked ? '1' : '0');
+  });
+
+  /** @return {boolean} True when the Step mode switch is on. */
+  const isStepMode = () => $stepSwitch.prop('checked') === true;
+
+  /** The Step mode run of the current prompt, or null. */
+  let activeStepRun = null;
+
+  /** Shows the queue length on the body element, for tests and debugging. */
+  const setQueueCount = (n) => {
+    document.body.dataset.stepQueue = String(n);
+  };
+
+  /**
+   * Creates the state of one Step mode run.
+   * @param {!jQuery} $bubble The hidden agent bubble of this run.
+   * @return {!Object} The run state.
+   */
+  const createStepRun = ($bubble) => {
+    const run = {
+      $bubble: $bubble,
+      events: 0,
+      // 'consent' when Auth Manager asks for consent, 'token' when the token
+      // is already stored.
+      path: null,
+      credential: null,
+      credentialAt: null,
+      consentDone: false,
+      resumeStarted: false,
+      answerReady: false,
+      failed: false,
+      sessionId: null,
+      times: {},
+    };
+    run.onEvent = (data) => {
+      run.events += 1;
+      setQueueCount(run.events);
+      if (!run.path && !data.popup_auth_uri) {
+        run.path = 'token';
+        run.times.agent = Date.now();
+      }
+      run.notify();
+    };
+    run.onCredential = (data) => {
+      run.path = 'consent';
+      run.credential = data;
+      run.credentialAt = Date.now();
+      run.times.agent = run.times.agent || run.credentialAt;
+      run.notify();
+    };
+    run.onStreamEnd = () => {
+      if (run.$bubble.find('.answer-text').length) {
+        run.answerReady = true;
+        run.times.answer = Date.now();
+      }
+      run.notify();
+    };
+    run.onError = () => {
+      run.failed = true;
+      run.$bubble.find('.wait-indicator').remove();
+      $messagesContainer.append(run.$bubble);
+      run.notify();
+    };
+    // Phase 3 connects the step cards here.
+    run.notify = () => {};
+    return run;
+  };
+
   // ---- Tabs. ----
   const selectTab = (which) => {
     const isHow = which === 'how';
@@ -364,6 +440,8 @@ $(function() {
   $('#new-conversation').on('click', () => {
     clearWaits();
     pendingAuth = null;
+    activeStepRun = null;
+    setQueueCount(0);
     latestRequestId++;
     currentSessionId = null;
     document.cookie =
@@ -767,10 +845,33 @@ $(function() {
       $agentMessageDiv = $(existingAgentMessageDiv);
       $contentDiv = $agentMessageDiv.find('.message-content');
       isFirstEvent = false;
+    } else if (isStepMode()) {
+      // agentic-demos change: Step mode keeps the agent bubble hidden (not
+      // in the page) until step 12.
+      $agentMessageDiv = $('<div>').addClass('message agent-message')
+          .append($('<div>').addClass('message-content'));
+      $contentDiv = $agentMessageDiv.find('.message-content');
+      activeStepRun = createStepRun($agentMessageDiv);
+      setQueueCount(0);
     } else {
+      activeStepRun = null;
       $agentMessageDiv = appendMessage('', 'agent-message');
       $contentDiv = $agentMessageDiv.find('.message-content');
     }
+    // The Step mode run that owns this bubble, or null.
+    const stepRun = (activeStepRun &&
+        activeStepRun.$bubble[0] === $agentMessageDiv[0]) ? activeStepRun : null;
+    // In Step mode, the step cards control the step chip and the waits.
+    const liveStep = (steps, label) => {
+      if (!stepRun) {
+        setStep(steps, label);
+      }
+    };
+    const liveWait = (kind, waitText) => {
+      if (!stepRun) {
+        showWait($contentDiv, kind, waitText);
+      }
+    };
 
     // agentic-demos change: loading state, step highlight, and timing.
     const requestId = ++latestRequestId;
@@ -779,8 +880,8 @@ $(function() {
       pendingAuth = null;
       timings = {};
       markTiming('send');
-      setStep([1, 2]);
-      showWait($contentDiv, 'dots', 'The agent is working...');
+      liveStep([1, 2]);
+      liveWait('dots', 'The agent is working...');
     }
 
     const agentType = $('#agent-type-select').val() || 'remote';
@@ -845,7 +946,7 @@ $(function() {
         markTiming('resume');
         // Show steps 7-10 for a short time before step 11.
         setTimeout(() => {
-          if (currentSteps.join(',') === '7,8,9,10') setStep([11]);
+          if (currentSteps.join(',') === '7,8,9,10') liveStep([11]);
         }, 1200);
       }
 
@@ -881,6 +982,9 @@ $(function() {
               // agentic-demos change: do not empty the bubble here. The
               // loading state stays until there is text or a status line.
               isFirstEvent = false;
+              if (stepRun && !data.popup_auth_uri) {
+                stepRun.onEvent(data);
+              }
 
               if (data.popup_auth_uri) {
                 if (data.consent_nonce) {
@@ -895,22 +999,35 @@ $(function() {
                 // closes.
                 clearWaits();
                 markTiming('credential');
-                setStep([4, 5]);
+                liveStep([4, 5]);
                 pendingAuth = {
                   done: false,
                   timer: null,
                   resume: () => {
                     clearWaits();
                     markTiming('validated');
-                    setStep([7, 8, 9, 10]);
-                    $contentDiv.append(
-                        '<br><em>Authentication complete. Resuming session...</em><br>');
-                    showWait($contentDiv, 'spinner', 'Getting your data from GitHub...');
+                    if (stepRun) {
+                      // Step mode: resume at once, in the background.
+                      stepRun.consentDone = true;
+                      stepRun.resumeStarted = true;
+                      stepRun.times.consent = Date.now();
+                      stepRun.notify();
+                    } else {
+                      setStep([7, 8, 9, 10]);
+                      $contentDiv.append(
+                          '<br><em>Authentication complete. Resuming session...</em><br>');
+                      showWait($contentDiv, 'spinner', 'Getting your data from GitHub...');
+                    }
                     executeChatRequest(
                         '', true, data.auth_request_function_call_id,
                         data.auth_config, $agentMessageDiv[0]);
                   },
                 };
+                if (stepRun) {
+                  // Step mode: the step 5 card opens the GitHub window.
+                  stepRun.onCredential(data);
+                  continue;
+                }
                 const thisAuth = pendingAuth;
                 const popup = window.open(data.popup_auth_uri, '_blank');
                 if (popup) {
@@ -936,7 +1053,7 @@ $(function() {
               if (errorMsg) {
                 clearWaits();
                 pendingAuth = null;
-                setStep([], 'stopped on an error');
+                liveStep([], 'stopped on an error');
                 const $err = $('<div>')
                                  .addClass('error-header')
                                  .text(`Error: ${errorMsg}`);
@@ -949,18 +1066,23 @@ $(function() {
                   $contentDiv.append($pre);
                 }
                 $agentMessageDiv.addClass('error-message');
+                if (stepRun) {
+                  stepRun.onError();
+                }
               } else if (data.content && data.content.parts) {
                 data.content.parts.forEach(part => {
                   const fc = part.function_call || part.functionCall;
                   if (fc && fc.name && fc.name !== 'adk_request_credential' &&
                       !data.popup_auth_uri) {
-                    setWaitText($contentDiv, `The agent is calling a tool: ${fc.name}...`);
+                    if (!stepRun) {
+                      setWaitText($contentDiv, `The agent is calling a tool: ${fc.name}...`);
+                    }
                   }
                   if (part.text) {
                     clearWaits();
                     markTiming('firstText');
                     markTiming('lastText', true);
-                    setStep([12]);
+                    liveStep([12]);
                     appendAnswer($contentDiv, part.text);
                   }
                 });
@@ -984,6 +1106,11 @@ $(function() {
       // only while the consent is pending.
       if (!pendingAuth && requestId === latestRequestId) clearWaits();
       finalizeAnswers($contentDiv);
+      if (stepRun) {
+        // Step mode: the bubble stays hidden until step 12.
+        stepRun.onStreamEnd();
+        return;
+      }
       // Never leave an empty bubble.
       const $visible = $contentDiv.clone();
       $visible.find('.wait-indicator').remove();
@@ -994,13 +1121,16 @@ $(function() {
       console.error('Error during query stream processing:', error);
       clearWaits();
       pendingAuth = null;
-      setStep([], 'stopped on an error');
+      liveStep([], 'stopped on an error');
       finalizeAnswers($contentDiv);
       $contentDiv.append(
           $('<div>')
               .addClass('error-header')
               .text(`Network / connection error: ${error.message}`));
       $agentMessageDiv.addClass('error-message');
+      if (stepRun) {
+        stepRun.onError();
+      }
       $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
     }
   }
