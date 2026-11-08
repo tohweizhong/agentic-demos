@@ -47,16 +47,16 @@
 
 ## Phase 3: Split view and compact diagram
 
-- [~] Task: Write failing tests for the split view and the strip
-  - [ ] At 1280x800 with Step mode on: the chat is on the left, and the
+- [x] Task: Write failing tests for the split view and the strip 2fef294
+  - [x] At 1280x800 with Step mode on: the chat is on the left, and the
         compact diagram is on the right (L4).
-  - [ ] At 1024x700 with Step mode on: the compact diagram is a strip above
+  - [x] At 1024x700 with Step mode on: the compact diagram is a strip above
         the chat (L5).
-  - [ ] The compact arrows show short labels such as "4 Consent request" (L4).
-  - [ ] The marked arrow follows each card, in the compact diagram and in the
+  - [x] The compact arrows show short labels such as "4 Consent request" (L4).
+  - [x] The marked arrow follows each card, in the compact diagram and in the
         "How 3LO works" tab (L4).
-  - [ ] With Step mode off: no compact diagram (L6).
-- [ ] Task: Implement the split view and the compact diagram
+  - [x] With Step mode off: no compact diagram (L6).
+- [~] Task: Implement the split view and the compact diagram
   - [ ] Draw the compact diagram with the same SVG builder as the tab, with
         short labels, and a text marker for the current arrow.
   - [ ] Add the split layout and the strip layout with CSS (a width
