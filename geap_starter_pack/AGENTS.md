@@ -23,3 +23,4 @@ Headless CLI runs (for example, `agy -p "<prompt>" --output-format json`) are pe
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Package the agent, run offline tests, run `terraform plan`, and wait for human approval before `terraform apply` |
 | `geap-verify` | `.agents/skills/geap-verify/SKILL.md` | Test the deployed agent, Model Armor, IAP enforcement, and audit logs |
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Switch `iap_enforcement_mode` back to `DRY_RUN` and reset the sample MCP server state |
+| `geap-teardown` | `.agents/skills/geap-teardown/SKILL.md` | Destroy all Terraform resources and sweep any out-of-state GEAP resources in the target project |

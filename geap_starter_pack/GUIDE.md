@@ -33,13 +33,14 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Packages the agent source, runs offline unit tests, runs `terraform plan`, and pauses for human approval before `terraform apply` |
 | `geap-verify` | `.agents/skills/geap-verify/SKILL.md` | Verifies the deployed agent, Model Armor content screening, IAP tool authorization, and Cloud Logging entries |
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Returns `iap_enforcement_mode` to `DRY_RUN` and resets the sample MCP server state |
+| `geap-teardown` | `.agents/skills/geap-teardown/SKILL.md` | Destroys all Terraform resources and sweeps any out-of-state GEAP resources in the project (requires human confirmation) |
 
 `settings.json` allows read-only checks (`scripts/preflight.sh`, `terraform plan`, and unit tests) and requires human approval before `terraform apply`, `terraform destroy`, or `scripts/cleanup.sh`.
 
 #### Load and Run the Skills
 
 1. **Workspace-local loading (no copy needed):** Open the `geap_starter_pack/` folder directly as your workspace root in the Antigravity IDE, or run `cd geap_starter_pack` before you start `agy`. Antigravity automatically loads `AGENTS.md`, `settings.json`, and `.agents/skills/geap-*`.
-2. **Global user skills (when opening the parent repository root):** If you open the parent `agentic-demos/` folder or want the four skills available in any workspace, copy them into your user skills directory:
+2. **Global user skills (when opening the parent repository root):** If you open the parent `agentic-demos/` folder or want the five skills available in any workspace, copy them into your user skills directory:
    ```bash
    mkdir -p ~/.gemini/config/skills
    cp -r geap_starter_pack/.agents/skills/geap-* ~/.gemini/config/skills/
@@ -49,6 +50,7 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
    - `"Run geap-deploy to package the agent, run unit tests, and create a Terraform plan."`
    - `"Run geap-verify to test the deployed agent, Model Armor, and IAP rules."`
    - `"Run geap-reset to switch IAP back to DRY_RUN and reset the sample MCP server."`
+   - `"Run geap-teardown to destroy all GEAP resources in my sandbox project."`
 
 ## 2. Create the Project and Link Billing
 
@@ -212,7 +214,7 @@ In `ENFORCE` mode, `scripts/ask_agent.sh "Set ITEM-001 to in_progress."` returns
 
 - **Promote or roll back gateway policies (`geap-reset`):** Start new agents or tools with `iap_enforcement_mode = "DRY_RUN"` in `terraform/terraform.tfvars`, verify tool traffic, and switch to `iap_enforcement_mode = "ENFORCE"` for production enforcement. To return the environment to `DRY_RUN` and reset the sample MCP server state, follow [runbooks/switch_policy_mode.md](runbooks/switch_policy_mode.md) (which also documents the idle hourly and daily resource costs).
 - **Onboard a new agent:** Follow [runbooks/add_agent.md](runbooks/add_agent.md) to deploy an additional ADK agent, bind it to the shared gateways, and scope its single agent principal in IAM and `policies/iap_access_policy.yaml`.
-- **Tear down the foundation:** Run `scripts/cleanup.sh` to destroy all Terraform-managed resources in the project and delete the regional Cloud Build source bucket.
+- **Tear down the foundation (`geap-teardown`):** Run `scripts/cleanup.sh` to destroy all Terraform-managed resources in the project, sweep any out-of-state GEAP resources and bindings, and delete the regional Cloud Build source bucket. By default, `--keep-log-bucket` keeps the audit log bucket active so a subsequent `terraform apply` does not hit the 7-day Cloud Logging soft-delete lock (pass `--purge-all` to delete the log bucket as well).
 
 ## 8. Troubleshooting
 

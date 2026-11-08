@@ -178,6 +178,16 @@ if [[ -n "${TOKEN}" && -n "${PROJECT_NUMBER}" ]]; then
   ' 2>/dev/null || echo "[]")"
 fi
 
+LOG_BUCKET_ID="${PREFIX}-agent-audit"
+LOG_BUCKET_STATE="$(gcloud logging buckets describe "${LOG_BUCKET_ID}" --location="${REGION}" --project="${PROJECT}" --format="value(lifecycleState)" 2>/dev/null || echo "NOT_FOUND")"
+if [[ "${LOG_BUCKET_STATE}" == "NOT_FOUND" ]]; then
+  ALT_STATE="$(gcloud logging buckets describe "${PREFIX}-audit" --location="${REGION}" --project="${PROJECT}" --format="value(lifecycleState)" 2>/dev/null || echo "NOT_FOUND")"
+  if [[ "${ALT_STATE}" != "NOT_FOUND" ]]; then
+    LOG_BUCKET_ID="${PREFIX}-audit"
+    LOG_BUCKET_STATE="${ALT_STATE}"
+  fi
+fi
+
 # 8. Compute blockers and warnings
 REPORT="$(jq -n \
   --arg ts "${TIMESTAMP}" \
@@ -203,12 +213,17 @@ REPORT="$(jq -n \
   --argjson mcp_servers "${MCP_SERVERS_JSON}" \
   --argjson endpoints "${ENDPOINTS_JSON}" \
   --argjson cloud_run "${CLOUD_RUN_JSON}" \
+  --arg log_bucket_id "${LOG_BUCKET_ID}" \
+  --arg log_bucket_state "${LOG_BUCKET_STATE}" \
   '
   def blockers:
     [
       (if $lifecycle != "ACTIVE" then "Project is not ACTIVE (lifecycleState=" + $lifecycle + ")." else empty end),
       (if ($billing_enabled | not) then "Billing is not enabled on the project." else empty end),
       (if ($has_admin | not) then "Caller does not have roles/owner or roles/editor on the project." else empty end),
+      (if $log_bucket_state == "DELETE_REQUESTED" then
+        "Log bucket " + $log_bucket_id + " is in DELETE_REQUESTED state (7-day soft-delete lock). Undelete it before apply: gcloud logging buckets undelete " + $log_bucket_id + " --location=" + $region + " --project=" + $project
+       else empty end),
       (if ($drs_legacy_restricted and ($ma_roles_count < 3)) then
         "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Option B or Option C before terraform apply."
        else empty end)
@@ -220,6 +235,9 @@ REPORT="$(jq -n \
        else empty end),
       (if ($drs_legacy_restricted and ($ma_roles_count == 3)) then
         "iam.allowedPolicyMemberDomains is active, but all 3 Model Armor roles on the gcp-sa-dep service agent are already present."
+       else empty end),
+      (if ($tf_state_count == 0 and $log_bucket_state == "ACTIVE") then
+        "Log bucket " + $log_bucket_id + " already exists (ACTIVE) while terraform.tfstate is empty. Import it before apply: terraform -chdir=terraform import google_logging_project_bucket_config.audit projects/" + $project + "/locations/" + $region + "/buckets/" + $log_bucket_id
        else empty end),
       (if ($tf_state_count == 0 and (($gateways | length) > 0 or ($agents | length) > 0 or ($cloud_run | length) > 0)) then
         "Existing GEAP resources exist in the project, but local terraform.tfstate is empty."
@@ -260,7 +278,11 @@ REPORT="$(jq -n \
       reasoning_engines: $agents,
       agent_registry_mcp_servers: $mcp_servers,
       agent_registry_endpoints: $endpoints,
-      cloud_run_services: $cloud_run
+      cloud_run_services: $cloud_run,
+      log_bucket: {
+        bucket_id: $log_bucket_id,
+        lifecycle_state: $log_bucket_state
+      }
     },
     blockers: blockers,
     warnings: warnings
