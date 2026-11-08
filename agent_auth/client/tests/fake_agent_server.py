@@ -98,6 +98,11 @@ async def fake_chat(request: Request):
       await asyncio.sleep(0.5)
       yield _event({"content": {"parts": [{"text": ANSWER_MD}]}})
     else:
+      # Like the real agent: the model calls the tool first. The tool then
+      # asks for consent.
+      yield _event({"content": {"parts": [{"function_call": {
+          "name": "search_repositories", "id": "tool-1"}}]}})
+      await asyncio.sleep(0.3)
       yield _event({
           "content": {"parts": [{"function_call": {
               "name": "adk_request_credential", "id": "fc-1"}}]},

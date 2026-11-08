@@ -377,7 +377,13 @@ $(function() {
     run.onEvent = (data) => {
       run.events += 1;
       setQueueCount(run.events);
-      if (!run.path && !data.popup_auth_uri) {
+      // A tool call alone does not show the path: the tool can still ask
+      // for consent. A tool result or answer text without a consent request
+      // shows that Auth Manager already has the token.
+      const parts = (data.content && data.content.parts) || [];
+      const toolRanOrText = parts.some((p) => p.text ||
+          p.function_response || p.functionResponse) || Boolean(data.text);
+      if (!run.path && toolRanOrText) {
         run.path = 'token';
         run.times.agent = Date.now();
       }
@@ -394,6 +400,10 @@ $(function() {
       if (run.$bubble.find('.answer-text').length) {
         run.answerReady = true;
         run.times.answer = Date.now();
+        if (!run.path) {
+          run.path = 'token';
+          run.times.agent = run.times.agent || run.times.answer;
+        }
       }
       run.notify();
     };
@@ -403,10 +413,287 @@ $(function() {
       $messagesContainer.append(run.$bubble);
       run.notify();
     };
-    // Phase 3 connects the step cards here.
-    run.notify = () => {};
+    run.times.send = Date.now();
+    run.shown = 0;
+    run.popupOpened = false;
+    run.expired = false;
+    run.notify = () => updateNextButton(run);
     return run;
   };
+
+  // ---- Step cards (Step mode). One table holds the text of each step. ----
+  const STEP_CARDS = {
+    1: {title: 'You send the prompt',
+      text: 'The demo client gets your prompt. IAP gives your user ID.',
+      who: 'You and the demo client.',
+      what: 'Your browser sends the prompt. IAP adds your verified email.',
+      data: 'The prompt text and your user ID (email).',
+      hidden: 'No secret moves in this step.', time: 'send'},
+    2: {title: 'The client calls the agent',
+      text: 'The client sends the prompt to the agent on Agent Runtime.',
+      who: 'The demo client and the agent.',
+      what: 'The client calls stream_query on the agent.',
+      data: 'The prompt, your user ID, and the session ID.',
+      hidden: 'The client has no GitHub token.', time: 'send'},
+    3: {title: 'The agent asks Auth Manager for a token', server: true,
+      text: 'The agent uses its own identity to ask for a GitHub token for you.',
+      who: 'The agent and Auth Manager.',
+      what: 'The agent asks for the token of your user ID.',
+      data: 'Your user ID and the auth provider name.',
+      hidden: 'The agent identity credentials stay in Google Cloud.',
+      time: 'agent'},
+    4: {title: 'Auth Manager asks for consent',
+      text: 'There is no token yet. The agent sends a consent request to the client.',
+      who: 'The agent and the demo client.',
+      what: 'The agent returns adk_request_credential.',
+      data: 'A consent URL and a nonce. The client keeps the nonce in a cookie.',
+      hidden: 'No token exists yet.', time: 'credential'},
+    5: {title: 'The client opens the GitHub window',
+      text: 'The client opens GitHub in a new window.',
+      who: 'The demo client and your browser.',
+      what: 'The browser opens the consent URL on github.com.',
+      data: 'The consent URL. The nonce stays in a cookie.',
+      hidden: 'The client never sees your GitHub password.', time: 'popup'},
+    6: {title: 'You approve on GitHub',
+      text: 'You sign in on github.com and approve the app.',
+      who: 'You and GitHub.',
+      what: 'GitHub asks you to approve the OAuth app.',
+      data: 'Your GitHub password goes only to GitHub.',
+      hidden: 'Google, the client, and the agent never see your password.',
+      time: 'consent'},
+    7: {title: 'GitHub sends the code to Auth Manager', server: true,
+      text: 'GitHub sends an authorization code to the Auth Manager redirect URL.',
+      who: 'GitHub and Auth Manager.',
+      what: 'The code goes to Auth Manager, not to the client.',
+      data: 'The authorization code.',
+      hidden: 'The client never sees the code.', time: 'consent'},
+    8: {title: 'Auth Manager stores the token', server: true,
+      text: 'Auth Manager swaps the code for a token, and stores it in its vault.',
+      who: 'Auth Manager and GitHub.',
+      what: 'Auth Manager gets the token from GitHub.',
+      data: 'The token goes into the Auth Manager vault.',
+      hidden: 'The token stays in the vault.', time: 'consent'},
+    9: {title: 'The browser returns to the client',
+      text: 'Auth Manager sends your browser to the client page /validateUserId.',
+      who: 'Auth Manager, your browser, and the demo client.',
+      what: 'The browser opens the client continue URL.',
+      data: 'A validation state in the URL.',
+      hidden: 'The URL holds no token.', time: 'consent'},
+    10: {title: 'The client finalizes the consent',
+      text: 'The client calls credentials:finalize with the validation state and the nonce.',
+      who: 'The demo client and Auth Manager.',
+      what: 'Auth Manager checks that the same user started and finished the consent.',
+      data: 'The validation state and the nonce.',
+      hidden: 'The client gets no token.', time: 'consent'},
+    11: {title: 'The agent calls GitHub',
+      text: 'The agent gets the token from Auth Manager and calls the GitHub MCP server.',
+      who: 'The agent, Auth Manager, and the GitHub MCP server.',
+      what: 'The agent calls the GitHub tools with your token.',
+      data: 'The token goes from Auth Manager to the agent and to GitHub.',
+      hidden: 'The token never goes to your browser.', time: 'resume'},
+    12: {title: 'The answer comes back',
+      text: 'The agent sends the answer to the client, and the client shows it.',
+      who: 'The agent, the demo client, and you.',
+      what: 'The answer streams back to the chat.',
+      data: 'The answer text.',
+      hidden: 'The answer holds no token.', time: 'answer'},
+  };
+  const SKIPPED_TEXT = 'Skipped: token already stored.';
+  const CONSENT_EXPIRY_DEFAULT_MS = 10 * 60 * 1000;
+
+  /** @return {number} The time after which a consent request can expire. */
+  const consentExpiryMs = () => window.STEP_MODE_CONSENT_EXPIRY_MS ||
+      CONSENT_EXPIRY_DEFAULT_MS;
+
+  /** Shows only the start of a nonce. */
+  const maskNonce = (nonce) => (nonce ? `${String(nonce).slice(0, 4)}...` : '-');
+
+  /**
+   * Tells if the data for a step is ready.
+   * @param {!Object} run The Step mode run.
+   * @param {number} n The step number.
+   * @return {?string} null when the step is ready, else a wait message.
+   */
+  const stepWaitReason = (run, n) => {
+    if (n <= 2) {
+      return null;
+    }
+    if (!run.path) {
+      return 'Waiting for the agent...';
+    }
+    if (run.path === 'token') {
+      if (n === 12 && !run.answerReady) {
+        return 'Waiting for the answer...';
+      }
+      return null;
+    }
+    if (n <= 5) {
+      return null;
+    }
+    if (n === 6) {
+      return run.popupOpened ? null : 'Open the GitHub window first.';
+    }
+    if (n <= 10) {
+      return run.consentDone ? null :
+          'Waiting for your approval in the GitHub window...';
+    }
+    if (n === 11) {
+      return run.resumeStarted ? null : 'Waiting for the agent...';
+    }
+    return run.answerReady ? null : 'Waiting for the answer...';
+  };
+
+  /** Enables or disables the Next step button of the newest card. */
+  const updateNextButton = (run) => {
+    if (run !== activeStepRun || !run.$newest) {
+      return;
+    }
+    const $next = run.$newest.find('.step-next');
+    const $wait = run.$newest.find('.step-wait');
+    if (run.failed) {
+      $next.remove();
+      $wait.text('Stopped on an error. See the message below.');
+      return;
+    }
+    if (!$next.length) {
+      return;
+    }
+    const reason = stepWaitReason(run, run.shown + 1);
+    $next.prop('disabled', reason !== null);
+    $wait.text(reason || '');
+  };
+
+  /**
+   * Adds the card of step n to the chat.
+   * @param {!Object} run The Step mode run.
+   * @param {number} n The step number.
+   * @param {?Object=} override Text that replaces the normal card text.
+   */
+  const showStepCard = (run, n, override = null) => {
+    const info = STEP_CARDS[n];
+    const skipped = run.path === 'token' && n >= 4 && n <= 10;
+    run.shown = n;
+    if (run.$newest) {
+      run.$newest.find('.step-next').remove();
+      run.$newest.find('.step-wait').remove();
+    }
+    const titleId = `step-card-title-${n}-${Date.now()}`;
+    const $card = $('<section>').addClass('step-card')
+        .toggleClass('skipped', skipped)
+        .attr({'role': 'group', 'aria-labelledby': titleId, 'tabindex': '-1'});
+    $card.append($('<div>').addClass('step-number').text(`Step ${n} of 12`));
+    const title = override ? override.title : info.title;
+    $card.append($('<div>').addClass('step-title').attr('id', titleId).text(title));
+    $card.append($('<p>').addClass('step-text').text(
+        override ? override.text : (skipped ? SKIPPED_TEXT : info.text)));
+    if (!override) {
+      const $details = $('<details>').addClass('step-details');
+      $details.append($('<summary>').text('Details'));
+      const time = run.times[info.time];
+      const rows = [
+        ['Who acts', info.who],
+        ['What happens', skipped ?
+            'Nothing. Auth Manager already has a token for you.' : info.what],
+        ['What data moves', info.data],
+        ['What stays hidden', info.hidden],
+        ['Where it runs', info.server ? 'Runs on the server. Your browser does not see this step.' :
+            'Your browser sees this step.'],
+        ['Time (this run)', time ? fmtLocal(time) : '-'],
+        ['Session ID (this run)', currentSessionId || '-'],
+      ];
+      if (n === 4 || n === 5) {
+        rows.push(['Nonce (masked)', maskNonce(run.credential && run.credential.consent_nonce)]);
+      }
+      const $dl = $('<dl>');
+      rows.forEach(([k, v]) => {
+        $dl.append($('<dt>').text(k)).append($('<dd>').text(v));
+      });
+      $details.append($dl);
+      $card.append($details);
+    }
+    if (n < 12 && !(override && override.final)) {
+      const $next = $('<button>').attr('type', 'button').addClass('step-next')
+          .attr('aria-label', `Next step: step ${n + 1} of 12`).text('Next step');
+      $next.on('click', () => onNextStep(run));
+      $card.append($next);
+      $card.append($('<span>').addClass('step-wait').attr('aria-live', 'polite'));
+    }
+    $messagesContainer.append($card);
+    run.$newest = $card;
+    setStep([n], skipped ? 'skipped, token already stored' : title);
+    updateNextButton(run);
+    const $focus = $card.find('.step-next:not(:disabled)');
+    ($focus.length ? $focus : $card).trigger('focus');
+    $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
+  };
+
+  /** Opens the GitHub consent window from the step 5 click. */
+  const openConsentWindow = (run) => {
+    const thisAuth = pendingAuth;
+    const popup = window.open(run.credential.popup_auth_uri, '_blank');
+    run.popupOpened = true;
+    run.times.popup = Date.now();
+    markTiming('popup');
+    if (popup && thisAuth) {
+      thisAuth.timer = setInterval(() => {
+        if (popup.closed && pendingAuth === thisAuth) {
+          completeAuth('popup closed');
+        }
+      }, 500);
+    }
+  };
+
+  /** Handles a click on Next step. */
+  const onNextStep = (run) => {
+    if (run !== activeStepRun) {
+      return;
+    }
+    const n = run.shown + 1;
+    if (n > 12 || stepWaitReason(run, n) !== null) {
+      return;
+    }
+    if (n === 5 && run.path === 'consent') {
+      if (Date.now() - run.credentialAt > consentExpiryMs()) {
+        run.expired = true;
+        pendingAuth = null;
+        showStepCard(run, 5, {
+          title: 'The consent request expired',
+          text: 'The consent request expired during the pause. ' +
+              'Send the prompt again.',
+          final: true,
+        });
+        return;
+      }
+      openConsentWindow(run);
+    }
+    showStepCard(run, n);
+    if (n === 12) {
+      run.$bubble.find('.wait-indicator').remove();
+      $messagesContainer.append(run.$bubble);
+      $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
+    }
+  };
+
+  // F10: the right arrow key or Enter clicks Next step.
+  $(document).on('keydown', (e) => {
+    if (!activeStepRun || (e.key !== 'ArrowRight' && e.key !== 'Enter')) {
+      return;
+    }
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag) || e.target.isContentEditable) {
+      return;
+    }
+    // Enter on a button already clicks that button.
+    if (e.key === 'Enter' && (tag === 'button' || tag === 'summary' || tag === 'a' ||
+        tag.startsWith('md-'))) {
+      return;
+    }
+    const $next = $('#messages-container .step-card .step-next').last();
+    if ($next.length && !$next.prop('disabled')) {
+      e.preventDefault();
+      $next.trigger('click');
+    }
+  });
 
   // ---- Tabs. ----
   const selectTab = (which) => {
@@ -442,6 +729,7 @@ $(function() {
     pendingAuth = null;
     activeStepRun = null;
     setQueueCount(0);
+    $('.step-card').remove();
     latestRequestId++;
     currentSessionId = null;
     document.cookie =
@@ -853,6 +1141,7 @@ $(function() {
       $contentDiv = $agentMessageDiv.find('.message-content');
       activeStepRun = createStepRun($agentMessageDiv);
       setQueueCount(0);
+      showStepCard(activeStepRun, 1);
     } else {
       activeStepRun = null;
       $agentMessageDiv = appendMessage('', 'agent-message');

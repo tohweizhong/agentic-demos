@@ -243,7 +243,6 @@ body {
   font-weight: 500;
   color: var(--text-muted);
   margin-bottom: 10px;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
@@ -729,4 +728,106 @@ body {
 .step-switch input:focus-visible {
   outline: 2px solid #1a73e8;
   outline-offset: 2px;
+}
+
+/* agentic-demos change: Step mode cards. */
+.step-card {
+  align-self: center;
+  width: min(560px, 92%);
+  border: 1px solid #c6dafc;
+  border-left: 4px solid #174ea6;
+  border-radius: 10px;
+  background-color: #f8fbff;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: step-card-in 200ms ease-out;
+}
+
+.step-card:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.step-card.skipped {
+  border-left-color: #80868b;
+  background-color: #f8f9fa;
+}
+
+.step-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #174ea6;
+}
+
+.step-card.skipped .step-number {
+  color: #5f6368;
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.step-text {
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.step-details summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #1a73e8;
+}
+
+.step-details dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+}
+
+.step-details dt {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.step-next {
+  align-self: flex-start;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 16px;
+  background-color: #174ea6;
+  color: #ffffff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.step-next:disabled {
+  background-color: #dadce0;
+  color: #5f6368;
+  cursor: not-allowed;
+}
+
+.step-next:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.step-wait {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+@keyframes step-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-card {
+    animation: none;
+  }
 }

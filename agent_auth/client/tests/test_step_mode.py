@@ -173,6 +173,11 @@ def test_keyboard_moves_to_next_step(new_page, stats):  # pylint: disable=unused
   page.locator("body").click(position={"x": 5, "y": 5})
   page.keyboard.press("ArrowRight")
   page.wait_for_function(f"() => document.querySelectorAll('{CARD}').length == 2")
+  # Step 3 waits for the agent. Enter works when the button is enabled.
+  page.wait_for_function(
+      """() => { const b = [...document.querySelectorAll(
+          '#messages-container .step-card .step-next')].pop();
+        return b && !b.disabled; }""", timeout=10000)
   page.keyboard.press("Enter")
   page.wait_for_function(f"() => document.querySelectorAll('{CARD}').length == 3")
   # The new card gets the focus.
