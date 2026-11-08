@@ -13,6 +13,7 @@
 | Client hosting | Cloud Run with IAP, one build service account, one runtime service account |
 | Deploy and clean-up | Bash scripts with `gcloud` and `curl`. Settings in a gitignored `.env` |
 | Database | None. The client keeps state in cookies and in browser memory |
+| Client tests | `pytest` and `pytest-cov` for `main.py`. Playwright with headless Chrome for browser tests against a fake agent server. JavaScript coverage of `script.js` through the Chrome DevTools Protocol |
 
 ## Exceptions
 
