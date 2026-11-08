@@ -349,3 +349,109 @@ def test_strip_has_no_resizer_at_1024(new_page):
   box = strip.bounding_box()
   assert box["y"] + box["height"] <= chat["y"] + 1
   assert abs(box["width"] - page.locator("#playground-panel").bounding_box()["width"]) < 30
+
+
+# ---- Phase 5 review fix: one colour scheme (L9) ----
+CONTRAST_JS = """(el) => {
+  const parse = (c) => (c.match(/[\\d.]+/g) || []).map(Number);
+  const lum = (rgb) => {
+    const f = (v) => { v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2]);
+  };
+  const bgOf = (e) => {
+    while (e && e.nodeType === 1) {
+      const p = parse(getComputedStyle(e).backgroundColor);
+      if (p.length === 3 || (p.length === 4 && p[3] > 0)) { return p.slice(0, 3); }
+      e = e.parentElement;
+    }
+    return [255, 255, 255];
+  };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const fg = parse(getComputedStyle(el).color).slice(0, 3);
+  return ratio(fg, bgOf(el));
+}"""
+
+UI_CONTRAST_JS = """([el, prop]) => {
+  const parse = (c) => (c.match(/[\\d.]+/g) || []).map(Number);
+  const lum = (rgb) => {
+    const f = (v) => { v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2]);
+  };
+  const part = parse(getComputedStyle(el)[prop]).slice(0, 3);
+  let e = el.parentElement, bg = [255, 255, 255];
+  while (e) { const p = parse(getComputedStyle(e).backgroundColor);
+    if (p.length === 3 || (p.length === 4 && p[3] > 0)) { bg = p.slice(0, 3); break; }
+    e = e.parentElement; }
+  const x = lum(part), y = lum(bg);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}"""
+
+MAIN = "#1a73e8"
+WARNING = "#c5221f"
+
+
+def _var(page, name, selector=":root"):
+  return page.evaluate(
+      "([s, n]) => getComputedStyle(document.querySelector(s))"
+      ".getPropertyValue(n).trim().toLowerCase()", [selector, name])
+
+
+def _text_ratio(page, selector):
+  return page.locator(selector).first.evaluate(CONTRAST_JS)
+
+
+def test_palette_tokens_and_main_buttons(new_page):
+  """L9: one main colour from CSS variables, red for warnings, green token."""
+  page = new_page()
+  assert _var(page, "--color-main") == MAIN
+  assert _var(page, "--color-warning") == WARNING
+  assert _var(page, "--color-allowed") != ""
+  # The Material buttons (Save & Apply Settings, Load Remote Agents) use the
+  # main colour, not the default purple.
+  for button in ("#save-settings", "#load-agents-btn"):
+    assert _var(page, "--md-sys-color-primary", button) == MAIN
+    assert _var(page, "--md-sys-color-on-primary", button) == "#ffffff"
+  # Red only for warnings: the Demo only label and the panel border.
+  badge_bg = page.locator(".demo-badge").evaluate(
+      "e => getComputedStyle(e).backgroundColor")
+  assert badge_bg == "rgb(197, 34, 31)"
+  border = page.locator(".demo-controls").evaluate(
+      "e => getComputedStyle(e).borderTopColor")
+  assert border == "rgb(197, 34, 31)"
+  # The selected tab, the switch when on, and the links use the main colour.
+  tab_bg = page.locator(".tab[aria-selected=true]").evaluate(
+      "e => getComputedStyle(e).backgroundColor")
+  assert tab_bg == "rgb(26, 115, 232)"
+  link = page.locator("#demo-github-link").evaluate(
+      "e => getComputedStyle(e).color")
+  assert link == "rgb(26, 115, 232)"
+
+
+def test_text_contrast_meets_wcag_aa(new_page):
+  """L9: text contrast is at least 4.5:1, UI parts at least 3:1."""
+  page = new_page()
+  for selector in (".tab[aria-selected=true]", ".tab[aria-selected=false]",
+                   "#step-chip", ".demo-badge", "#demo-github-link",
+                   ".step-switch", "#am-open-demo-controls"):
+    ratio = _text_ratio(page, selector)
+    assert ratio >= 4.5, f"{selector}: {ratio:.2f}"
+  # UI part: the switch track when on, against its background.
+  page.click(".step-switch")
+  ratio = page.evaluate(
+      UI_CONTRAST_JS, [page.locator(".switch-track").element_handle(),
+                       "backgroundColor"])
+  assert ratio >= 3.0, f"switch track: {ratio:.2f}"
+
+
+def test_switch_state_has_a_text_label(new_page):
+  """L9: the switch state shows as text, not only as colour."""
+  page = new_page()
+  state = page.locator(".step-switch .switch-state")
+  assert state.inner_text() == "Off"
+  page.click(".step-switch")
+  assert state.inner_text() == "On"
+  page.click(".step-switch")
+  assert state.inner_text() == "Off"
