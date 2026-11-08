@@ -45,6 +45,12 @@ Label support in provider 8.10.0 (checked with `terraform providers schema`):
   design, because VPC-SC needs it.
 - The agent calls the MCP server with an ID token for a dedicated invoker service account. The
   agent gets the token creator role on that one service account only, not on the project.
+- Grants to agents have two levels. Base roles go to the principal set of all agents in the project,
+  before Terraform creates an agent: `roles/aiplatform.agentDefaultAccess` (logs, metrics, traces,
+  telemetry, quota, model predict). The container needs them when it starts, and a single agent
+  principal exists only after the agent exists. Tool access and Sessions go to the single agent
+  principal: the token creator role on the invoker account, `roles/aiplatform.user`, and the IAP
+  egress policy. `roles/aiplatform.agentDefaultAccess` has the stage ALPHA.
 - There is no Terraform or HCL style guide in the Conductor library. `terraform fmt` is the style
   check for Terraform.
 

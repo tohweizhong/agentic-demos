@@ -15,9 +15,10 @@ of [product.md](../../product.md).
 2. **Base setup (Terraform).** Turn on the APIs. Turn on Data Access audit logs for
    `iap.googleapis.com`. Create a regional log bucket and a log sink for the gateway request log and
    the IAP audit log.
-3. **Identity baseline (Terraform).** The agent uses Agent Identity. All grants go to the single
-   agent principal, not to the project principal set. The agent gets the token creator role on one
-   invoker service account only. No grant of `roles/iam.serviceAccountTokenCreator` at the project
+3. **Identity baseline (Terraform).** The agent uses Agent Identity. Start-up base roles go to the
+   project agent principal set before the agent exists. Tool access, Sessions, and the IAP egress
+   policy go to the single agent principal. The agent gets the token creator role on one invoker
+   service account only. No grant of `roles/iam.serviceAccountTokenCreator` at the project
    level.
 4. **Catalog (Terraform).** Build the sample MCP server image with Cloud Build. Deploy it to Cloud
    Run. Register it in Agent Registry with its tool spec. Register the platform API endpoints that

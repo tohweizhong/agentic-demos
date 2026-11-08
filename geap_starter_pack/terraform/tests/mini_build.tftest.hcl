@@ -121,8 +121,27 @@ run "no_project_level_token_creator" {
   }
 
   assert {
+    condition     = !contains(local.agent_base_roles, "roles/iam.serviceAccountTokenCreator")
+    error_message = "The agent principal set must not get roles/iam.serviceAccountTokenCreator."
+  }
+
+  assert {
+    condition     = google_service_account_iam_member.agent_token_creator.member == local.agent_principal
+    error_message = "The token creator grant must go to the single agent principal."
+  }
+
+  assert {
     condition     = google_service_account_iam_member.agent_token_creator.role == "roles/iam.serviceAccountTokenCreator"
     error_message = "The agent must get the token creator role on the invoker service account."
+  }
+}
+
+run "base_roles_go_to_the_principal_set" {
+  command = apply
+
+  assert {
+    condition     = google_project_iam_member.agent_base["roles/aiplatform.agentDefaultAccess"].member == "principalSet://agents.global.org-111111111111.system.id.goog/attribute.platformContainer/aiplatform/projects/123456789012"
+    error_message = "The base roles must go to the agent principal set of the project."
   }
 }
 
