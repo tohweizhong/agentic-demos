@@ -1,0 +1,1 @@
+Task: Write failing tests for the split view and the strip (layout Phase 3). test_split_view_at_1280 (L4), test_strip_at_1024 (L5), test_marked_arrow_follows_each_card (L4, compact view, strip, and tab), test_no_compact_diagram_with_step_mode_off (L6). Red phase: 4 failed.
