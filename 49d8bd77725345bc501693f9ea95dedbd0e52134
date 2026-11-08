@@ -1,0 +1,1 @@
+Task: Write failing tests for the switch and the queue (Phase 2). Added tests/test_step_mode.py: switch off by default and persists after reload (F1), events queued and no answer shown with Step mode on (F4), answer still shown with Step mode off (A1). Red phase: 2 tests failed before the implementation, as expected.
