@@ -332,6 +332,33 @@ $(function() {
     if (e.key === 'agent-auth-complete') completeAuth('storage');
   });
 
+  // ---- Presentation mode (track playground_layout_20261108). ----
+  // The button folds the configuration panel to a thin bar. The browser
+  // remembers the choice.
+  const PRESENTATION_KEY = 'agentAuthPresentation';
+
+  /**
+   * Folds or unfolds the configuration panel.
+   * @param {boolean} folded True to fold the panel.
+   */
+  const setPresentationMode = (folded) => {
+    const label = folded ? 'Unfold the configuration panel' :
+        'Fold the configuration panel (presentation mode)';
+    $('#settings-sidebar').toggleClass('folded', folded);
+    $('#presentation-toggle').attr({
+      'aria-expanded': String(!folded),
+      'aria-label': label,
+      'title': label,
+    });
+    $('#presentation-toggle .material-symbols-outlined')
+        .text(folded ? 'left_panel_open' : 'left_panel_close');
+    localStorage.setItem(PRESENTATION_KEY, folded ? '1' : '0');
+  };
+  setPresentationMode(localStorage.getItem(PRESENTATION_KEY) === '1');
+  $('#presentation-toggle').on('click', () => {
+    setPresentationMode(!$('#settings-sidebar').hasClass('folded'));
+  });
+
   // ---- Step mode (track step_mode_3lo_20261108). ----
   // With Step mode on, the backend runs at full speed. The page keeps the
   // agent events in a queue, and the answer stays hidden until step 12.

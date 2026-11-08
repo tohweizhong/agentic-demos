@@ -831,3 +831,139 @@ body {
     animation: none;
   }
 }
+
+/* ==========================================================================
+   agentic-demos change: layout track. Header, switch, presentation mode.
+   ========================================================================== */
+.chat-header {
+  align-items: flex-start;
+}
+
+.chat-header .header-left {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* A real switch: a track and a thumb. The checkbox is invisible (opacity 0)
+   and lies on top of the track, so that a click and the keyboard work on it. */
+.step-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.step-switch input {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+  accent-color: auto;
+}
+
+.switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #9aa0a6;
+  transition: background-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 150ms ease;
+}
+
+.step-switch input:checked + .switch-track {
+  background-color: #174ea6;
+}
+
+.step-switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(16px);
+}
+
+.step-switch input:focus-visible + .switch-track {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.sidebar {
+  transition: width 200ms ease;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.presentation-toggle {
+  border: 1px solid var(--border-color);
+  background-color: var(--chat-bg);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.presentation-toggle:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.sidebar.folded {
+  width: 48px;
+}
+
+.sidebar.folded .sidebar-header {
+  padding: 12px 8px;
+  justify-content: center;
+}
+
+.sidebar.folded .sidebar-header h2,
+.sidebar.folded .settings-form {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .switch-track,
+  .switch-thumb {
+    transition: none;
+  }
+}

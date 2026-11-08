@@ -20,8 +20,15 @@
       <div id="settings-sidebar" class="sidebar">
         <div class="sidebar-header">
           <h2>Configuration Settings</h2>
+          <!-- agentic-demos change: presentation mode folds this panel. -->
+          <button type="button" id="presentation-toggle" class="presentation-toggle"
+            aria-controls="settings-form" aria-expanded="true"
+            aria-label="Fold the configuration panel (presentation mode)"
+            title="Fold the configuration panel (presentation mode)">
+            <span class="material-symbols-outlined" aria-hidden="true">left_panel_close</span>
+          </button>
         </div>
-        <div class="settings-form">
+        <div class="settings-form" id="settings-form">
           <!-- Agent Type Selection -->
           <md-outlined-select id="agent-type-select" label="Agent Type">
             <md-select-option value="local">
@@ -143,17 +150,26 @@
         <!-- Header with title and clear chat button -->
         <header class="chat-header">
           <div class="header-left">
-            <div class="agent-info">
-              <h1>Agent Playground</h1>
+            <!-- agentic-demos change: title, step chip, and tabs under the title. -->
+            <div class="title-row">
+              <div class="agent-info">
+                <h1>Agent Playground</h1>
+              </div>
+              <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
             </div>
-            <!-- agentic-demos change: current 3LO step, as text. -->
-            <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
+            <div class="tabs" role="tablist" aria-label="Main views">
+              <button type="button" class="tab" role="tab" id="tab-play"
+                aria-selected="true" aria-controls="playground-panel">Playground</button>
+              <button type="button" class="tab" role="tab" id="tab-how"
+                aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
+            </div>
           </div>
-          <div class="header-right">
+          <div class="header-right header-actions">
             <!-- agentic-demos change: Step mode switch. Off by default. -->
             <label class="step-switch" for="step-mode-switch">
               <input type="checkbox" id="step-mode-switch" role="switch"
                 aria-describedby="step-mode-help" />
+              <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
               <span>Step mode</span>
             </label>
             <span id="step-mode-help" class="sr-only">
@@ -165,13 +181,6 @@
               aria-label="New conversation. Clears the chat and starts a new session. It does not remove the stored GitHub token.">
               New conversation
             </md-outlined-button>
-            <!-- agentic-demos change: tabs for the main area. -->
-            <div class="tabs" role="tablist" aria-label="Main views">
-              <button type="button" class="tab" role="tab" id="tab-play"
-                aria-selected="true" aria-controls="playground-panel">Playground</button>
-              <button type="button" class="tab" role="tab" id="tab-how"
-                aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
-            </div>
           </div>
         </header>
         <!-- agentic-demos change: "How 3LO works" panel. -->
