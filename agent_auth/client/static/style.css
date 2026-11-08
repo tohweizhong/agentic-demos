@@ -231,11 +231,31 @@ body {
 
 /* Active Agent Profile configurations */
 .agent-info-pane {
-  margin-top: 20px;
+  margin-top: 0;
   padding: 16px;
   border-radius: 12px;
   background-color: var(--chat-bg);
   border: 1px solid var(--border-color);
+}
+
+.connection-settings {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  background-color: var(--chat-bg);
+}
+
+.connection-settings summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.connection-settings-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .agent-info-pane h4 {
@@ -1179,11 +1199,13 @@ body {
   flex: 0 0 var(--compact-width, 384px);
   width: var(--compact-width, 384px);
   border-left: none;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 12px;
 }
 
 .playground-panel.split .compact-diagram {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   display: flex;
   align-items: flex-start;
@@ -1192,10 +1214,27 @@ body {
 
 .playground-panel.split .compact-svg {
   height: auto;
-  max-height: calc(100vh - 150px);
+  max-height: 360px;
   width: auto;
   max-width: 100%;
   display: block;
+}
+
+#compact-flow .sidebar {
+  width: 100%;
+  height: auto;
+  border-right: none;
+  border-top: 1px solid var(--border-color);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+#compact-flow .sidebar.folded {
+  width: 48px;
+}
+
+#play-sample-prompts {
+  padding: 10px 16px 0;
 }
 
 .compact-resizer {
@@ -1229,6 +1268,10 @@ body {
   }
 
   .playground-panel.split .compact-resizer {
+    display: none;
+  }
+
+  #compact-flow .sidebar {
     display: none;
   }
 }

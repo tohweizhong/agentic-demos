@@ -423,10 +423,10 @@ $(function() {
   const STEP_MODE_KEY = 'agentAuthStepMode';
   const $stepSwitch = $('#step-mode-switch');
   $stepSwitch.prop('checked', localStorage.getItem(STEP_MODE_KEY) === '1');
-  // Layout track L4: the split view shows when Step mode is on.
+  // Layout track L4: the split view shows on the 3LO GitHub tab.
   const applyStepLayout = () => {
     const on = $stepSwitch.prop('checked') === true;
-    $('#playground-panel').toggleClass('split', on);
+    $('#playground-panel').addClass('split');
     // Layout track L9: the switch state also shows as text.
     $('.step-switch .switch-state').text(on ? 'On' : 'Off');
   };
@@ -902,14 +902,14 @@ $(function() {
   });
 
   // ---- Tabs. ----
-  // agentic-demos change: five tabs (3LO GitHub, How 3LO works, Auth
-  // Manager, Egress gateway, Ingress gateway).
+  // agentic-demos change: five tabs (3LO GitHub, Egress gateway, Ingress
+  // gateway, How 3LO works, Auth Manager).
   const TABS = [
     ['play', '#tab-play', '#playground-panel'],
-    ['how', '#tab-how', '#how-panel'],
-    ['auth', '#tab-auth-manager', '#auth-manager-panel'],
     ['egress', '#tab-egress', '#egress-panel'],
     ['ingress', '#tab-ingress', '#ingress-panel'],
+    ['how', '#tab-how', '#how-panel'],
+    ['auth', '#tab-auth-manager', '#auth-manager-panel'],
   ];
 
   /**
@@ -956,7 +956,7 @@ $(function() {
   });
   $('#open-demo-controls').on('click', (e) => {
     e.preventDefault();
-    $('#settings-sidebar').prop('hidden', false);
+    selectTab('play');
     const details = document.getElementById('demo-controls');
     if (details) {
       details.open = true;
@@ -1534,7 +1534,7 @@ $(function() {
   ['ingress', 'egress'].forEach((kind) => {
     resetGatewayChat(kind);
     $(`#${kind}-panel .sample-prompt`).on('click', function() {
-      sendGatewayMessage(kind, $(this).text());
+      sendGatewayMessage(kind, $(this).attr('data-prompt') || $(this).text().trim());
     });
     $(`#${kind}-input`).on('input', function() {
       $(`#${kind}-send-btn`).prop('disabled', $(this).val().trim() === '');
@@ -1599,6 +1599,11 @@ $(function() {
   });
 
   $sendBtn.on('click', sendMessage);
+
+  $('.play-sample-prompt').on('click', function() {
+    $userInput.val($(this).attr('data-prompt') || $(this).text().trim());
+    sendMessage();
+  });
 
   /**
    * Handles the user message submission workflow, disabling input controls

@@ -62,13 +62,16 @@ def test_presentation_mode_folds_the_panel(new_page):
 
 
 def test_step_mode_off_chat_area_unchanged(new_page):
-  """L6: with Step mode off, the chat uses the full width of the panel."""
+  """L6: 3LO GitHub shows the two-column split layout and header stays at x=0."""
   page = new_page()
   assert not page.is_checked("#step-mode-switch")
-  panel = page.locator("#playground-panel").bounding_box()
+  header = page.locator(".chat-header").bounding_box()
+  assert header["x"] == 0
   messages = page.locator("#messages-container").bounding_box()
-  assert abs(panel["width"] - messages["width"]) < 2
+  compact = page.locator("#compact-flow").bounding_box()
+  assert compact["x"] >= messages["x"] + messages["width"] - 1
   assert page.locator("#user-input").is_visible()
+  assert page.locator("#play-sample-prompts .play-sample-prompt").count() == 2
 
 
 AM_SECTIONS = [
@@ -90,14 +93,13 @@ def test_auth_manager_tab(new_page):
   page = new_page()
   tabs = page.locator(".tabs [role=tab]")
   assert tabs.count() == 5
-  assert tabs.nth(2).inner_text() == "Auth Manager"
-  assert tabs.nth(2).get_attribute("role") == "tab"
-  # Open it with the keyboard: arrow keys move along the tabs.
+  assert tabs.nth(4).inner_text() == "Auth Manager"
+  assert tabs.nth(4).get_attribute("role") == "tab"
+  # Open it with the keyboard: ArrowLeft from #tab-play wraps to #tab-auth-manager.
   page.focus("#tab-play")
   requests = []
   page.on("request", lambda r: requests.append(r.url))
-  page.keyboard.press("ArrowRight")
-  page.keyboard.press("ArrowRight")
+  page.keyboard.press("ArrowLeft")
   page.wait_for_timeout(500)
   tab = page.locator("#tab-auth-manager")
   assert tab.get_attribute("aria-selected") == "true"
@@ -259,15 +261,16 @@ def test_marked_arrow_follows_each_card(new_page, stats):  # pylint: disable=unu
 
 
 def test_no_compact_diagram_with_step_mode_off(new_page):
-  """L6: with Step mode off, there is no compact diagram."""
+  """L6: the compact diagram and right-docked controls stay visible."""
   page = new_page(1280, 800)
   assert not page.is_checked("#step-mode-switch")
-  assert not page.locator(COMPACT).is_visible()
+  assert page.locator(COMPACT).is_visible()
+  assert page.locator("#compact-flow #settings-sidebar").is_visible()
   _step_on(page)
   assert page.locator(COMPACT).is_visible()
   page.click(".step-switch")
   page.wait_for_timeout(300)
-  assert not page.locator(COMPACT).is_visible()
+  assert page.locator(COMPACT).is_visible()
 
 
 # ---- Phase 5 review fix: resizable compact panel (L8) ----

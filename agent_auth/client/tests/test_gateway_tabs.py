@@ -6,6 +6,12 @@ INGRESS_PROMPTS = [
     "what are bob johnson's and alice brown's email addresses?",
 ]
 
+INGRESS_LABELS = [
+    "Allow: List West region customers",
+    "Block (Model Armor): Request customer SSNs",
+    "Allow: List customer email addresses",
+]
+
 EGRESS_PROMPTS = [
     (
         "I am reviewing the Sterling family's current application. Can you"
@@ -16,19 +22,29 @@ EGRESS_PROMPTS = [
     "Can you read my latest emails from the corporate inbox?",
 ]
 
+EGRESS_LABELS = [
+    "Allow: Summarize Sterling tax returns",
+    "Block (IAP): Email summary to jane@example.com",
+    "Allow: Read latest corporate inbox emails",
+]
+
 
 def test_ingress_tab_prompts_chat_banner_and_logs(new_page, stats):
   """G1, G5, G8: Ingress tab sample prompts, chat, block banner, and logs."""
   page = new_page(1280, 800)
-  # Check tab order and renamed first tab.
+  # Check tab order (3 live interactive tabs first, 2 reference tabs on right).
   tab_labels = page.locator(".tabs [role=tab]").all_inner_texts()
   assert tab_labels == [
       "3LO GitHub",
-      "How 3LO works",
-      "Auth Manager",
       "Egress gateway",
       "Ingress gateway",
+      "How 3LO works",
+      "Auth Manager",
   ]
+  # Check decluttered sidebar on 3LO GitHub tab.
+  assert page.locator("#demo-controls").get_attribute("open") is not None
+  assert page.locator("#connection-settings").get_attribute("open") is None
+
   page.click("#tab-ingress")
   panel = page.locator("#ingress-panel")
   assert panel.is_visible()
@@ -38,8 +54,11 @@ def test_ingress_tab_prompts_chat_banner_and_logs(new_page, stats):
   assert not page.locator("#settings-sidebar").is_visible()
   assert "ingress-engine-test" in panel.locator("#ingress-agent-id").inner_text()
 
-  # Check the 3 exact sample prompts.
-  prompts = panel.locator(".sample-prompt").all_inner_texts()
+  # Check the 3 outcome-labeled buttons and data-prompt attributes.
+  assert panel.locator(".sample-prompt").all_inner_texts() == INGRESS_LABELS
+  prompts = panel.locator(".sample-prompt").evaluate_all(
+      "els => els.map(b => b.getAttribute('data-prompt'))"
+  )
   assert prompts == INGRESS_PROMPTS
 
   # Inline SVG diagram is visible in the right column.
@@ -101,8 +120,11 @@ def test_egress_tab_prompts_chat_banner_and_logs(new_page, stats):
   assert panel.is_visible()
   assert "egress-engine-test" in panel.locator("#egress-agent-id").inner_text()
 
-  # Check the 3 exact sample prompts.
-  prompts = panel.locator(".sample-prompt").all_inner_texts()
+  # Check the 3 outcome-labeled buttons and data-prompt attributes.
+  assert panel.locator(".sample-prompt").all_inner_texts() == EGRESS_LABELS
+  prompts = panel.locator(".sample-prompt").evaluate_all(
+      "els => els.map(b => b.getAttribute('data-prompt'))"
+  )
   assert prompts == EGRESS_PROMPTS
 
   # Inline SVG diagram is visible in the right column.
