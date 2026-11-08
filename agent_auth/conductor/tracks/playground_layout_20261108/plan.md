@@ -1,6 +1,6 @@
 # Plan: Playground layout for Step mode (3LO)
 
-## Phase 1: Header and presentation mode
+## Phase 1: Header and presentation mode [checkpoint: bc4bae8]
 
 - [x] Task: Write failing tests for the header and presentation mode c0c3fc9
   - [x] The tabs are under the title (L3).
@@ -26,11 +26,11 @@
   - [x] Make the tab code work for three tabs (click and arrow keys).
   - [x] Add an in-page link to Demo controls.
   - [x] Run all browser tests. All must pass.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Folded cards
 
-- [ ] Task: Write failing tests for folded cards
+- [~] Task: Write failing tests for folded cards
   - [ ] Only the current card is open. Each past card is one line
         "✓ Step N: <title>" (L1).
   - [ ] A click on a folded line opens that card again. The keyboard opens it
