@@ -30,11 +30,11 @@
   - [x] Stored token: steps 4 to 10 show "Skipped" (F7, A3).
   - [x] Keyboard: right arrow and Enter (F10). Expired consent message (F11).
   - [x] New conversation clears the queue and the cards (F12).
-- [~] Task: Implement the step cards
-  - [ ] Card component with text from one step table (STE wording).
-  - [ ] Wire steps to the queue, the popup, the resume, and the skip path.
-  - [ ] Sync the step chip and the "How 3LO works" tab (F9).
-  - [ ] Accessibility: roles, labels, focus on the new card, reduce motion (N1).
+- [x] Task: Implement the step cards 7f9114c
+  - [x] Card component with text from one step table (STE wording).
+  - [x] Wire steps to the queue, the popup, the resume, and the skip path.
+  - [x] Sync the step chip and the "How 3LO works" tab (F9).
+  - [x] Accessibility: roles, labels, focus on the new card, reduce motion (N1).
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Deploy and real test
