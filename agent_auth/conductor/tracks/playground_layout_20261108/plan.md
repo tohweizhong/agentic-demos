@@ -30,14 +30,14 @@
 
 ## Phase 2: Folded cards
 
-- [~] Task: Write failing tests for folded cards
-  - [ ] Only the current card is open. Each past card is one line
+- [x] Task: Write failing tests for folded cards bf4c6d6
+  - [x] Only the current card is open. Each past card is one line
         "✓ Step N: <title>" (L1).
-  - [ ] A click on a folded line opens that card again. The keyboard opens it
+  - [x] A click on a folded line opens that card again. The keyboard opens it
         too (Enter or Space).
-  - [ ] "Next step", the keyboard shortcuts, the skip path, and New
+  - [x] "Next step", the keyboard shortcuts, the skip path, and New
         conversation still work with folded cards.
-- [ ] Task: Implement folded cards
+- [~] Task: Implement folded cards
   - [ ] Fold the previous card when a new card shows. Use a button with
         `aria-expanded` for the folded line.
   - [ ] Keep the card text and Details in the page, so that reopen is
