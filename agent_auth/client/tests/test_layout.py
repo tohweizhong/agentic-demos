@@ -439,6 +439,7 @@ def test_text_contrast_meets_wcag_aa(new_page):
     ratio = _text_ratio(page, selector)
     assert ratio >= 4.5, f"{selector}: {ratio:.2f}"
   # UI part: the switch track when on, against its background.
+  page.add_style_tag(content="* { transition: none !important; }")
   page.click(".step-switch")
   ratio = page.evaluate(
       UI_CONTRAST_JS, [page.locator(".switch-track").element_handle(),

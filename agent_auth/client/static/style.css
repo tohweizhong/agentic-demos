@@ -1211,3 +1211,138 @@ body {
     display: none;
   }
 }
+
+/* ==========================================================================
+   agentic-demos change: one colour scheme (layout track L9).
+   Main colour: Google blue. Red only for warnings. Green only for "allowed".
+   Each state also has a text label. All text meets WCAG AA contrast.
+   ========================================================================== */
+:root {
+  --color-main: #1a73e8;
+  --color-main-dark: #174ea6;
+  --color-main-light: #e8f0fe;
+  --color-on-main: #ffffff;
+  --color-warning: #c5221f;
+  --color-warning-light: #fce8e6;
+  --color-allowed: #137333;
+  --color-allowed-light: #e6f4ea;
+  --color-text: #1f1f1f;
+  --color-text-muted: #5f6368;
+  /* Material web components use these variables. */
+  --md-sys-color-primary: var(--color-main);
+  --md-sys-color-on-primary: var(--color-on-main);
+  --md-sys-color-secondary-container: var(--color-main-light);
+  --md-sys-color-on-secondary-container: var(--color-main-dark);
+}
+
+.tab[aria-selected='true'] {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.tab:focus-visible,
+.step-switch input:focus-visible + .switch-track,
+.presentation-toggle:focus-visible,
+.step-fold:focus-visible,
+.step-next:focus-visible,
+.step-card:focus-visible {
+  outline-color: var(--color-main);
+}
+
+.step-switch input:checked + .switch-track {
+  background-color: var(--color-main);
+}
+
+.switch-state {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  min-width: 22px;
+}
+
+.step-switch input:checked ~ .switch-state {
+  color: var(--color-main-dark);
+}
+
+.step-chip {
+  background-color: var(--color-main-light);
+  color: var(--color-main-dark);
+}
+
+.demo-note a,
+.flow-reset a,
+.am-panel a,
+.answer-text.markdown a,
+#demo-github-link {
+  color: var(--color-main);
+}
+
+.step-card {
+  border-color: #c6dafc;
+  border-left-color: var(--color-main);
+}
+
+.step-number,
+.step-fold,
+.step-details summary {
+  color: var(--color-main-dark);
+}
+
+.step-next {
+  background-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.compact-strip li.active {
+  border-color: var(--color-main);
+  background-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.flow-svg .arrow-head-active,
+.compact-svg .arrow-head-active {
+  fill: var(--color-main);
+}
+
+.flow-svg .flow-step.active .step-line,
+.compact-svg .flow-step.active .step-line {
+  stroke: var(--color-main);
+}
+
+.flow-svg .flow-step.active .step-label,
+.flow-svg .step-now,
+.compact-svg .flow-step.active .step-label,
+.compact-svg .step-now,
+.flow-steps li.active {
+  fill: var(--color-main-dark);
+  color: var(--color-main-dark);
+}
+
+/* Red only for warnings. The panel background is white, so that the main
+   colour of the link keeps a 4.5:1 contrast. */
+.demo-controls {
+  border-color: var(--color-warning);
+  background-color: #ffffff;
+}
+
+.demo-badge {
+  background-color: var(--color-warning);
+  color: var(--color-on-main);
+}
+
+.error-message {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+/* Green only for "allowed". The gateway tabs use these classes. */
+.state-allowed {
+  color: var(--color-allowed);
+  background-color: var(--color-allowed-light);
+}
+
+.state-blocked {
+  color: var(--color-warning);
+  background-color: var(--color-warning-light);
+}

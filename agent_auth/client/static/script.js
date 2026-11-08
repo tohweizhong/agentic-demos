@@ -419,7 +419,10 @@ $(function() {
   $stepSwitch.prop('checked', localStorage.getItem(STEP_MODE_KEY) === '1');
   // Layout track L4: the split view shows when Step mode is on.
   const applyStepLayout = () => {
-    $('#playground-panel').toggleClass('split', $stepSwitch.prop('checked') === true);
+    const on = $stepSwitch.prop('checked') === true;
+    $('#playground-panel').toggleClass('split', on);
+    // Layout track L9: the switch state also shows as text.
+    $('.step-switch .switch-state').text(on ? 'On' : 'Off');
   };
   $stepSwitch.on('change', function() {
     localStorage.setItem(STEP_MODE_KEY, this.checked ? '1' : '0');

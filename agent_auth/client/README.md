@@ -41,7 +41,7 @@ The client does three things:
 | `static/style.css` | Fix: the 3LO diagram showed as a thin strip, because the scrolling flex panel shrank it. The panel children now keep their size. |
 | `static/index.html`, `static/script.js`, `static/style.css` | New "Step mode" switch and step cards. See [Step mode](#step-mode). |
 | `tests/` | New browser tests (fake agent, headless Chrome) and backend unit tests. See [tests/README.md](tests/README.md). |
-| `static/index.html`, `static/script.js`, `static/style.css` | Layout: tabs under the title, a real "Step mode" switch, presentation mode, an "Auth Manager" tab, folded step cards, and a split view with a compact 3LO diagram. See [Layout](#layout). |
+| `static/index.html`, `static/script.js`, `static/style.css` | Layout: tabs under the title, a real "Step mode" switch with an On/Off text label, presentation mode, an "Auth Manager" tab, folded step cards, a resizable split view (40% default, 380–560 px) with a compact 3LO diagram, and a unified Google blue colour scheme (red only for warnings and errors, green only for allowed). See [Layout](#layout). |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
 
 ## Step mode
@@ -82,9 +82,15 @@ With Step mode off, the Playground works as before.
   card is one line, for example "✓ Step 3: The agent asks Auth Manager for a
   token". A click, Enter, or Space opens the card again.
 - **Split view:** in Step mode, the chat is on the left, and a compact 3LO
-  diagram with short labels is on the right. On a window narrower than
-  1100 px, the compact view is a strip above the chat. The current step is
-  marked in the compact view, the strip, and the "How 3LO works" tab.
+  diagram with short labels is on the right (40% width by default, resizable
+  between 380 px and 560 px with the mouse or arrow keys, saved in
+  `localStorage`). On a window narrower than 1100 px, the compact view is a
+  strip above the chat. The current step is marked in the compact view, the
+  strip, and the "How 3LO works" tab.
+- **Colour scheme:** one main colour (Google blue `#1a73e8`) for buttons, tabs,
+  the switch, the step chip, and links. Red (`#c5221f`) is used only for
+  warnings ("Demo only") and errors. Green (`#137333`) is reserved for allowed
+  gateway actions. Every state also has a text label.
 - With Step mode off, the chat uses the full width.
 
 ## Vendored libraries
