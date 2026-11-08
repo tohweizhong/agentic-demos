@@ -1,0 +1,67 @@
+# Plan: Playground layout for Step mode (3LO)
+
+## Phase 1: Header and presentation mode
+
+- [ ] Task: Write failing tests for the header and presentation mode
+  - [ ] The tabs are under the title (L3).
+  - [ ] "Step mode" is a switch control next to "New conversation", and it
+        keeps its role, label, and saved state (L3).
+  - [ ] The presentation mode button folds the configuration panel to a thin
+        bar and unfolds it. The state persists after reload (L2).
+  - [ ] With Step mode off, the chat area is unchanged (L6).
+- [ ] Task: Implement the header and presentation mode
+  - [ ] Move the tabs under the title. Style the Step mode switch as a real
+        switch (track and thumb), with keyboard focus and "reduce motion".
+  - [ ] Add the presentation mode button with `aria-expanded` and
+        `aria-controls`, and store the state in localStorage.
+  - [ ] Run all browser tests. All must pass.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 2: Folded cards
+
+- [ ] Task: Write failing tests for folded cards
+  - [ ] Only the current card is open. Each past card is one line
+        "✓ Step N: <title>" (L1).
+  - [ ] A click on a folded line opens that card again. The keyboard opens it
+        too (Enter or Space).
+  - [ ] "Next step", the keyboard shortcuts, the skip path, and New
+        conversation still work with folded cards.
+- [ ] Task: Implement folded cards
+  - [ ] Fold the previous card when a new card shows. Use a button with
+        `aria-expanded` for the folded line.
+  - [ ] Keep the card text and Details in the page, so that reopen is
+        instant.
+  - [ ] Run all browser tests. All must pass.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 3: Split view and compact diagram
+
+- [ ] Task: Write failing tests for the split view and the strip
+  - [ ] At 1280x800 with Step mode on: the chat is on the left, and the
+        compact diagram is on the right (L4).
+  - [ ] At 1024x700 with Step mode on: the compact diagram is a strip above
+        the chat (L5).
+  - [ ] The compact arrows show short labels such as "4 Consent request" (L4).
+  - [ ] The marked arrow follows each card, in the compact diagram and in the
+        "How 3LO works" tab (L4).
+  - [ ] With Step mode off: no compact diagram (L6).
+- [ ] Task: Implement the split view and the compact diagram
+  - [ ] Draw the compact diagram with the same SVG builder as the tab, with
+        short labels, and a text marker for the current arrow.
+  - [ ] Add the split layout and the strip layout with CSS (a width
+        breakpoint). Keep the chat input usable in both layouts.
+  - [ ] Connect the compact diagram to the step cards.
+  - [ ] Run all browser tests. All must pass.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 4: Deploy and real test
+
+- [ ] Task: Deploy and verify
+  - [ ] Coverage of more than 60 percent for the `script.js` changes.
+  - [ ] Update `client/README.md` (change list, layout notes).
+  - [ ] Secret scan and hygiene script. Commit and push on the track branch.
+  - [ ] Tell the parent agent before the deploy, and wait for the go-ahead.
+  - [ ] Redeploy with `04_deploy_client.sh`. Check IAP, no allUsers, healthy
+        logs.
+- [ ] Task: Real browser test on the deployed client, by the user
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
