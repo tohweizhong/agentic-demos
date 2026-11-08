@@ -710,6 +710,10 @@ $(function() {
     if (['input', 'textarea', 'select'].includes(tag) || e.target.isContentEditable) {
       return;
     }
+    // The arrow keys on the tabs move between the tabs.
+    if ($(e.target).closest('.tabs').length) {
+      return;
+    }
     // Enter on a button already clicks that button.
     if (e.key === 'Enter' && (tag === 'button' || tag === 'summary' || tag === 'a' ||
         tag.startsWith('md-'))) {
@@ -723,20 +727,46 @@ $(function() {
   });
 
   // ---- Tabs. ----
+  // agentic-demos change: three tabs (Playground, How 3LO works, Auth
+  // Manager). Each entry is [tab name, tab button ID, panel ID].
+  const TABS = [
+    ['play', '#tab-play', '#playground-panel'],
+    ['how', '#tab-how', '#how-panel'],
+    ['auth', '#tab-auth-manager', '#auth-manager-panel'],
+  ];
+
+  /**
+   * Shows one tab and hides the other tabs.
+   * @param {string} which The tab name: 'play', 'how', or 'auth'.
+   */
   const selectTab = (which) => {
-    const isHow = which === 'how';
-    $('#tab-play').attr({'aria-selected': String(!isHow), 'tabindex': isHow ? '-1' : '0'});
-    $('#tab-how').attr({'aria-selected': String(isHow), 'tabindex': isHow ? '0' : '-1'});
-    $('#how-panel').prop('hidden', !isHow);
-    $('#playground-panel').prop('hidden', isHow);
+    TABS.forEach(([name, tabId, panelId]) => {
+      const selected = name === which;
+      $(tabId).attr({'aria-selected': String(selected), 'tabindex': selected ? '0' : '-1'});
+      $(panelId).prop('hidden', !selected);
+    });
   };
-  $('#tab-play').on('click', () => selectTab('play'));
-  $('#tab-how').on('click', () => selectTab('how'));
+  TABS.forEach(([name, tabId]) => {
+    $(tabId).on('click', () => selectTab(name));
+  });
   $('.tabs').on('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-      const toHow = $('#tab-play').attr('aria-selected') === 'true';
-      selectTab(toHow ? 'how' : 'play');
-      $(toHow ? '#tab-how' : '#tab-play').trigger('focus');
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') {
+      return;
+    }
+    const current = TABS.findIndex(([, tabId]) => $(tabId).attr('aria-selected') === 'true');
+    const step = e.key === 'ArrowRight' ? 1 : TABS.length - 1;
+    const [name, tabId] = TABS[(current + step) % TABS.length];
+    selectTab(name);
+    $(tabId).trigger('focus');
+    e.preventDefault();
+  });
+  $('#am-open-demo-controls').on('click', (e) => {
+    e.preventDefault();
+    selectTab('play');
+    const details = document.getElementById('demo-controls');
+    if (details) {
+      details.open = true;
+      details.scrollIntoView({behavior: 'smooth'});
     }
   });
   $('#open-demo-controls').on('click', (e) => {

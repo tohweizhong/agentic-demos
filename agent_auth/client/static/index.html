@@ -162,6 +162,8 @@
                 aria-selected="true" aria-controls="playground-panel">Playground</button>
               <button type="button" class="tab" role="tab" id="tab-how"
                 aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
+              <button type="button" class="tab" role="tab" id="tab-auth-manager"
+                aria-selected="false" aria-controls="auth-manager-panel" tabindex="-1">Auth Manager</button>
             </div>
           </div>
           <div class="header-right header-actions">
@@ -224,6 +226,69 @@
             </table>
             <md-outlined-button id="clear-timings">Clear timings</md-outlined-button>
           </div>
+        </section>
+        <!-- agentic-demos change: "Auth Manager" tab. Information only. No API calls. -->
+        <section id="auth-manager-panel" class="how-panel am-panel" role="tabpanel"
+          aria-labelledby="tab-auth-manager" hidden>
+          <h2>Auth Manager</h2>
+
+          <h3>What Auth Manager is</h3>
+          <p>Auth Manager is part of Agent Identity. It is a Google-managed vault and broker for third-party credentials. The agent asks Auth Manager for a token when it needs one. The agent never stores tokens.</p>
+
+          <h3>Auth providers</h3>
+          <p>An auth provider is the configuration for one third-party app. It belongs to one project and one location. Types: 3-legged OAuth (3LO, the user gives consent), 2-legged OAuth (2LO, client credentials, no user), and API key. This demo uses one 3LO provider for GitHub.</p>
+
+          <h3>Who may use a provider</h3>
+          <p>IAM controls access. The role <code>roles/agentidentity.user</code> on the provider lets one principal get tokens from it. In this demo, the agent identity has this role, and the demo client service account has it to finish the consent. Grant it on the provider, not on the project.</p>
+
+          <h3>The vault</h3>
+          <p>Auth Manager stores one authorization for each provider and each user ID. The client sends the user ID. Take the user ID only from a verified login, such as the IAP header. Auth Manager does not check the user ID against a login.</p>
+
+          <h3>The 3LO consent, in short</h3>
+          <ol>
+            <li>The agent asks for a token. There is none, so the client gets a consent URL and a one-time nonce.</li>
+            <li>The user approves on the provider site. The provider sends a code to Auth Manager, not to the client.</li>
+            <li>Auth Manager swaps the code for a token and stores it.</li>
+            <li>The client finishes the flow with the validation state and the nonce. Then the agent gets the token.</li>
+          </ol>
+
+          <h3>What "Reset Auth Manager consent" deletes</h3>
+          <table class="am-table">
+            <thead>
+              <tr><th scope="col">Item</th><th scope="col">Deleted?</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Your stored token in the vault, for this provider and your user ID</td><td>Yes</td></tr>
+              <tr><td>The record of your consent in Auth Manager</td><td>Yes, together with the token (inference)</td></tr>
+              <tr><td>A refresh token, if one exists</td><td>Probably yes (inference). A classic GitHub OAuth app normally gives no refresh token</td></tr>
+            </tbody>
+          </table>
+
+          <h3>What the reset does not delete</h3>
+          <table class="am-table">
+            <thead>
+              <tr><th scope="col">Item</th><th scope="col">Why it stays</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>The auth provider, with its client ID and client secret</td><td>The reset acts on one user, not on the provider</td></tr>
+              <tr><td>The IAM grants on the provider</td><td>IAM is separate from the vault</td></tr>
+              <tr><td>The access summary records</td><td>They are history, kept for about 13 months</td></tr>
+              <tr><td>Your approval of the app on GitHub</td><td>GitHub keeps it. To see the GitHub consent page again, also revoke the app tokens on GitHub</td></tr>
+              <tr><td>Tokens of other user IDs</td><td>The reset uses only your login identity</td></tr>
+              <tr><td>The agent, its sessions, and the chat</td><td>The reset does not change Agent Runtime</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Revoke in two places</h3>
+          <p>A revoke on the provider site alone does not reach Auth Manager. Auth Manager keeps the old token, and the next tool call fails (in tests: "MCP session connection lost" or a malformed function call). Revoke in Auth Manager (revokeAuthorization) and on the provider site. To reset both in this demo, use the <a href="#demo-controls" id="am-open-demo-controls">Demo controls panel</a>.</p>
+
+          <h3>Audit</h3>
+          <p>Access summaries show which agent used which provider for which user. Times are rounded down to the hour. Records stay for about 13 months, and you cannot delete them. They are history, not a list of stored tokens.</p>
+
+          <h3>Console view</h3>
+          <p>The agent Identity tab in the Google Cloud console lists a provider only after the agent has used it. It shows use, not permission. To check permission, read the IAM policy of the provider.</p>
+
+          <footer class="am-footer">Facts tested in a demo project in November 2026. Items marked inference are not confirmed.</footer>
         </section>
         <div id="playground-panel" class="playground-panel" role="tabpanel" aria-labelledby="tab-play">
         <!-- Message History Container -->
