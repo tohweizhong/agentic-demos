@@ -166,8 +166,8 @@ The organization admin must choose one option before the apply:
 
 | Option | Use |
 |---|---|
-| Option C: managed constraint `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names the gateway Service Extensions account, in place of `iam.allowedPolicyMemberDomains` on the project | Production choice. **Not tested.** It is in the backlog in [product.md](conductor/product.md) |
-| Option B: temporary project-level exception. Set `allow_google_managed_members = true`, apply the org policy and the 3 grants with `-target`, then set it to `false` and apply again. The grants remain. The grants failed for about 3 minutes after the exception was set | Used for the mini build |
+| Option C: managed constraint `iam.managed.allowedPolicyMembers`, with `allowedMemberSubjects` that names `serviceAccount:service-TENANT_PROJECT_NUMBER@gcp-sa-dep.iam.gserviceaccount.com` and `allowedPrincipalSets` that names `//cloudresourcemanager.googleapis.com/organizations/ORG_ID` | Production choice. Tested on 08 Nov 2026. Google Cloud checks `iam.allowedPolicyMemberDomains` and `iam.managed.allowedPolicyMembers` separately. If the organization enforces `iam.allowedPolicyMemberDomains`, the project must also relax `iam.allowedPolicyMemberDomains` (or the organization must replace it with `iam.managed.allowedPolicyMembers`) |
+| Option B: temporary project-level exception. Set `allow_google_managed_members = true`, apply the org policy and the 3 grants with `-target`, then set it to `false` and apply again. The grants remain. The grants failed for about 3 minutes after the exception was set | Used when you cannot keep a project-level override on `iam.allowedPolicyMemberDomains` |
 | Project-level `allowAll` (`allow_google_managed_members = true` in this Terraform) | Sandbox only |
 
 ## Demo: identity, catalog, gateway control, audit (10 minutes)

@@ -48,6 +48,25 @@ If the output has `allowedValues`, the organization enforces the constraint. Cho
 the [README section](README.md#known-prerequisite-domain-restricted-sharing) with the organization
 admin. Save the output, so that you can compare it after the change.
 
+For Option C (`iam.managed.allowedPolicyMembers`), note that Google Cloud evaluates
+`iam.allowedPolicyMemberDomains` and `iam.managed.allowedPolicyMembers` independently. A
+project-level `iam.managed.allowedPolicyMembers` policy allows
+`serviceAccount:service-TENANT_PROJECT_NUMBER@gcp-sa-dep.iam.gserviceaccount.com` only when
+`iam.allowedPolicyMemberDomains` is also relaxed on the project or replaced at the organization
+level:
+
+```yaml
+name: projects/PROJECT_NUMBER/policies/iam.managed.allowedPolicyMembers
+spec:
+  rules:
+  - enforce: true
+    parameters:
+      allowedMemberSubjects:
+      - serviceAccount:service-TENANT_PROJECT_NUMBER@gcp-sa-dep.iam.gserviceaccount.com
+      allowedPrincipalSets:
+      - //cloudresourcemanager.googleapis.com/organizations/ORG_ID
+```
+
 ## 4. Fill in terraform.tfvars and package the agent
 
 ```bash
