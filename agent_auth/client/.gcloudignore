@@ -1,0 +1,12 @@
+# Files that gcloud does not upload for "gcloud run deploy --source".
+# The container needs only main.py, requirements.txt, and static/.
+.gcloudignore
+.git
+.gitignore
+.venv/
+venv/
+__pycache__/
+*.pyc
+.coverage
+.env
+tests/
