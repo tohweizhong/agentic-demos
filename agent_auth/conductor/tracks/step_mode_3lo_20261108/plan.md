@@ -11,7 +11,7 @@
   - [x] Run them with Step mode off. All must pass (acceptance A1 baseline).
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Event queue and switch
+## Phase 2: Event queue and switch [checkpoint: d2b7b4a]
 
 - [x] Task: Write failing tests for the switch and the queue 49d8bd7
   - [x] Switch is off by default, and its state persists after reload (F1).
@@ -19,11 +19,11 @@
 - [x] Task: Implement the switch and the event queue d2b7b4a
   - [x] Add the "Step mode" switch to the chat header, with localStorage.
   - [x] Route agent events through a queue when Step mode is on.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Step cards
 
-- [ ] Task: Write failing tests for the cards
+- [~] Task: Write failing tests for the cards
   - [ ] 12 cards in order, only the newest has "Next step" (F2, A2).
   - [ ] Short card and "Details" content, no secrets (F3).
   - [ ] Popup opens on the step 5 click (F5). Resume runs in the background (F6).
