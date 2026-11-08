@@ -1,1 +1,3 @@
 Task: Implement folded cards (layout Phase 2). Files: client/static/script.js (step-fold button and step-body wrapper in showStepCard, foldStepCard, toggleFoldedCard), style.css (folded card style). Why: L1. Result: 40 passed, script.js line coverage 81.7 percent.
+
+Layout Phase 2 verification (Folded cards), 08 Nov 20:30 SGT. Automated: CI=true .venv/bin/python -m pytest tests -q -s -> 40 passed, script.js 81.7 percent. Confirmation: the parent agent approved at 20:30 SGT, including the text_content() change in two tests.
