@@ -186,9 +186,9 @@ The organization admin must choose one option before the apply:
 
 If you want to deploy without the `gcp-sa-dep` Model Armor grants, set `enable_model_armor = false` (Tiers 1 to 3) or set `enable_egress_gateway = false` and `enable_ingress_gateway = false` (Tiers 1 and 2) in `terraform/terraform.tfvars`.
 
-## Demo: identity, catalog, gateway control, audit (10 minutes)
+## Walkthrough: identity, catalog, gateway control, audit (10 minutes)
 
-Run [reset the demo](runbooks/reset_demo.md) before you start.
+Run [reset the environment](runbooks/reset_demo.md) before you start so `iap_enforcement_mode` is set to `DRY_RUN`.
 
 | Minute | Show | Command or page |
 |---|---|---|
