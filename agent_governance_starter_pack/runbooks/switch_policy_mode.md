@@ -38,10 +38,8 @@ environment.
 2. Apply the change:
 
    ```bash
-   cd terraform
-   terraform plan -out=tfplan    # expect: 1 to change (google_network_services_authz_extension.iap[0])
-   terraform apply tfplan
-   cd ..
+   terraform -chdir=terraform plan -out=tfplan    # expect: 1 to change (google_network_services_authz_extension.iap[0])
+   terraform -chdir=terraform apply tfplan
    ```
 
    The apply takes 2 to 4 minutes. Wait 3 more minutes after `terraform apply` finishes so the
