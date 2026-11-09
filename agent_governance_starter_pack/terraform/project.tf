@@ -142,3 +142,9 @@ resource "google_org_policy_policy" "allow_google_managed_members" {
 
   depends_on = [google_project_service.this]
 }
+
+resource "time_sleep" "org_policy_ready" {
+  count           = var.allow_google_managed_members ? 1 : 0
+  create_duration = "30s"
+  depends_on      = [google_org_policy_policy.allow_google_managed_members]
+}

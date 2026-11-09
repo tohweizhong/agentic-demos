@@ -287,7 +287,10 @@ resource "google_project_iam_member" "gateway_model_armor" {
   role    = each.value
   member  = "serviceAccount:${google_network_services_agent_gateway.egress[0].agent_gateway_card[0].service_extensions_service_account}"
 
-  depends_on = [google_org_policy_policy.allow_google_managed_members]
+  depends_on = [
+    google_org_policy_policy.allow_google_managed_members,
+    time_sleep.org_policy_ready,
+  ]
 }
 
 # Client-to-Agent (ingress) gateway. It screens incoming prompts and outgoing
