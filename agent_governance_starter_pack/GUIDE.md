@@ -45,6 +45,7 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scri
 
 | Skill | Path | What It Does |
 |---|---|---|
+| `geap-discover` | `.agents/skills/geap-discover/SKILL.md` | Read-only scan of an existing project: agents, MCP servers, gateways, access policies, and the lateral steps for each tier |
 | `geap-configure` | `.agents/skills/geap-configure/SKILL.md` | Asks for the project, region, name prefix, governance tier, domain restricted sharing approach, and IAP mode, then writes `terraform/terraform.tfvars` |
 | `geap-preflight` | `.agents/skills/geap-preflight/SKILL.md` | Runs `scripts/preflight.sh` and checks the JSON readiness report (`GO` or `NO_GO`) |
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Packages the agent source, runs offline unit tests, runs `terraform plan`, and pauses for human approval before `terraform apply` |
@@ -112,6 +113,23 @@ Start `agy` in this folder and give these prompts in this order. You do not need
 | 7 | "Run geap-teardown" | The agent asks you to confirm, then removes the starter pack resources |
 
 A customer team can also stop at any tier and stay there. The Terraform checks stop a plan that skips a tier.
+
+#### Scripts that the skills use
+
+| Script | Read-only | What it does |
+|---|---|---|
+| `scripts/configure.sh` | No (writes `terraform.tfvars`) | Writes the settings from a fixed region table. `--dry-run`, `--show`, `--move-up` |
+| `scripts/preflight.sh` | Yes | Checks the project, the caller, Terraform credentials, and name collisions. `GO`, `NO_GO`, or `ERROR` |
+| `scripts/deploy_checks.sh` | Yes | `terraform init`, `fmt`, `validate`, `test`, and the tool policy check. One `DEPLOY_CHECKS:` line |
+| `scripts/check_tool_policy.sh` | Yes | Fails when an MCP tool that can change data has no rule in the IAP access policy |
+| `scripts/check_promotion.sh` | Yes | Promotion readiness before `ENFORCE` |
+| `scripts/discover.sh` | Yes | Inventory of an existing project and the lateral steps |
+| `scripts/doctor.sh` | Yes | Stale grants of deleted agents |
+| `scripts/teardown_plan.sh` | Yes | Recommends the log bucket flag for `cleanup.sh` |
+| `scripts/cleanup.sh` | No | Teardown. Needs `--confirm PROJECT_ID`, refuses piped input |
+| `scripts/quarantine_agent.sh` | Plan by default | Removes the grants of one agent with `--apply` |
+| `scripts/init_remote_state.sh` | Plan by default | Moves the Terraform state to a versioned bucket with `--apply` |
+| `scripts/agy_guard.sh` | Yes | `PreToolUse` hook for `agy` (`.agents/hooks.json`) |
 
 ### Claude Code Harness
 
