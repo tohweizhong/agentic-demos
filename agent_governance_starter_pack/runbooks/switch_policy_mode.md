@@ -35,6 +35,13 @@ environment.
    iap_enforcement_mode = "DRY_RUN"
    ```
 
+Before you set `ENFORCE`, run the read-only promotion readiness report. It lists the tools that
+`ENFORCE` blocks (from the policy file) and the logged `DRY_RUN` decisions that would be blocked:
+
+```bash
+scripts/check_promotion.sh --lookback 24h   # last line: PROMOTION: READY or REVIEW
+```
+
 2. Apply the change:
 
    ```bash
