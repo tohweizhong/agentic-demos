@@ -23,6 +23,7 @@ project. The product definition is in [conductor/product.md](conductor/product.m
 | 3 runbooks (`runbooks/`) | `add_agent.md` (onboard a second agent with its own identity and tool access), `switch_policy_mode.md` (move the IAP policy between `DRY_RUN` and `ENFORCE`, and reset the sample data), and `teardown.md` (what `cleanup.sh` deletes and keeps) |
 | Agent harness (`AGENTS.md`, `settings.json`, `.agents/skills/`) | Safety rules, permission gates, and 5 skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`) so a coding agent can run the steps above. A person must approve every `terraform apply` and every clean-up |
 | Claude Code harness (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills`) | `CLAUDE.md` imports `AGENTS.md`. `.claude/settings.json` holds the same allow, ask, and deny lists as `settings.json`. `.claude/skills` is a symlink to `.agents/skills`, so both harnesses use one copy of the 5 skills. Draft, see [GUIDE.md](GUIDE.md) Section 1 |
+| Day-2 pack (`day2/`) | Plan only. No tool is built yet. Planned tools for a platform team that runs the starter pack every week: posture check, promotion readiness, agent onboarding, tool policy check, emergency quarantine, a principal access boundary for agents, a governance dashboard, CI checks, and remote Terraform state. See [day2/README.md](day2/README.md) |
 
 The skill names (`geap-*`) and the default resource prefix (`name_prefix = "geap"`) keep the short
 platform name, so existing deployments keep their resource names.
@@ -161,6 +162,7 @@ sequenceDiagram
 | [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state. Tear down the starter pack | 6 |
 | [`scripts/`](scripts/) | Preflight scan, package the agent, ask the agent, read the audit log, clean up | 6 |
 | [`.agents/skills/`](.agents/skills/) | CLI skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`), [`AGENTS.md`](AGENTS.md), and [`settings.json`](settings.json) | 6 |
+| [`day2/`](day2/) | Plan only. The planned Day-2 tools and their design rules. No tool is built yet | 6 |
 
 ## Related folders
 

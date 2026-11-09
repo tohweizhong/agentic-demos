@@ -282,7 +282,10 @@ In `ENFORCE` mode, `scripts/ask_agent.sh "Set ITEM-001 to in_progress."` returns
 > [!WARNING]
 > Known limitation with IAP policy V2: `cloudaudit.googleapis.com/data_access` (`iap.googleapis.com`) logs MCP base session methods (`initialize` and `notifications/initialized`) with `protoPayload.request.dryRun` and `protoPayload.request.policy_version`, but omits individual `tools/call` decisions. In addition, `networkservices.googleapis.com/gateway_requests` omits `403 DENIED` entries under V2 (whereas legacy V1 policies log `403 DENIED` in `gateway_requests`). Until Google resolves this logging gap, verify tool denials with the agent tool error response and the absence of a matching request in the Cloud Run request log.
 
-## 7. Day-2 Operations: Promote Policies, Onboard Agents, and Tear Down
+## 7. After Deployment: Policy Mode, New Agents, and Teardown
+
+The planned Day-2 tools for a platform team that runs the starter pack every week are in
+[day2/README.md](day2/README.md). Status: plan only. No tool is built yet.
 
 - **Promote or roll back gateway policies (`geap-reset`):** Start new agents or tools with `iap_enforcement_mode = "DRY_RUN"` in `terraform/terraform.tfvars`, verify tool traffic, and switch to `iap_enforcement_mode = "ENFORCE"` for production enforcement. To return the environment to `DRY_RUN` and reset the sample MCP server state, follow [runbooks/switch_policy_mode.md](runbooks/switch_policy_mode.md) (which also documents the idle hourly and daily resource costs).
 - **Onboard a new agent:** Follow [runbooks/add_agent.md](runbooks/add_agent.md) to deploy an additional ADK agent, bind it to the shared gateways, and scope its single agent principal in IAM and `policies/iap_access_policy.yaml`.
