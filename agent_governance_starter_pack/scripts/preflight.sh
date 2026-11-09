@@ -234,8 +234,13 @@ fi
 # metadata server (found in the manual rehearsal on 09 Nov 2026).
 TF_ADC_SOURCE="none"
 TF_ADC_FIX=""
-if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" && -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
-  TF_ADC_SOURCE="GOOGLE_APPLICATION_CREDENTIALS"
+if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+  if [[ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
+    TF_ADC_SOURCE="GOOGLE_APPLICATION_CREDENTIALS"
+  else
+    TF_ADC_SOURCE="missing_file"
+    TF_ADC_FIX="CLOUDSDK_CONFIG=\"$(dirname "${GOOGLE_APPLICATION_CREDENTIALS}")\" gcloud auth application-default login"
+  fi
 elif [[ -f "${HOME}/.config/gcloud/application_default_credentials.json" ]]; then
   TF_ADC_SOURCE="well_known_file"
 elif [[ -n "${CLOUDSDK_CONFIG:-}" && -f "${CLOUDSDK_CONFIG}/application_default_credentials.json" ]]; then
@@ -287,6 +292,8 @@ REPORT="$(jq -n \
        else empty end),
       (if $tf_adc_source == "none" then
         "Terraform has no credentials: no GOOGLE_APPLICATION_CREDENTIALS file, no ~/.config/gcloud ADC file, and no metadata server account. Run: gcloud auth application-default login"
+       elif $tf_adc_source == "missing_file" then
+        "GOOGLE_APPLICATION_CREDENTIALS points to a file that does not exist. Terraform does not fall back to the metadata server when this variable is set. Run: " + $tf_adc_fix
        elif $tf_adc_source == "cloudsdk_config_only" then
         "Terraform cannot find the ADC file. It is only in $CLOUDSDK_CONFIG (Cloud Shell). Run this in the same shell before terraform or agy: " + $tf_adc_fix
        else empty end),
