@@ -9,7 +9,8 @@ locals {
   model_armor_enabled  = var.enable_model_armor && local.any_gateway_enabled
 
   iap_policy = yamldecode(templatefile("${path.module}/../policies/iap_access_policy.yaml", {
-    region = var.region
+    region      = var.region
+    name_prefix = var.name_prefix
   }))
 
   model_armor = yamldecode(file("${path.module}/../policies/model_armor.yaml"))

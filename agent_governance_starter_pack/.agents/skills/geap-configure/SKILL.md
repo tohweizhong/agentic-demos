@@ -36,8 +36,7 @@ choose.
      Agent Registry, Model Armor, and the Gemini model must all be available there.
 3. **Name prefix.** Default `geap`. It must match `^[a-z][a-z0-9-]{1,14}$`. Tell the user that a
    prefix that was used with `scripts/cleanup.sh --purge-all` in the last 7 days fails, because the
-   audit log bucket `<prefix>-agent-audit` is soft-deleted. Tell the user that two copies in one
-   project collide on the IAP access policy ID even with different prefixes (backlog item 26).
+   audit log bucket `<prefix>-agent-audit` is soft-deleted.
 4. **Governance tier.** Show this table. Also give the link to the tier pyramid in the README, so that the user can see the picture and read it again later: [README: Governance tiers](https://github.com/tohweizhong/agentic-demos/blob/main/agent_governance_starter_pack/README.md#governance-tiers) (local file: `README.md`, section "Governance tiers", image `images/governance_tiers.svg`). Ask the user how to roll out:
    - **Build up one tier at a time (recommended for a first rollout).** Start at Tier 1. After each
      tier is deployed and verified, the user runs `geap-configure` again to move up one tier. This is

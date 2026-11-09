@@ -34,7 +34,7 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
-A fresh clone has no Terraform state. Do not deploy a second copy into a project that already has a starter pack deployment from another clone. A different `name_prefix` is not enough: the access policy ID `geap-agent-egress` comes from `policies/iap_access_policy.yaml` and does not use the prefix, so the second apply fails on that policy (backlog item 26). Use a new project, or tear down the first copy with `scripts/cleanup.sh` from its own clone.
+A fresh clone has no Terraform state. To deploy a second copy into a project that already has a starter pack deployment from another clone, use a different `name_prefix`. All resource names, including the IAP access policy ID (`<name_prefix>-agent-egress`), use the prefix. The project-wide resources (the IAP audit config and the agent principal set grant) are shared by both copies, so tear down with `scripts/cleanup.sh` without `--include-project-wide` while the other copy is in use.
 
 ### Antigravity CLI (`agy`) Harness
 
