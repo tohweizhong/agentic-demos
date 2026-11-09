@@ -367,7 +367,7 @@ run "model_armor_template_loads_yaml" {
   }
 
   assert {
-    condition     = google_model_armor_template.this["request"].filter_config[0].sdp_filter_settings[0].filter_enforcement == "ENABLED"
+    condition     = google_model_armor_template.this["request"].filter_config[0].sdp_settings[0].basic_config[0].filter_enforcement == "ENABLED"
     error_message = "The template must load the sdp enforcement from the YAML."
   }
 
