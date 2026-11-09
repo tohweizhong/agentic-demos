@@ -1,6 +1,6 @@
 // Command mcp-server is a sample MCP server for the GEAP starter pack mini build.
 // It has one read-only tool (get_status) and one write tool (update_status).
-// Demo only: the data is in memory.
+// Sample only: the data is in memory.
 package main
 
 import (

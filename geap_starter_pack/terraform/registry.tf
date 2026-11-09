@@ -118,7 +118,7 @@ resource "google_cloud_run_v2_service" "mcp" {
   project             = var.project_id
   name                = "${var.name_prefix}-work-items"
   location            = var.region
-  description         = "Sample MCP server for the GEAP starter pack mini build. Demo only."
+  description         = "Sample MCP server for the GEAP starter pack mini build. Sample only."
   labels              = local.labels
   deletion_protection = false
 
@@ -149,8 +149,8 @@ resource "google_cloud_run_v2_service" "mcp" {
   }
 
   lifecycle {
-    # The "reset the demo" runbook sets this label to start a new revision.
-    ignore_changes = [template[0].labels["demo-reset"]]
+    # The "switch policy mode" runbook sets this label to start a new revision.
+    ignore_changes = [template[0].labels["state-reset"]]
   }
 
   depends_on = [terraform_data.mcp_image]

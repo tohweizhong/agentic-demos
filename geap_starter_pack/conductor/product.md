@@ -82,8 +82,8 @@ The mini build proves the pattern in one sandbox project before the full design.
 ### Goals
 
 1. Prove the controls: the reference agent runs with identity, catalog, gateway control, and audit on.
-2. Support a 10-minute demo for a customer platform team. The demo shows identity, catalog,
-   gateway control, and audit, in that order.
+2. Give a customer platform team a repeatable check of identity, catalog, gateway control, and
+   audit, in that order.
 
 ### Steps
 
@@ -95,7 +95,7 @@ The mini build proves the pattern in one sandbox project before the full design.
 5. Deploy the reference ADK agent to Agent Runtime with Agent Identity and Sessions, bound to the
    gateway.
 6. Test the call, read the trace and the audit log, change the policy to enforce, and test again.
-7. Write two runbooks: add a new agent, and reset the demo.
+7. Write two runbooks: add a new agent, and switch the policy mode.
 
 ### Governance tiers
 
@@ -125,8 +125,8 @@ not tested in the field yet. If V2 blocks the mini build, fall back to V1 and re
 
 ### Limits
 
-One project, not three. No VPC-SC and no CMEK. Keep the cloud resources for customer demos. A
-clean-up script deletes only the mini build resources. Run it after the demos. Keep the repository.
+One project, not three. No VPC-SC and no CMEK. A clean-up script deletes only the mini build
+resources. Keep the repository.
 
 ## Related folders (links only)
 
@@ -155,8 +155,8 @@ requirements from these folders. It runs from a clean clone with its own files o
 - After the change to enforce, the same call is denied. The agent can show a connection error
   ("MCP session connection lost"), not a clear `403`.
 - The IAP Data Access audit log records the denied call.
-- The 10-minute demo runs from start to end. The "reset the demo" runbook returns it to its start
-  state.
+- The checks run from start to end. The "switch policy mode" runbook returns the environment to its
+  start state.
 - The clean-up script removes all mini build resources and nothing else.
 
 ## Backlog
@@ -170,7 +170,7 @@ This table is the single list of open starter pack work. [tracks.md](tracks.md) 
 | 3 | IAP audit log gap: the IAP Data Access audit log has no entry for `tools/call` decisions, with policy V1 or V2 | Filed (08 Nov 2026). Tracked in issue tracker |
 | 4 | V1 comparison | Done (08 Nov 2026). V1 and V2 both deny `update_status`. The IAP audit log records only MCP base methods with both versions. The gateway request log recorded the V1 denial (`403`, `DENIED`), but not the V2 denial |
 | 5 | Bug draft for the `python_spec` start failure behind an egress gateway | Filed (08 Nov 2026). Tracked in issue tracker along with the IAP V2 log gap and the domain restricted sharing documentation gap |
-| 6 | Reset the demo before the next demo. `terraform.tfvars` is at `ENFORCE` | Done (08 Nov 2026). Reset `iap_enforcement_mode` to `DRY_RUN` |
+| 6 | Return the environment to its start state. `terraform.tfvars` is at `ENFORCE` | Done (08 Nov 2026). Reset `iap_enforcement_mode` to `DRY_RUN` |
 | 7 | Keep [GUIDE.md](../GUIDE.md) current after each step | Ongoing |
 | 8 | Preflight scan: a read-only script (`scripts/preflight.sh`) that checks the target project before any change and writes a JSON go or no-go report. It checks org policies that affect the build (domain restricted sharing and others), enabled APIs, caller roles, billing, existing gateways, agents, Agent Registry entries, and Cloud Run services with the same names, and an existing Terraform state | Done (08 Nov 2026). `scripts/preflight.sh` tested on the sandbox project (`status: GO`) |
 | 9 | Antigravity CLI harness: skills `geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown` that call the scripts. An `AGENTS.md` with the safety rules (one project, no org-level change, stop on error). A `settings.json` permission list that allows read-only `gcloud` and `terraform plan`, and needs a person to approve `terraform apply`. Headless runs only for preflight and plan (`agy -p ... --output-format json`). The `agy` flags come from Duckie and are not checked in public docs: Not verified | Done (08 Nov 2026). Added `.agents/skills/geap-*`, `AGENTS.md`, and `settings.json` |
@@ -186,5 +186,5 @@ This table is the single list of open starter pack work. [tracks.md](tracks.md) 
 | 19 | Drop-In CI Validation Pipeline (`pipelines/cloudbuild-pr-check.yaml` and `pipelines/github-actions-pr-check.yaml`): run `terraform fmt -check`, `terraform validate`, `terraform test`, tool policy linting, `go test`, and `pytest` on pull requests | Not built |
 | 20 | Remote Terraform State Bootstrap (`scripts/init_remote_state.sh`): create a versioned GCS bucket (`gs://PROJECT_ID-tfstate`), write `terraform/backend.tf`, and migrate local state | Not built |
 | 21 | Cloud Monitoring Governance Dashboard (`policies/geap_dashboard.json`): define panels for Model Armor blocks, gateway status codes, and Cloud Run MCP latency | Not built |
-| 22 | Multi-Agent Least-Privilege Example: demonstrate a `reader` agent principal denied `update_status` alongside an `approver` agent principal allowed `update_status` in `policies/iap_access_policy.yaml` | Not built |
+| 22 | Multi-Agent Least-Privilege Example: show a `reader` agent principal denied `update_status` alongside an `approver` agent principal allowed `update_status` in `policies/iap_access_policy.yaml` | Not built |
 | 23 | Day-1 Handover Sign-Off Checklist (`runbooks/handover_checklist.md`): provide a verification checklist for GCS state migration, org policy setup, quota checks, tier selection, and emergency contacts | Not built |

@@ -4,7 +4,7 @@
 
 The mini build is a small version of the starter pack in one sandbox project. It proves that one
 reference agent runs on Agent Runtime with identity, catalog, gateway control, and audit on. It
-also supports a 10-minute demo for a customer platform team. The source is the "Mini build" section
+also gives a customer platform team a repeatable check of these controls. The source is the "Mini build" section
 of [product.md](../../product.md).
 
 ## Functional requirements
@@ -33,7 +33,7 @@ of [product.md](../../product.md).
 8. **Policies.** The IAP access policy and the Model Armor settings are files in `policies/`.
    Terraform reads them. The access policy allows registered destinations in the region and denies
    the `update_status` tool.
-9. **Runbooks.** "Add a new agent" and "Reset the demo".
+9. **Runbooks.** "Add a new agent" and "Switch policy mode".
 10. **Scripts.** Package the agent source, ask the agent a question, read the audit log, and clean up.
 
 ## Non-functional requirements

@@ -7,11 +7,23 @@ The GEAP starter pack is the governed platform that a customer receives on hando
 from an agent factory run on it with the controls on: Agent Identity, Agent Registry, an egress
 Agent Gateway, and audit logs.
 
-This folder holds the **mini build**. The mini build proves the pattern in one sandbox project. The
-product definition is in [conductor/product.md](conductor/product.md).
+This folder holds the **mini build**. The mini build proves the pattern in one new or existing
+project. The product definition is in [conductor/product.md](conductor/product.md).
 
-**Start here:** [GUIDE.md](GUIDE.md) is the step-by-step guide from an empty project to a working
-mini build, with the known problems and their fixes.
+## What is in the starter pack
+
+| Part | Contents |
+|---|---|
+| Terraform (`terraform/`) | Deploys everything. Four boolean variables turn the governance tiers on or off: `enable_agent_registry` (Agent Registry), `enable_egress_gateway` (egress Agent Gateway with IAP policy V2), `enable_model_armor` (Model Armor on the gateways), and `enable_ingress_gateway` (ingress Agent Gateway). `iap_enforcement_mode` sets the IAP policy to `DRY_RUN` or `ENFORCE` |
+| 1 reference agent (`agent-template/`) | An ADK agent that runs on Agent Runtime with its own Agent Identity principal. It is deployed as a container so it trusts the egress gateway certificate |
+| 1 MCP server (`mcp-server/`) | A sample Go MCP server on Cloud Run with one read-only tool (`get_status`) and one write tool (`update_status`). The IAP policy allows the read tool and denies the write tool |
+| Policies (`policies/`) | The IAP access policy and the Model Armor settings |
+| 5 scripts (`scripts/`) | `preflight.sh` (read-only readiness check), `package_agent.sh` (build the agent archive), `ask_agent.sh` (send a prompt to an agent), `read_audit_log.sh` (read gateway and IAP logs), and `cleanup.sh` (remove all starter pack resources from the project) |
+| 2 runbooks (`runbooks/`) | `add_agent.md` (onboard a second agent with its own identity and tool access) and `switch_policy_mode.md` (move the IAP policy between `DRY_RUN` and `ENFORCE`, and reset the sample data) |
+| Agent harness (`AGENTS.md`, `settings.json`, `.agents/skills/`) | Safety rules, permission gates, and 5 skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`) so a coding agent can run the steps above. A person must approve every `terraform apply` and every clean-up |
+
+**Start here:** [GUIDE.md](GUIDE.md) is the step-by-step guide from a new or existing project to a
+working mini build, with the known problems and their fixes.
 
 ## How it works
 
@@ -188,34 +200,34 @@ The organization admin must choose one option before the apply:
 
 If you want to deploy without the `gcp-sa-dep` Model Armor grants, set `enable_model_armor = false` (Tiers 1 to 3) or set `enable_egress_gateway = false` and `enable_ingress_gateway = false` (Tiers 1 and 2) in `terraform/terraform.tfvars`.
 
-## Walkthrough: identity, catalog, gateway control, audit (10 minutes)
+## Check the controls after deployment
 
-Run [switch policy mode](runbooks/switch_policy_mode.md) before you start so `iap_enforcement_mode` is set to `DRY_RUN`.
+Start with `iap_enforcement_mode = "DRY_RUN"`. [switch_policy_mode.md](runbooks/switch_policy_mode.md)
+moves the policy between `DRY_RUN` and `ENFORCE`.
 
-| Minute | Show | Command or page |
+| Control | What to check | Command or page |
 |---|---|---|
-| 0 to 2 | **Identity.** The agent has its own Agent Identity principal. Tool access, Sessions, and the IAP policy apply to this single principal. Start-up base roles go to the project agent principal set. There is no project-level token creator role | `terraform output agent_principal`. IAM page of the project |
-| 2 to 4 | **Catalog.** The MCP server and the Google API endpoints are in Agent Registry. The tool spec marks `get_status` as read-only | Agent Registry page. [`tool_spec.json`](mcp-server/tool_spec.json) |
-| 4 to 7 | **Gateway control.** In `DRY_RUN`, ask "Set ITEM-003 to closed". The call passes. Change to `ENFORCE`, wait 3 minutes, and ask again. The call is denied. The agent can show "MCP session connection lost", not a clear `403` | `scripts/ask_agent.sh "Set ITEM-003 to closed"`. [`policies/iap_access_policy.yaml`](policies/iap_access_policy.yaml) |
-| 7 to 10 | **Audit.** Known gap with IAP policy V2: the IAP Data Access audit log and the gateway request log did not show the dry-run result or the enforced denial. Show the evidence that exists: the agent error for `update_status`, and no matching request in the Cloud Run request log | Agent reply. `gcloud logging read` on `run.googleapis.com/requests`. `scripts/read_audit_log.sh 15m` for the logs that do appear |
+| **Identity** | The agent has its own Agent Identity principal. Tool access, Sessions, and the IAP policy apply to this single principal. Start-up base roles go to the project agent principal set. There is no project-level token creator role | `terraform output agent_principal`. IAM page of the project |
+| **Catalog** | The MCP server and the Google API endpoints are in Agent Registry. The tool spec marks `get_status` as read-only | Agent Registry page. [`tool_spec.json`](mcp-server/tool_spec.json) |
+| **Gateway control** | In `DRY_RUN`, the request "Set ITEM-003 to closed" passes. After the change to `ENFORCE` and a 3-minute wait, the same request is denied. The agent can report "MCP session connection lost", not a clear `403` | `scripts/ask_agent.sh "Set ITEM-003 to closed"`. [`policies/iap_access_policy.yaml`](policies/iap_access_policy.yaml) |
+| **Audit** | Use the evidence that exists: the agent error for `update_status`, and no matching request in the Cloud Run request log | Agent reply. `gcloud logging read` on `run.googleapis.com/requests`. `scripts/read_audit_log.sh 15m` for the logs that do appear |
 
 The change to `ENFORCE` takes about 2 minutes to apply, and the gateway uses it 1 to 3 minutes
-later. For a 10-minute demo, prepare a second terminal, or show the enforced result from an earlier
-run.
+later.
 
 > [!WARNING]
 > Known gap (08 Nov 2026 test, IAP policy V2): the IAP Data Access audit log had entries only for
 > MCP base methods (`initialize`, `notifications/initialized`). It had no entry for the `tools/call`
 > decisions, including the enforced denial. The gateway request log also had no entry for the
-> denied call. Show the denial in the agent reply until this gap is solved.
+> denied call. Until this gap is solved, use the agent reply as the evidence of a denial.
 
 ## Clean up
 
-Keep the resources for customer demos. After the demos, run:
+To remove all starter pack resources from the project, run:
 
 ```bash
 scripts/cleanup.sh
 ```
 
-The script runs `terraform destroy` and deletes the Cloud Build source bucket. It deletes only the
-mini build resources.
+The script runs `terraform destroy`, removes resources that are not in the Terraform state, and
+deletes the Cloud Build source bucket. It deletes only the `<name_prefix>-*` resources.

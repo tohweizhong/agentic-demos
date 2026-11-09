@@ -9,7 +9,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
 need terraform gcloud curl jq
 
 AGENT=""
-USER_ID="demo-user"
+USER_ID="operator"
 SESSION_ID=""
 while getopts "a:u:s:" opt; do
   case "${opt}" in

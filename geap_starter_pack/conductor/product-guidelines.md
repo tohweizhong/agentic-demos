@@ -47,11 +47,11 @@
   example: the IAP Data Access audit log for a denied call.
 - Times: local time with the zone, and UTC in brackets. Raw log data stays in UTC.
 
-## Demo
+## Verification
 
-- The demo follows the order in the product definition: identity, catalog, gateway control, audit.
-- Every demo-only resource or step carries a visible "Demo only" label.
-- The "reset the demo" runbook returns the environment to its start state without a full redeploy.
+- Verification follows the order in the product definition: identity, catalog, gateway control, audit.
+- Every sample-only resource or step carries a visible "Sample only" label.
+- The "switch policy mode" runbook returns the environment to its start state without a full redeploy.
 
 ## Public repository rules
 

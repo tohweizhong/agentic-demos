@@ -23,7 +23,7 @@ type Item struct {
 }
 
 // Store keeps the sample items in memory. A new Cloud Run revision starts
-// with the seed data again. The "reset the demo" runbook uses this.
+// with the seed data again. The "switch policy mode" runbook uses this.
 type Store struct {
 	mu    sync.Mutex
 	items map[string]Item

@@ -16,7 +16,7 @@ enable_egress_gateway  = true
 enable_model_armor     = true
 enable_ingress_gateway = false
 
-# Start in DRY_RUN. Change to ENFORCE in step 6 of the demo.
+# Start in DRY_RUN. Change to ENFORCE after the checks in DRY_RUN pass.
 iap_enforcement_mode = "DRY_RUN"
 
 # Set to true only if the organization uses domain restricted sharing and the
