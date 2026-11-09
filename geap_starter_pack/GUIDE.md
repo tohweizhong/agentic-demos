@@ -52,6 +52,35 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
    - `"Run geap-reset to switch IAP back to DRY_RUN and reset the sample MCP server."`
    - `"Run geap-teardown to destroy all GEAP resources in my sandbox project."`
 
+### Claude Code Harness
+
+> [!NOTE]
+> Draft. An agent tested this harness with Claude Code 2.1.319 on a Cloud Workstation on 09 Nov 2026. Each behavior that is marked "Not verified" was not tested.
+
+This folder also includes a Claude Code harness. It uses the same rules and the same skills as the Antigravity CLI harness:
+
+| File | What It Does |
+|---|---|
+| `CLAUDE.md` | Imports `AGENTS.md` with `@AGENTS.md` and adds Claude Code notes |
+| `.claude/settings.json` | The same allow, ask, and deny lists as `settings.json`, in Claude Code settings format |
+| `.claude/skills` | A relative symlink to `../.agents/skills`. There is one copy of each `geap-*` skill. Claude Code loads the five skills through the symlink, and each skill is also a slash command (for example `/geap-preflight`) |
+
+1. **Start Claude Code from this folder:** run `cd geap_starter_pack` and then `claude`. Claude Code reads `CLAUDE.md`, the imported `AGENTS.md`, `.claude/settings.json`, and the five `geap-*` skills.
+2. **Accept the workspace trust dialog once:** start `claude` in an interactive session and accept the trust dialog for the repository. Until you accept it, Claude Code ignores the `allow` list in `.claude/settings.json`, and every command needs approval. Headless runs use the `allow` list only after you accept the dialog.
+3. **Use Claude on Vertex AI:** set these variables before you start `claude`:
+   ```bash
+   export CLAUDE_CODE_USE_VERTEX=1
+   export ANTHROPIC_VERTEX_PROJECT_ID=TOOLING_PROJECT_ID   # The project that pays for the model calls
+   export CLOUD_ML_REGION=asia-southeast1                  # Recommended for data residency
+   export ANTHROPIC_MODEL=CLAUDE_MODEL_ID                  # A Claude model that is enabled in Model Garden
+   ```
+   - The organization policy `constraints/vertexai.allowedModels` must allow the Claude model. Enable the Claude model in Model Garden for the tooling project first.
+   - Set `ANTHROPIC_MODEL` when the Claude Code default model is not enabled in your project. Otherwise Claude Code stops with "The model ... is not available on your vertex deployment".
+   - A new project can have zero Claude quota in a regional endpoint, so check the quota first. The `global` endpoint can have quota when a region does not, but `global` does not keep data in one region.
+   - On a Cloud Workstation, the workstation configuration must give the service account the `https://www.googleapis.com/auth/cloud-platform` scope. Without it, Vertex AI calls fail with "Request had insufficient authentication scopes".
+4. **Lock the deny list (enterprise):** an administrator can put the same `deny` rules in `/etc/claude-code/managed-settings.json`. A user cannot override managed settings. Not verified.
+5. **Headless read-only runs:** use `claude -p "Run the geap-preflight skill" --output-format json`. Headless mode cannot ask for approval. Claude Code does not run a command that is on the `ask` list, and the JSON output lists it in `permission_denials`. A command on the `deny` list is always refused.
+
 ## 2. Create or Select the Project
 
 If you use an **existing project**, skip `gcloud projects create` and `gcloud billing projects link`:

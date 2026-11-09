@@ -13,7 +13,7 @@ These rules apply to any automated agent or CLI harness that runs in `geap_start
 
 ## Headless Mode
 
-Headless CLI runs (for example, `agy -p "<prompt>" --output-format json`) are permitted only for read-only tasks (`geap-preflight` and `terraform plan`). Note: the `agy` CLI flags are not verified against public documentation yet.
+Headless CLI runs (for example, `agy -p "<prompt>" --output-format json`) are permitted only for read-only tasks (`geap-preflight` and `terraform plan`). Note: the `agy` CLI flags are not verified against public documentation yet. The same rule applies to Claude Code headless runs (`claude -p "<prompt>" --output-format json`). Claude Code reads these rules through the `@AGENTS.md` import in `CLAUDE.md`.
 
 ## Skills
 
