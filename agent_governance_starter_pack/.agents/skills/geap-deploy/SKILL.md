@@ -9,6 +9,7 @@ Deploy or update the agent governance starter pack mini build with a mandatory a
 
 ## Steps
 
+0. If `terraform/terraform.tfvars` does not exist, or still has a placeholder (`PROJECT_ID`, `PROJECT_NUMBER`, `ORG_ID`), run the `geap-configure` skill first. Otherwise show the governance tier, region, `name_prefix`, and `iap_enforcement_mode` from the file, and ask the user to confirm them before you continue.
 1. Run `scripts/preflight.sh` first. Stop if `status` is `NO_GO`.
 2. Build the repeatable agent source archive:
    ```bash

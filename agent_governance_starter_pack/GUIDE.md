@@ -45,6 +45,7 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
 
 | Skill | Path | What It Does |
 |---|---|---|
+| `geap-configure` | `.agents/skills/geap-configure/SKILL.md` | Asks for the project, region, name prefix, governance tier, domain restricted sharing approach, and IAP mode, then writes `terraform/terraform.tfvars` |
 | `geap-preflight` | `.agents/skills/geap-preflight/SKILL.md` | Runs `scripts/preflight.sh` and checks the JSON readiness report (`GO` or `NO_GO`) |
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Packages the agent source, runs offline unit tests, runs `terraform plan`, and pauses for human approval before `terraform apply` |
 | `geap-verify` | `.agents/skills/geap-verify/SKILL.md` | Verifies the deployed agent, Model Armor content screening, IAP tool authorization, and Cloud Logging entries |
@@ -70,16 +71,20 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
 
 #### Run the Whole Flow with `agy`
 
-Set `terraform/terraform.tfvars` first (Section 4). For a region other than `us-central1`, also read "Regions other than us-central1" in Section 4. Then start `agy` in this folder and give these prompts in this order:
+Start `agy` in this folder and give these prompts in this order. You do not need to edit `terraform/terraform.tfvars` by hand: `geap-configure` asks for each value and writes the file.
 
 | # | Prompt | Expected result |
 |---|---|---|
+| 0 | "Run geap-configure" | The agent asks for the project, region, name prefix, and how to roll out. Choose "build up one tier at a time" to start at Tier 1 |
 | 1 | "Run geap-preflight" | `GO`, or a list of blockers to fix |
-| 2 | "Run geap-deploy" | The agent packages the code, runs the tests and `terraform plan`, then stops and asks for approval before `terraform apply` |
-| 3 | "Run geap-verify" | The read tool works. The write tool works, because `DRY_RUN` only records the decision. A prompt injection gets `403` when Tier 4 or Tier 5 is on |
-| 4 | "Switch to ENFORCE with runbooks/switch_policy_mode.md" | After about 3 minutes, `update_status` fails and `get_status` still works |
-| 5 | "Run geap-reset" | `iap_enforcement_mode` is `DRY_RUN` again |
-| 6 | "Run geap-teardown" | The agent asks you to confirm, then removes the starter pack resources |
+| 2 | "Run geap-deploy" | The agent shows the tier, packages the code, runs the tests and `terraform plan`, then stops and asks for approval before `terraform apply` |
+| 3 | "Run geap-verify" | The agent runs the checks for the current tier and reports pass or fail |
+| 4 | "Run geap-configure to move up one tier" | The agent shows what the next tier adds and what it needs, then changes one `enable_*` value. Repeat steps 2 to 4 until Tier 5 |
+| 5 | "Switch to ENFORCE with runbooks/switch_policy_mode.md" (Tier 3 or higher) | After about 3 minutes, `update_status` fails and `get_status` still works |
+| 6 | "Run geap-reset" | `iap_enforcement_mode` is `DRY_RUN` again |
+| 7 | "Run geap-teardown" | The agent asks you to confirm, then removes the starter pack resources |
+
+A customer team can also stop at any tier and stay there. The Terraform checks stop a plan that skips a tier.
 
 ### Claude Code Harness
 
