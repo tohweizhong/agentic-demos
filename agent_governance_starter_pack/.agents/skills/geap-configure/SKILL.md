@@ -26,10 +26,10 @@ choose.
    `gcloud projects describe PROJECT_ID --format="value(projectNumber)"` and the organization ID
    with `gcloud projects get-ancestors PROJECT_ID --format="value(id,type)"` (the row with type
    `organization`). Show both and ask the user to confirm.
-2. **Region.** Offer:
-   - `us-central1` (default, tested 08 Nov 2026). Sets `model_id = "gemini-3.8-flash"`,
+2. **Region.** Offer these options. Do not show test dates to the user. GUIDE.md "Regions other than us-central1" keeps the test record. Copy the model values exactly as written here:
+   - `us-central1` (default, tested). Sets `model_id = "gemini-3.8-flash"`,
      `model_location = "global"`, and `malicious_uri.enforcement: ENABLED`.
-   - `asia-southeast1` (tested 09 Nov 2026). Sets `model_id = "gemini-3.5-flash"`,
+   - `asia-southeast1` (tested). Sets `model_id = "gemini-3.5-flash"`,
      `model_location = "asia-southeast1"`, and `malicious_uri.enforcement: DISABLED` (Model Armor in
      this region does not support the malicious URI filter).
    - Another region: tell the user that it is not tested, and that Agent Runtime, Agent Gateway,
