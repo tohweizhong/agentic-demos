@@ -80,15 +80,19 @@ resource "terraform_data" "mcp_image" {
 
   provisioner "local-exec" {
     working_dir = local.mcp_source_dir
-    command = var.build_mcp_image ? join(" ", [
-      "gcloud builds submit .",
-      "--project=${var.project_id}",
-      "--region=${var.region}",
-      "--config=cloudbuild.yaml",
-      "--substitutions=_IMAGE=${local.mcp_image}",
-      "--service-account=${google_service_account.mcp_build.id}",
-      "--default-buckets-behavior=regional-user-owned-bucket",
-      "--quiet",
+    command = var.build_mcp_image ? join("", [
+      "for attempt in 1 2 3; do ",
+      join(" ", [
+        "gcloud builds submit .",
+        "--project=${var.project_id}",
+        "--region=${var.region}",
+        "--config=cloudbuild.yaml",
+        "--substitutions=_IMAGE=${local.mcp_image}",
+        "--service-account=${google_service_account.mcp_build.id}",
+        "--default-buckets-behavior=regional-user-owned-bucket",
+        "--quiet",
+      ]),
+      " && break; echo \"Retrying gcloud builds submit after 15s (IAM propagation)...\"; sleep 15; done"
     ]) : "echo 'build_mcp_image is false: no image build.'"
   }
 

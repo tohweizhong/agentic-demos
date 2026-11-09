@@ -327,10 +327,11 @@ project_wide() {
   fi
 }
 
-# 9. Cloud Build source bucket (shared by every Cloud Build job in the project)
+# 9. Cloud Build source bucket (a temporary staging bucket created by Cloud Build automatically)
 BUCKET="gs://${PROJECT}_${REGION}_cloudbuild"
 if gcloud storage buckets describe "${BUCKET}" --project="${PROJECT}" >/dev/null 2>&1; then
-  project_wide "Delete the Cloud Build source bucket ${BUCKET}" gcloud storage rm --recursive "${BUCKET}"
+  echo "Delete the Cloud Build source bucket ${BUCKET}..."
+  gcloud storage rm --recursive "${BUCKET}" || fail "Delete of ${BUCKET} failed."
 fi
 
 # 10. Model Armor role bindings on every service-*@gcp-sa-dep.iam.gserviceaccount.com member

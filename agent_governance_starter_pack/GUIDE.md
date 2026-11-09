@@ -74,9 +74,28 @@ Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format 
   "toolPermission": "request-review",
   "allowNonWorkspaceAccess": false,
   "permissions": {
-    "deny": ["command(terraform destroy)"],
-    "ask": ["command(terraform apply)", "command(scripts/cleanup.sh)"],
-    "allow": ["command(scripts/preflight.sh)", "command(scripts/deploy_checks.sh)", "command(scripts/discover.sh)", "command(scripts/doctor.sh)", "command(scripts/adoption_plan.sh)", "command(scripts/bind_existing_agent.sh)", "command(scripts/teardown_plan.sh)", "command(scripts/package_agent.sh)", "command(scripts/ask_agent.sh)", "command(scripts/read_audit_log.sh)", "command(scripts/check_promotion.sh)", "command(scripts/check_tool_policy.sh)"]
+    "deny": ["command(terraform destroy)", "command(terraform destroy *)"],
+    "ask": ["command(terraform apply)", "command(terraform apply *)", "command(scripts/cleanup.sh)", "command(scripts/cleanup.sh *)"],
+    "allow": [
+      "command(scripts/preflight.sh)", "command(scripts/preflight.sh *)",
+      "command(scripts/deploy_checks.sh)", "command(scripts/deploy_checks.sh *)",
+      "command(scripts/discover.sh)", "command(scripts/discover.sh *)",
+      "command(scripts/doctor.sh)", "command(scripts/doctor.sh *)",
+      "command(scripts/adoption_plan.sh)", "command(scripts/adoption_plan.sh *)",
+      "command(scripts/bind_existing_agent.sh)", "command(scripts/bind_existing_agent.sh *)",
+      "command(scripts/teardown_plan.sh)", "command(scripts/teardown_plan.sh *)",
+      "command(scripts/package_agent.sh)", "command(scripts/package_agent.sh *)",
+      "command(scripts/ask_agent.sh)", "command(scripts/ask_agent.sh *)",
+      "command(scripts/read_audit_log.sh)", "command(scripts/read_audit_log.sh *)",
+      "command(scripts/check_promotion.sh)", "command(scripts/check_promotion.sh *)",
+      "command(scripts/check_tool_policy.sh)", "command(scripts/check_tool_policy.sh *)",
+      "command(scripts/configure.sh)", "command(scripts/configure.sh *)",
+      "command(scripts/onboard_agent.sh)", "command(scripts/onboard_agent.sh *)",
+      "command(terraform plan *)", "command(terraform output *)",
+      "command(gcloud * describe *)", "command(gcloud * list *)", "command(gcloud * get-iam-policy *)",
+      "command(git status *)", "command(git diff *)",
+      "command(cat *)", "command(grep *)", "command(ls *)", "command(jq *)"
+    ]
   }
 }
 ```
