@@ -5,6 +5,8 @@ These rules apply to any automated agent or CLI harness that runs in `agent_gove
 ## Safety Rules
 
 1. Operate on one sandbox project only: the `project_id` configured in `terraform/terraform.tfvars`.
+1. Use only the skills in `.agents/skills/` and the files in this folder. Do not load user-level skills (for example from `~/.gemini/skills/` or `~/.gemini/config/skills/`), and do not read files outside this folder. Do not add environment variables or flags that a skill in this folder does not name.
+1. Never pipe input into a script to answer its prompt (for example `echo PROJECT_ID | scripts/cleanup.sh` or `yes | ...`). Use the flag that the skill names, after the user approves.
 2. Never modify organization-level policies or resources outside the target project.
 3. Run `scripts/preflight.sh` before any Terraform plan or apply. Stop immediately if the report status is `NO_GO`.
 4. Never run `terraform apply` or `terraform destroy` without human approval of the plan summary (resource counts and resource types).

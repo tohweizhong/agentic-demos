@@ -27,10 +27,11 @@ REGION=""
 PREFIX=""
 LOG_BUCKET_MODE="keep"
 INCLUDE_PROJECT_WIDE="false"
+CONFIRM=""
 FAILURES=0
 
 usage() {
-  echo "Usage: $0 [--project PROJECT_ID] [--region REGION] [--prefix PREFIX] [--keep-log-bucket | --purge-all] [--include-project-wide]" >&2
+  echo "Usage: $0 [--project PROJECT_ID] [--region REGION] [--prefix PREFIX] [--keep-log-bucket | --purge-all] [--include-project-wide] [--confirm PROJECT_ID]" >&2
   exit 2
 }
 
@@ -42,6 +43,7 @@ while [[ $# -gt 0 ]]; do
     --keep-log-bucket) LOG_BUCKET_MODE="keep"; shift ;;
     --purge-all) LOG_BUCKET_MODE="purge"; shift ;;
     --include-project-wide) INCLUDE_PROJECT_WIDE="true"; shift ;;
+    --confirm) CONFIRM="$2"; shift 2 ;;
     *) usage ;;
   esac
 done
@@ -91,7 +93,17 @@ fi
 
 echo "This resets the agent governance starter pack in project ${PROJECT} (${REGION}, prefix=${PREFIX})."
 echo "Project-wide steps: $([[ "${INCLUDE_PROJECT_WIDE}" == "true" ]] && echo "ON (--include-project-wide)" || echo "report only")."
-read -r -p "Type the project ID to continue: " answer
+# Confirmation. A person types the project ID in a terminal, or an agent passes
+# --confirm PROJECT_ID after the person approves the full command. Piped input is
+# refused, so "echo PROJECT_ID | scripts/cleanup.sh" cannot skip the approval.
+if [[ -n "${CONFIRM:-}" ]]; then
+  answer="${CONFIRM}"
+elif [[ -t 0 ]]; then
+  read -r -p "Type the project ID to continue: " answer
+else
+  echo "Stopped. Standard input is not a terminal. Type the project ID in a terminal, or pass --confirm PROJECT_ID after a person approves the command. Nothing was deleted." >&2
+  exit 1
+fi
 if [[ "${answer}" != "${PROJECT}" ]]; then
   echo "Stopped. Nothing was deleted."
   exit 1
