@@ -1,0 +1,36 @@
+# Template (backlog item 19). Copy to .github/workflows/ in the customer
+# repository to run the offline checks on each pull request. The checks need no
+# cloud credentials: terraform test uses mock providers.
+name: starter-pack-pr-check
+on:
+  pull_request:
+    paths:
+      - "agent_governance_starter_pack/**"
+jobs:
+  offline-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent_governance_starter_pack
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: Package the agent (terraform test reads the archive)
+        run: scripts/package_agent.sh
+      - name: Terraform init, fmt, validate, test, and tool policy check
+        run: scripts/deploy_checks.sh
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: MCP server tests
+        run: cd mcp-server && go test -cover ./...
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Agent tests
+        run: |
+          cd agent-template
+          python -m pip install -r requirements-dev.txt
+          python -m pytest
