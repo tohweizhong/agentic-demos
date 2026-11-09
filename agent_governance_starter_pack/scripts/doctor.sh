@@ -33,7 +33,7 @@ SA_PRINCIPALS=""
 for sa in $(gcloud iam service-accounts list --project="${PROJECT}" --format="value(email)" 2>/dev/null); do
   sa_iam=$(gcloud iam service-accounts get-iam-policy "${sa}" --project="${PROJECT}" --format=json 2>/dev/null)
   if [[ -n "${sa_iam}" ]]; then
-    p=$(jq -r '.bindings[]? | .role as $r | .members[]? | select(test("reasoningEngines/")) | "\(.)\t\($r) on \(env.sa)"' <<<"${sa_iam}")
+    p=$(jq -r --arg sa "${sa}" '.bindings[]? | .role as $r | .members[]? | select(test("reasoningEngines/")) | "\(.)\t\($r) on \($sa)"' <<<"${sa_iam}")
     if [[ -n "${p}" ]]; then
       SA_PRINCIPALS+="${p}
 "
@@ -53,12 +53,12 @@ fi
 
 if [[ -z "${PRINCIPALS}" ]]; then echo "DOCTOR: CLEAN (no agent principal is named in the project allow policy or the IAP access policies)"; exit 0; fi
 
-STALE=0; LIVE=0; MISSING_GW=0
+STALE=0; LIVE=0; MISSING_GW=0; CHECKED_GW=" "
 while IFS=$'\t' read -r member where; do
   path="$(sed -E 's#.*/resources/aiplatform/(projects/[^/]+/locations/[^/]+/reasoningEngines/[0-9]+).*#\1#' <<<"${member}")"
   loc="$(cut -d/ -f4 <<<"${path}")"
   
-  response=$(curl -s -w "\n%{http_code}" -m 30 -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "https://${loc}-aiplatform.googleapis.com/v1/${path}")
+  response=$(curl -s -w "\n%{http_code}" -m 30 -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "https://${loc}-aiplatform.googleapis.com/v1beta1/${path}")
   code=$(tail -n1 <<< "$response")
   body=$(sed '$d' <<< "$response")
 
@@ -70,9 +70,10 @@ while IFS=$'\t' read -r member where; do
   elif [[ "${code}" == "200" ]]; then
     LIVE=$((LIVE + 1))
     echo "live   ${path##*/}  ${where}"
-    if [[ "${HAS_GATEWAYS}" == "true" ]]; then
-      egress_gw=$(jq -r '.agentGatewayConfig.agentToAnywhereConfig.agentGateway // empty' <<< "${body}")
-      ingress_gw=$(jq -r '.agentGatewayConfig.clientToAgentConfig.agentGateway // empty' <<< "${body}")
+    if [[ "${HAS_GATEWAYS}" == "true" ]] && [[ "${CHECKED_GW}" != *" ${path##*/} "* ]]; then
+      CHECKED_GW+="${path##*/} "
+      egress_gw=$(jq -r '.spec.deploymentSpec.agentGatewayConfig.agentToAnywhereConfig.agentGateway // .agentGatewayConfig.agentToAnywhereConfig.agentGateway // empty' <<< "${body}")
+      ingress_gw=$(jq -r '.spec.deploymentSpec.agentGatewayConfig.clientToAgentConfig.agentGateway // .agentGatewayConfig.clientToAgentConfig.agentGateway // empty' <<< "${body}")
       if [[ -z "${egress_gw}" ]] && [[ -z "${ingress_gw}" ]]; then
         MISSING_GW=$((MISSING_GW + 1))
         echo "WARN   ${path##*/}  missing egress or ingress gateway bindings"

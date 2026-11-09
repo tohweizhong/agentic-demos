@@ -41,7 +41,16 @@ call() {
 
 if [[ -z "${SESSION_ID}" ]]; then
   body="$(jq -n --arg u "${USER_ID}" '{class_method: "async_create_session", input: {user_id: $u}}')"
-  SESSION_ID="$(call "${API}:query" "${body}" | jq -r '.output.id')"
+  for _try in 1 2 3; do
+    SESSION_ID="$(call "${API}:query" "${body}" 2>/dev/null | jq -r '.output.id // empty' || true)"
+    [[ -n "${SESSION_ID}" ]] && break
+    if [[ "${_try}" -lt 3 ]]; then
+      echo "[retry] Waiting 10s for endpoint/IAM readiness..." >&2
+      sleep 10
+      TOKEN="$(gcloud auth print-access-token)"
+    fi
+  done
+  [[ -n "${SESSION_ID}" ]] || { echo "ERROR: async_create_session failed after 3 attempts on ${AGENT}" >&2; exit 1; }
   echo "New session: ${SESSION_ID}"
 fi
 echo "User: ${USER_ID}  Session: ${SESSION_ID}"
