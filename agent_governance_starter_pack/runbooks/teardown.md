@@ -34,6 +34,14 @@ scripts/cleanup.sh [--keep-log-bucket | --purge-all] [--include-project-wide]
 
 The sink only copies logs into `<name_prefix>-agent-audit`. After a purge, Admin Activity audit logs stay in the `_Required` bucket of the project, and other logs stay in the `_Default` bucket until its retention period ends.
 
+### Run it again safely
+
+The script is idempotent. Each step checks that a resource exists before it deletes it, and `terraform destroy` runs only when the state has resources. A second run on a clean project deletes nothing and ends with `Clean-up done.`
+
+A check that gets an error (for example `401` or `403`) counts as a failure, and the script ends with `Clean-up NOT complete`. The script also stops before the sweep when `gcloud` has no active account. Before 09 Nov 2026, a failed check looked like "already deleted", and a run could report success while resources remained.
+
+One exception: a run with `--keep-log-bucket` restores a log bucket that an earlier `--purge-all` run soft-deleted.
+
 ## What the script deletes and what it keeps
 
 "Name-scoped" means that the step acts only on resources named `<name_prefix>-*`.

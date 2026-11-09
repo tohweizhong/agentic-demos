@@ -92,6 +92,26 @@ PROJ_JSON="$(gcloud projects describe "${PROJECT}" --format=json 2>/dev/null || 
 PROJECT_NUMBER="$(echo "${PROJ_JSON}" | jq -r '.projectNumber // empty')"
 LIFECYCLE_STATE="$(echo "${PROJ_JSON}" | jq -r '.lifecycleState // "UNKNOWN"')"
 
+# Stop with a clear error when gcloud cannot read the project. Without this
+# check, each failed gcloud call looks like a project fact (not ACTIVE, no
+# billing, no APIs), and the report is false.
+if [[ -z "${CALLER}" || -z "${TOKEN}" || -z "${PROJECT_NUMBER}" ]]; then
+  REASON="gcloud cannot read project ${PROJECT}."
+  [[ -z "${CALLER}" ]] && REASON="${REASON} No active gcloud account (run: gcloud auth login)."
+  [[ -z "${TOKEN}" ]] && REASON="${REASON} No gcloud access token."
+  [[ -n "${CALLER}" && -n "${TOKEN}" ]] && REASON="${REASON} The project does not exist, or ${CALLER} has no access to it."
+  jq -n --arg ts "${TIMESTAMP}" --arg project "${PROJECT}" --arg region "${REGION}" --arg prefix "${PREFIX}" \
+    --arg caller "${CALLER}" --arg reason "${REASON}" '{
+      timestamp: $ts,
+      status: "ERROR",
+      project: {project_id: $project, region: $region, name_prefix: $prefix},
+      caller: {account: $caller},
+      blockers: [$reason + " The other checks did not run, so this report has no project facts."],
+      warnings: []
+    }'
+  exit 1
+fi
+
 # 2. Billing status
 BILLING_JSON="$(gcloud billing projects describe "${PROJECT}" --format=json 2>/dev/null || echo "{}")"
 BILLING_ENABLED="$(echo "${BILLING_JSON}" | jq -r '.billingEnabled // false')"

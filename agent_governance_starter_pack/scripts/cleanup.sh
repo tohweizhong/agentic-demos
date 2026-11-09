@@ -137,9 +137,25 @@ if [[ -z "${TOKEN}" ]]; then
   exit 1
 fi
 
-# api_get URL -> prints the HTTP status code.
+# The gcloud CLI must also work: some steps use gcloud describe, and a failed
+# describe must not look like "already deleted".
+if [[ -z "$(gcloud config get-value account 2>/dev/null)" ]] || ! gcloud auth print-access-token >/dev/null 2>&1; then
+  echo "ERROR: gcloud has no active account or token. Run 'gcloud auth login' first. Nothing was deleted by the sweep." >&2
+  exit 1
+fi
+
+# api_get URL -> prints the HTTP status code. A code other than 200 or 404 (for
+# example 401 or 403) is recorded as a failure, so that a second run does not
+# report "Clean-up done" while resources remain.
+CHECK_ERRORS="$(mktemp)"
 api_get() {
-  curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "$1"
+  local code
+  code="$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "$1")"
+  if [[ "${code}" != "200" && "${code}" != "404" ]]; then
+    echo "ERROR: Check of $1 returned HTTP ${code}." >&2
+    echo "$1 ${code}" >> "${CHECK_ERRORS}"
+  fi
+  echo "${code}"
 }
 
 # api_delete LABEL URL OPERATION_BASE
@@ -208,19 +224,29 @@ for ext in "${PREFIX}-egress-iap-authz" "${PREFIX}-egress-ma-authz"; do
   fi
 done
 
-# 5. Out-of-state sweep: IAM V2 policy bindings and access policies
-IAM2="https://iam.googleapis.com/v2"
+# 5. Out-of-state sweep: IAM V2 policy bindings and access policies (IAM v3 API)
+IAM3="https://iam.googleapis.com/v3"
+IAM3LOC="${IAM3}/projects/${PROJECT}/locations/global"
 for pb in "${PREFIX}-agent-egress" "${PREFIX}-egress-access"; do
-  URL="${IAM2}/policies/cloudresourcemanager.googleapis.com%2Fprojects%2F${PROJECT}/policyBindings/${pb}"
+  URL="${IAM3LOC}/policyBindings/${pb}"
   if [[ "$(api_get "${URL}")" == "200" ]]; then
-    api_delete "IAM policyBinding ${pb}" "${URL}" "${IAM2}"
+    api_delete "IAM policyBinding ${pb}" "${URL}" "${IAM3}"
   fi
 done
-IAM2B="https://iam.googleapis.com/v2beta"
-for ap in "${PREFIX}-agent-egress" "${PREFIX}-egress-access"; do
-  URL="${IAM2B}/projects/${PROJECT}/locations/global/accessPolicies/${ap}"
+# The access policy ID comes from policies/iap_access_policy.yaml and does not
+# use the prefix (backlog item 26). Delete it only when no policy binding in the
+# project still refers to it, so that another copy in the project keeps working.
+YAML_AP_ID="$(sed -n 's/^access_policy_id:[[:space:]]*//p' "${ROOT}/policies/iap_access_policy.yaml" 2>/dev/null | tr -d '"' | head -1)"
+BINDINGS_JSON="$(curl -s -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "${IAM3LOC}/policyBindings" || echo "{}")"
+for ap in ${YAML_AP_ID} "${PREFIX}-agent-egress" "${PREFIX}-egress-access"; do
+  [[ -z "${ap}" ]] && continue
+  URL="${IAM3LOC}/accessPolicies/${ap}"
   if [[ "$(api_get "${URL}")" == "200" ]]; then
-    api_delete "IAM accessPolicy ${ap}" "${URL}" "${IAM2B}"
+    if echo "${BINDINGS_JSON}" | jq -e --arg ap "/accessPolicies/${ap}" '[.policyBindings[]?.policy // empty | select(endswith($ap))] | length > 0' >/dev/null 2>&1; then
+      echo "Kept IAM accessPolicy ${ap}: another policy binding in the project still uses it."
+    else
+      api_delete "IAM accessPolicy ${ap}" "${URL}" "${IAM3}"
+    fi
   fi
 done
 
@@ -235,11 +261,12 @@ for svc in "${PREFIX}-work-items" "${PREFIX}-sample-mcp" "${PREFIX}-google-apis"
   done
 done
 
-# 7. Out-of-state sweep: Model Armor templates
+# 7. Out-of-state sweep: Model Armor templates (regional REST endpoint, ADC token)
+MA="https://modelarmor.${REGION}.rep.googleapis.com/v1"
 for tmpl in "${PREFIX}-agw-request" "${PREFIX}-agw-response" "${PREFIX}-prompt-baseline" "${PREFIX}-response-baseline"; do
-  if gcloud model-armor templates describe "${tmpl}" --location="${REGION}" --project="${PROJECT}" >/dev/null 2>&1; then
-    echo "Deleting Model Armor template ${tmpl}..."
-    gcloud model-armor templates delete "${tmpl}" --location="${REGION}" --project="${PROJECT}" --quiet || fail "Delete of Model Armor template ${tmpl} failed."
+  URL="${MA}/${LOC}/templates/${tmpl}"
+  if [[ "$(api_get "${URL}")" == "200" ]]; then
+    api_delete "Model Armor template ${tmpl}" "${URL}" "${MA}"
   fi
 done
 
@@ -339,6 +366,8 @@ rm -f "${TF_DIR}/build/agent_source.tar.gz" "${TF_DIR}/build/agent-src.tar.gz" "
 echo "Remaining resources in Terraform state:"
 terraform -chdir="${TF_DIR}" state list 2>/dev/null || true
 
+FAILURES=$((FAILURES + $(wc -l < "${CHECK_ERRORS}")))
+rm -f "${CHECK_ERRORS}"
 if [[ "${FAILURES}" -gt 0 ]]; then
   echo "Clean-up NOT complete: ${FAILURES} step(s) failed. Read the errors above, then run this script again." >&2
   exit 1
