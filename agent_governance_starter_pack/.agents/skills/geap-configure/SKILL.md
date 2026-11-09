@@ -46,13 +46,20 @@ choose.
      lower tier. The Terraform checks stop a plan that skips a tier (for example Tier 3 without
      Tier 2).
 
-   | Tier | Adds | `enable_agent_registry` | `enable_egress_gateway` | `enable_model_armor` | `enable_ingress_gateway` |
+   Show the table with these short column names, so that it fits in a terminal. Do not use the
+   variable names as column headers.
+
+   | Tier | Adds | Registry | Egress | Model Armor | Ingress |
    |---|---|---|---|---|---|
-   | 1 | Agent with its own Agent Identity, Cloud Run MCP server, IAM grants, audit log bucket | false | false | false | false |
-   | 2 | Agent Registry entries | true | false | false | false |
-   | 3 | Egress Agent Gateway with IAP policy V2 | true | true | false | false |
-   | 4 | Model Armor on egress | true | true | true | false |
-   | 5 | Ingress Agent Gateway with Model Armor on prompts | true | true | true | true |
+   | 1 | Agent with its own Agent Identity, Cloud Run MCP server, IAM grants, audit log bucket | off | off | off | off |
+   | 2 | Agent Registry entries | on | off | off | off |
+   | 3 | Egress Agent Gateway with IAP policy V2 | on | on | off | off |
+   | 4 | Model Armor on egress | on | on | on | off |
+   | 5 | Ingress Agent Gateway with Model Armor on prompts | on | on | on | on |
+
+   Under the table, give this key in one line: Registry = `enable_agent_registry`, Egress =
+   `enable_egress_gateway`, Model Armor = `enable_model_armor`, Ingress = `enable_ingress_gateway`
+   (on = `true`, off = `false`).
 
 5. **Domain restricted sharing (only for Tier 4 and Tier 5).** Run
    `gcloud org-policies describe iam.allowedPolicyMemberDomains --project=PROJECT_ID --effective`.
