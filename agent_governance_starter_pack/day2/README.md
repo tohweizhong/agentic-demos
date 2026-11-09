@@ -70,6 +70,6 @@ This tool is new. It is not in the backlog items 11 to 23. It is backlog item #2
 3. Each script sources [`scripts/_common.sh`](../scripts/_common.sh) and reads values from the
    Terraform outputs.
 4. Each tool has one skill in [`.agents/skills/`](../.agents/skills/). The `AGENTS.md` safety rules
-   and the `.agents/settings.json` permission lists apply to each skill.
+   and the `.agents/hooks.json` guard applies to each skill.
 5. This repository is public. Use placeholders only, for example `PROJECT_ID`, `PROJECT_NUMBER`,
    and `ORGANIZATION_ID`. Do not write real IDs, names, or internal links.

@@ -41,7 +41,7 @@ A fresh clone has no Terraform state. Do not deploy a second copy into a project
 > [!NOTE]
 > Not tested. No person or agent has run this harness with `agy` yet. The headless `agy` flags (`agy -p ... --output-format json`) come from an internal assistant and are not checked in public docs.
 
-This folder includes a CLI harness (`AGENTS.md`, `.agents/settings.json`, and `.agents/skills/`) so an operator can run each workflow step through the Antigravity CLI (`agy`) instead of running the shell commands manually:
+This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scripts/agy_guard.sh`, and `.agents/skills/`) so an operator can run each workflow step through the Antigravity CLI (`agy`) instead of running the shell commands manually:
 
 | Skill | Path | What It Does |
 |---|---|---|
@@ -52,13 +52,38 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/settings.json`, and `.
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Returns `iap_enforcement_mode` to `DRY_RUN` and resets the sample MCP server state |
 | `geap-teardown` | `.agents/skills/geap-teardown/SKILL.md` | Destroys all Terraform resources and sweeps any out-of-state GEAP resources in the project (requires human confirmation) |
 
-`.agents/settings.json` is the `agy` workspace settings file. It allows read-only checks (`scripts/preflight.sh`, `terraform plan`, unit tests), asks a person before `terraform apply`, `terraform destroy`, or `scripts/cleanup.sh` (also inside a pipe), denies organization-level changes, and sets `allowNonWorkspaceAccess: false` so that `agy` does not read files or user-level skills outside this folder. The `agy` rule format (`command(...)`, `command(regex:...)`) and the key `allowNonWorkspaceAccess` come from an internal assistant and are not checked in public docs. `scripts/cleanup.sh` also refuses piped input, so an agent cannot answer its prompt with `echo`.
+**Permission control for `agy`.** `agy` reads permission rules only from user-level files (`~/.gemini/antigravity-cli/settings.json`, `~/.gemini/config/config.json`). A workspace cannot ship permission rules. So this folder ships a `PreToolUse` hook instead: `.agents/hooks.json` runs `scripts/agy_guard.sh` before each command. The guard checks the full command line, including commands behind `cd ... &&`, pipes, and `bash -c`:
+
+| Decision | Commands |
+|---|---|
+| `deny` | Piped input into `cleanup.sh`, `yes \|`, `gcloud organizations ...`, `gcloud org-policies set-policy/delete/reset`, `terraform`, `gcloud`, or `cleanup.sh` inside `bash -c` or `eval` |
+| `force_ask` (a person must approve) | `terraform apply/destroy/import/state rm`, `cleanup.sh`, `gcloud ... delete`, IAM policy changes |
+| `allow` | The read-only scripts (`preflight.sh`, `deploy_checks.sh`, `teardown_plan.sh`, `package_agent.sh`, `ask_agent.sh`, `read_audit_log.sh`, `configure.sh --dry-run/--show`), `terraform plan/output/validate/fmt/test/state list`, `gcloud ... describe/list` |
+| `ask` | Everything else |
+
+Sources (checked 09 Nov 2026 in the Jetski source): rule files in `cli/store/permissions.go`, hook format in `cortex/customization/hooks/jsonhook/SPEC.md`. The guard was tested with sample tool calls. It is not yet tested inside an `agy` session.
+
+Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format `command(prefix)`; agy splits compound commands at `&&`, `||`, `;`, and `|`, and checks each part):
+
+```json
+{
+  "toolPermission": "request-review",
+  "allowNonWorkspaceAccess": false,
+  "permissions": {
+    "deny": ["command(terraform destroy)"],
+    "ask": ["command(terraform apply)", "command(scripts/cleanup.sh)"],
+    "allow": ["command(scripts/preflight.sh)", "command(scripts/deploy_checks.sh)"]
+  }
+}
+```
+
+When `agy` offers "always allow commands that start with `cd`" or "`terraform`", choose "Yes" once only. Those rules are too broad.
 
 Start `agy` from this folder in a fresh session. If `agy` asks to read a file outside this folder, deny it.
 
 #### Load and Run the Skills
 
-1. **Workspace-local loading (no copy needed):** Open the `agent_governance_starter_pack/` folder directly as your workspace root in the Antigravity IDE, or run `cd agent_governance_starter_pack` before you start `agy`. Antigravity loads `AGENTS.md`, `.agents/settings.json`, and `.agents/skills/geap-*`.
+1. **Workspace-local loading (no copy needed):** Open the `agent_governance_starter_pack/` folder directly as your workspace root in the Antigravity IDE, or run `cd agent_governance_starter_pack` before you start `agy`. Antigravity loads `AGENTS.md`, `.agents/hooks.json`, and `.agents/skills/geap-*`.
 2. **Global user skills (when opening the parent repository root):** If you open the parent `agentic-demos/` folder or want the five skills available in any workspace, copy them into your user skills directory:
    ```bash
    mkdir -p ~/.gemini/config/skills
@@ -98,7 +123,7 @@ This folder also includes a Claude Code harness. It uses the same rules and the 
 | File | What It Does |
 |---|---|
 | `CLAUDE.md` | Imports `AGENTS.md` with `@AGENTS.md` and adds Claude Code notes |
-| `.claude/settings.json` | The same allow, ask, and deny lists as `.agents/settings.json`, in Claude Code settings format |
+| `.claude/settings.json` | Allow, ask, and deny lists in Claude Code settings format (Claude Code reads workspace settings, unlike `agy`) |
 | `.claude/skills` | A relative symlink to `../.agents/skills`. There is one copy of each `geap-*` skill. Claude Code loads the five skills through the symlink, and each skill is also a slash command (for example `/geap-preflight`) |
 
 1. **Start Claude Code from this folder:** run `cd agent_governance_starter_pack` and then `claude`. Claude Code reads `CLAUDE.md`, the imported `AGENTS.md`, `.claude/settings.json`, and the five `geap-*` skills.
