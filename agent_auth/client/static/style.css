@@ -119,6 +119,11 @@ body {
   gap: 16px;
 }
 
+/* Each message keeps its full height. Only the container scrolls. */
+.messages-container > * {
+  flex-shrink: 0;
+}
+
 /* ==========================================================================
    Message Bubbles & Formatting
    Provides distinct visual styling for user, agent, system, and error bubbles.
@@ -154,7 +159,9 @@ body {
   max-width: 96%;
   width: fit-content;
   box-sizing: border-box;
-  overflow-x: auto;
+  /* No overflow here. With overflow set, the flex column can shrink the
+     bubble and add a scroll bar inside it. */
+  flex-shrink: 0;
   background-color: var(--message-agent-bg);
   color: var(--message-agent-text);
   border-bottom-left-radius: 4px;
@@ -685,7 +692,6 @@ body {
 
 .answer-text.markdown {
   white-space: normal;
-  overflow-x: auto;
 }
 
 .answer-text.markdown p,

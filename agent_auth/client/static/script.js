@@ -1473,14 +1473,17 @@ $(function() {
         '</div>');
   };
 
-  const isGatewayBlockedText = (t) => {
+  // Each gateway has its own block signals. A redacted SSN in an allowed
+  // Egress answer is not an Egress block, so the two lists are separate.
+  const GATEWAY_BLOCK_SIGNALS = {
+    ingress: ['[us_social_security_number]', 'blocked by model armor',
+      'model armor', 'cannot provide', 'violated'],
+    egress: ['mcp session connection lost', 'connection error',
+      'permission denied', 'access denied'],
+  };
+  const isGatewayBlockedText = (t, kind = 'ingress') => {
     const s = String(t || '').toLowerCase();
-    return s.includes('mcp session connection lost') ||
-        s.includes('[us_social_security_number]') ||
-        s.includes('blocked') ||
-        s.includes('cannot provide') ||
-        s.includes('permission denied') ||
-        s.includes('violated');
+    return (GATEWAY_BLOCK_SIGNALS[kind] || []).some((w) => s.includes(w));
   };
 
   const gatewayBannerText = (kind) => (kind === 'ingress' ?
@@ -1521,7 +1524,7 @@ $(function() {
     if (st.sessionId) body.session_id = st.sessionId;
 
     const addBlockBannerIfNeeded = (raw) => {
-      if (isGatewayBlockedText(raw) &&
+      if (isGatewayBlockedText(raw, kind) &&
           !$contentDiv.find('.gateway-block-banner').length) {
         $contentDiv.prepend(
             $('<div>').addClass('gateway-block-banner state-blocked')

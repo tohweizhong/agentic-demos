@@ -206,7 +206,12 @@ async def fake_chat(request: Request):
             "content": {
                 "parts": [{
                     "text": (
-                        "Sterling family 2024 and 2025 tax returns verified."
+                        "Sterling family 2024 and 2025 tax returns verified.\n\n"
+                        "- **Primary taxpayer:** Julian A. Sterling "
+                        "(SSN: `[US_SOCIAL_SECURITY_NUMBER]`)\n"
+                        + "\n".join(
+                            f"- Underwriting note {i}: income check passed."
+                            for i in range(1, 31))
                     )
                 }]
             }

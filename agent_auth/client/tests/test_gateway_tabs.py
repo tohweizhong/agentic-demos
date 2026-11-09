@@ -147,7 +147,17 @@ def test_egress_tab_prompts_chat_banner_and_logs(new_page, stats):
   )
   assert "Sterling family" in panel.locator("#egress-messages").inner_text()
   assert stats.get()["last_agent_id"] == "egress-engine-test"
+  # An allowed answer with a redacted SSN is not an Egress block.
   assert panel.locator(".gateway-block-banner").count() == 0
+  # The long answer bubble keeps its full height. Only the message list
+  # scrolls, so the bubble has no inner scroll bar.
+  bubble = panel.locator("#egress-messages .agent-message").last
+  sizes = bubble.evaluate(
+      "el => [el.scrollHeight, el.clientHeight, getComputedStyle(el).overflowY]"
+  )
+  assert sizes[0] <= sizes[1] + 1, sizes
+  msgs = panel.locator("#egress-messages")
+  assert msgs.evaluate("el => el.scrollHeight > el.clientHeight")
 
   # Click blocked sample prompt 2 (send_email -> MCP session connection lost).
   panel.locator(".sample-prompt").nth(1).click()
