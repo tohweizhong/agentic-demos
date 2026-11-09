@@ -1,0 +1,17 @@
+# Example Principal Access Boundary (PAB) policy for the agents in a project.
+# An organization administrator creates this policy and binds it to the agent
+# principal set. It limits the cloud resources that the agents can reach.
+#
+# Create this with:
+# gcloud iam policies create ...
+#
+# Bind it with:
+# gcloud iam principal-access-boundary-policy-bindings create ...
+
+displayName: "Agent PAB Policy"
+details:
+  rules:
+    - description: "Limit agent access to the approved resources."
+      effect: "ALLOW"
+      resources:
+        - "projects/PROJECT_NUMBER"

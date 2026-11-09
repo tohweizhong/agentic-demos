@@ -12,8 +12,8 @@ Status: in progress. Phase 1 built on 09 Nov 2026.
 
 ## Phase 2: Adoption plan
 
-- [ ] Task: `scripts/adoption_plan.sh --tier N` reads the discovery JSON and prints the lateral steps
-      for tier N, with risk and order. No change to the project.
+- [x] Task: `scripts/adoption_plan.sh --tier N` reads the discovery JSON and prints the lateral steps
+      for tier N, with risk and order. Done on 09 Nov 2026.
 - [x] Task: `geap-configure` asks "new project or existing project" first, and runs `geap-discover`
       for an existing project. Done on 09 Nov 2026 (skill text only).
 
@@ -24,11 +24,11 @@ Status: in progress. Phase 1 built on 09 Nov 2026.
       `existing_mcp_servers_are_registered`. Not applied live.
 - [ ] Task: move an agent to `AGENT_IDENTITY` (deploy again or update in place), and grant its roles to
       the new principal. Record the old principal for clean-up.
-- [ ] Task: bind an agent to the egress or ingress gateway (`agentGatewayConfig` in Terraform).
+- [x] Task: bind an agent to the egress or ingress gateway (`agentGatewayConfig` in Terraform). Done on 09 Nov 2026 (`scripts/bind_existing_agent.sh`).
 - [x] Task: add IAP access policy rules for an agent principal and its tools, in `DRY_RUN`. Done on
       09 Nov 2026: variable `existing_agent_principals` adds principals to every rule; test
       `existing_agents_share_the_access_policy`. Not applied live.
-- [ ] Task: skill `geap-adopt` with an approval gate before each change.
+- [x] Task: skill `geap-adopt` with an approval gate before each change. Done on 09 Nov 2026.
 
 ## Phase 4: Rehearsal
 

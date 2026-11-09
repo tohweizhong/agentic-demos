@@ -357,3 +357,22 @@ run "existing_agents_share_the_access_policy" {
     error_message = "Each access policy rule must apply to the reference agent and to each existing agent principal."
   }
 }
+
+run "model_armor_template_loads_yaml" {
+  command = apply
+
+  assert {
+    condition     = google_model_armor_template.this["request"].filter_config[0].pi_and_jailbreak_filter_settings[0].filter_enforcement == "ENABLED"
+    error_message = "The template must load the pi_and_jailbreak enforcement from the YAML."
+  }
+
+  assert {
+    condition     = google_model_armor_template.this["request"].filter_config[0].sdp_filter_settings[0].filter_enforcement == "ENABLED"
+    error_message = "The template must load the sdp enforcement from the YAML."
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.this["request"].filter_config[0].rai_settings[0].rai_filters) > 0
+    error_message = "The template must load the rai_filters from the YAML."
+  }
+}
