@@ -22,7 +22,7 @@ done
 
 echo "Adoption Plan for Project: ${PROJECT}"
 echo "Running discover.sh..."
-DISCOVER_OUT="$("$(dirname "${BASH_SOURCE[0]}")/discover.sh" --project "${PROJECT}" --region "${REGION}")"
+DISCOVER_OUT="$("$(dirname "${BASH_SOURCE[0]}")/discover.sh" --project "${PROJECT}" --region "${REGION}" --markdown)"
 
 echo "${DISCOVER_OUT}" | grep -E "Tier 2|Tier 3|Tier 4|Tier 5" || true
 
