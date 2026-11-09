@@ -52,6 +52,30 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
    - `"Run geap-reset to switch IAP back to DRY_RUN and reset the sample MCP server."`
    - `"Run geap-teardown to destroy all GEAP resources in my sandbox project."`
 
+### Claude Code Harness
+
+> [!NOTE]
+> Draft. Each Claude Code behavior that is marked "Not verified" was not tested yet.
+
+This folder also includes a Claude Code harness. It uses the same rules and the same skills as the Antigravity CLI harness:
+
+| File | What It Does |
+|---|---|
+| `CLAUDE.md` | Imports `AGENTS.md` with `@AGENTS.md` and adds Claude Code notes |
+| `.claude/settings.json` | The same allow, ask, and deny lists as `settings.json`, in Claude Code settings format |
+| `.claude/skills` | A relative symlink to `../.agents/skills`. There is one copy of each `geap-*` skill. Not verified |
+
+1. **Start Claude Code from this folder:** run `cd geap_starter_pack` and then `claude`. Claude Code reads `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, and the five `geap-*` skills. Not verified.
+2. **Use Claude on Vertex AI:** set these variables before you start `claude`:
+   ```bash
+   export CLAUDE_CODE_USE_VERTEX=1
+   export ANTHROPIC_VERTEX_PROJECT_ID=TOOLING_PROJECT_ID   # The project that pays for the model calls
+   export CLOUD_ML_REGION=asia-southeast1                  # Or a region where the Claude model has quota
+   ```
+   The organization policy `constraints/vertexai.allowedModels` must allow the Claude model. Enable the Claude model in Model Garden for the tooling project first.
+3. **Lock the deny list (enterprise):** an administrator can put the same `deny` rules in `/etc/claude-code/managed-settings.json`. A user cannot override managed settings. Not verified.
+4. **Headless read-only runs:** use `claude -p "Run the geap-preflight skill" --output-format json`. Headless mode cannot ask for approval, so Claude Code does not run a command that is on the `ask` list. Not verified.
+
 ## 2. Create or Select the Project
 
 If you use an **existing project**, skip `gcloud projects create` and `gcloud billing projects link`:
