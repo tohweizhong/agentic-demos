@@ -31,4 +31,18 @@ GUARD_TEST2="$(echo '{"toolCall":{"args":{"CommandLine":"bash /tmp/geap-skill-te
 TP="$("$(dirname "${BASH_SOURCE[0]}")/check_tool_policy.sh" 2>&1)" || fail "tool policy: ${TP#TOOL_POLICY: }"
 TP2="$("$(dirname "${BASH_SOURCE[0]}")/check_tool_policy.sh" "${ROOT}/mcp-server/tool_spec.json" "${ROOT}/policies/multi_agent_iap_policy.example.yaml" 2>&1)" || fail "multi-agent tool policy: ${TP2#TOOL_POLICY: }"
 echo "DEPLOY_CHECKS: PASS (init ok, fmt ok, validate ok, test ${SUMMARY}, tool policy ok, multi-agent policy ok)"
+
+# Test flag consistency
+if "./scripts/adoption_plan.sh" --prefix foo 2>&1 | grep -q "unknown argument --prefix"; then
+  fail "adoption_plan.sh rejected --prefix"
+fi
+
+BIND_OUT=$("./scripts/bind_existing_agent.sh" --project p --region r --agent projects/foo/locations/bar/reasoningEngines/my-agent --egress-gateway projects/foo/locations/bar/agentGateways/my-gw --dry-run 2>&1 || true)
+if [[ "${BIND_OUT}" == *"unknown argument"* ]]; then
+  fail "bind_existing_agent.sh rejected flags"
+fi
+if [[ "${BIND_OUT}" != *"Reasoning Engine my-agent"* ]]; then
+  fail "bind_existing_agent.sh did not strip agent resource name prefix: ${BIND_OUT}"
+fi
+
 rm -f "${LOG}"

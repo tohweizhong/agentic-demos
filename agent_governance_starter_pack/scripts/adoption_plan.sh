@@ -9,11 +9,13 @@ need jq curl gcloud
 
 PROJECT=""
 REGION="us-central1"
+PREFIX=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2 ;;
     --region) REGION="$2"; shift 2 ;;
+    --prefix) PREFIX="$2"; shift 2 ;;
     *) echo "ERROR: unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -22,7 +24,9 @@ done
 
 echo "Adoption Plan for Project: ${PROJECT}"
 echo "Running discover.sh..."
-DISCOVER_JSON="$("$(dirname "${BASH_SOURCE[0]}")/discover.sh" --project "${PROJECT}" --region "${REGION}")"
+DISCOVER_CMD=("--project" "${PROJECT}" "--region" "${REGION}")
+[[ -n "${PREFIX}" ]] && DISCOVER_CMD+=("--prefix" "${PREFIX}")
+DISCOVER_JSON="$("$(dirname "${BASH_SOURCE[0]}")/discover.sh" "${DISCOVER_CMD[@]}")"
 
 echo "--- terraform.tfvars Snippets ---"
 echo ""

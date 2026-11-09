@@ -18,13 +18,18 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2 ;;
     --region) REGION="$2"; shift 2 ;;
-    --agent-id) AGENT_ID="$2"; shift 2 ;;
+    --agent-id|--agent) AGENT_ID="$2"; shift 2 ;;
     --egress-gateway) EGRESS_GW="$2"; shift 2 ;;
     --ingress-gateway) INGRESS_GW="$2"; shift 2 ;;
     --dry-run) DRY_RUN="true"; shift ;;
     *) echo "ERROR: unknown argument $1" >&2; exit 2 ;;
   esac
 done
+
+AGENT_ID="${AGENT_ID##*/}"
+EGRESS_GW="${EGRESS_GW##*/}"
+INGRESS_GW="${INGRESS_GW##*/}"
+
 
 [[ -n "${PROJECT}" && -n "${REGION}" && -n "${AGENT_ID}" ]] || { echo "ERROR: --project, --region, and --agent-id are required." >&2; exit 2; }
 [[ -n "${EGRESS_GW}" || -n "${INGRESS_GW}" ]] || { echo "ERROR: Pass --egress-gateway or --ingress-gateway." >&2; exit 2; }
