@@ -51,16 +51,42 @@ body="$(jq -n --arg u "${USER_ID}" --arg s "${SESSION_ID}" --arg m "${MESSAGE}" 
 
 # Each line of the stream is one ADK event in JSON. Print the tool calls, the
 # tool results, and the text.
-call "${API}:streamQuery?alt=sse" "${body}" | while IFS= read -r line; do
-  line="${line#data: }"
-  [[ -z "${line}" ]] && continue
-  echo "${line}" | jq -r '
-    ((.content.parts // [])[] |
-      if .function_call then "[tool call] \(.function_call.name) \(.function_call.args | tostring)"
-      elif .function_response then "[tool result] \(.function_response.name): \(.function_response.response | tostring | .[0:300])"
-      elif .text then "[agent] \(.text)"
-      else empty end),
-    (if .error_code then "[error] \(.error_code): \(.error_message)"
-     elif .error then "[error] \(.error | tostring)"
-     else empty end)' 2>/dev/null || echo "${line}"
+ATTEMPTS=0
+MAX_ATTEMPTS=3
+while [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; do
+  ATTEMPTS=$((ATTEMPTS + 1))
+  
+  # Stream output into a temporary file
+  TMP_OUT="$(mktemp)"
+  call "${API}:streamQuery?alt=sse" "${body}" | while IFS= read -r line; do
+    line="${line#data: }"
+    [[ -z "${line}" ]] && continue
+    echo "${line}" | jq -r '
+      ((.content.parts // [])[] |
+        if .function_call then "[tool call] \(.function_call.name) \(.function_call.args | tostring)"
+        elif .function_response then "[tool result] \(.function_response.name): \(.function_response.response | tostring | .[0:300])"
+        elif .text then "[agent] \(.text)"
+        else empty end),
+      (if .error_code then "[error] \(.error_code): \(.error_message)"
+       elif .error then "[error] \(.error | tostring)"
+       else empty end)' 2>/dev/null || echo "${line}"
+  done > "${TMP_OUT}"
+  
+  if grep -q "\[error\] MALFORMED_FUNCTION_CALL" "${TMP_OUT}"; then
+    if [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; then
+      echo "[retry] Waiting 15s for IAM propagation after MALFORMED_FUNCTION_CALL..." >&2
+      sleep 15
+      if [[ -z "${ORIGINAL_SESSION_ID}" ]]; then
+        body_session="$(jq -n --arg u "${USER_ID}" '{class_method: "async_create_session", input: {user_id: $u}}')"
+        SESSION_ID="$(call "${API}:query" "${body_session}" | jq -r '.output.id')"
+        body="$(jq -n --arg u "${USER_ID}" --arg s "${SESSION_ID}" --arg m "${MESSAGE}"           '{class_method: "async_stream_query", input: {user_id: $u, session_id: $s, message: $m}}')"
+      fi
+      rm -f "${TMP_OUT}"
+      continue
+    fi
+  fi
+  
+  cat "${TMP_OUT}"
+  rm -f "${TMP_OUT}"
+  break
 done

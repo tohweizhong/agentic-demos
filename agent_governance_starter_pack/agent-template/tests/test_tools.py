@@ -134,3 +134,30 @@ def test_default_factory_impersonates_the_invoker_account(monkeypatch):
   )
   assert made["id_token"]["target_credentials"] == "target-credentials"
   assert made["id_token"]["target_audience"] == "https://mcp.example.run.app"
+
+def test_token_retries_on_refresh_error(monkeypatch):
+  import time
+  from google.auth.exceptions import RefreshError
+  
+  sleeps = []
+  monkeypatch.setattr(time, "sleep", sleeps.append)
+
+  class FakeIdTokenCredentialsRefreshError:
+    def __init__(self):
+      self.valid = False
+      self.token = None
+      self.refresh_count = 0
+
+    def refresh(self, request):
+      del request
+      self.refresh_count += 1
+      if self.refresh_count == 1:
+        raise RefreshError("IAM propagation delay")
+      self.token = f"id-token-{self.refresh_count}"
+      self.valid = True
+
+  fake = FakeIdTokenCredentialsRefreshError()
+  source = make_source(fake)
+  assert source.token() == "id-token-2"
+  assert fake.refresh_count == 2
+  assert sleeps == [5]

@@ -66,14 +66,25 @@ class InvokerTokenSource:
 
   def token(self) -> str:
     """Returns a valid ID token. Gets a new token when the old one is not valid."""
+    import time
+    from google.auth.exceptions import RefreshError
     with self._lock:
-      if self._credentials is None:
-        self._credentials = self._credentials_factory(
-            self._audience, self._invoker_email
-        )
-      if not self._credentials.valid:
-        self._credentials.refresh(self._request_factory())
-      return self._credentials.token
+      for attempt in range(1, 4):
+        if self._credentials is None:
+          self._credentials = self._credentials_factory(
+              self._audience, self._invoker_email
+          )
+        if not self._credentials.valid:
+          try:
+            self._credentials.refresh(self._request_factory())
+          except RefreshError:
+            if attempt < 3:
+              self._credentials = None
+              time.sleep(5)
+              continue
+            raise
+        return self._credentials.token
+      return ''
 
   def headers(self, readonly_context: Any = None) -> dict[str, str]:
     """ADK header provider: adds the ID token to each MCP request."""

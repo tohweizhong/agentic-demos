@@ -74,8 +74,10 @@ Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format 
   "toolPermission": "request-review",
   "allowNonWorkspaceAccess": false,
   "permissions": {
-    "deny": ["command(terraform destroy)", "command(terraform destroy *)"],
-    "ask": ["command(terraform apply)", "command(terraform apply *)", "command(scripts/cleanup.sh)", "command(scripts/cleanup.sh *)"],
+    "deny": ["command(terraform destroy)"],
+    "deny": ["command(terraform destroy *)"],
+    "ask": ["command(terraform apply)", "command(scripts/cleanup.sh)"],
+    "ask": ["command(terraform apply *)", "command(scripts/cleanup.sh *)"],
     "allow": [
       "command(scripts/preflight.sh)", "command(scripts/preflight.sh *)",
       "command(scripts/deploy_checks.sh)", "command(scripts/deploy_checks.sh *)",
@@ -91,10 +93,15 @@ Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format 
       "command(scripts/check_tool_policy.sh)", "command(scripts/check_tool_policy.sh *)",
       "command(scripts/configure.sh)", "command(scripts/configure.sh *)",
       "command(scripts/onboard_agent.sh)", "command(scripts/onboard_agent.sh *)",
-      "command(terraform plan *)", "command(terraform output *)",
-      "command(gcloud * describe *)", "command(gcloud * list *)", "command(gcloud * get-iam-policy *)",
-      "command(git status *)", "command(git diff *)",
-      "command(cat *)", "command(grep *)", "command(ls *)", "command(jq *)"
+      "command(terraform plan)", "command(terraform plan *)",
+      "command(terraform output)", "command(terraform output *)",
+      "command(gcloud)", "command(gcloud *)",
+      "command(git status)", "command(git status *)",
+      "command(git diff)", "command(git diff *)",
+      "command(cat)", "command(cat *)",
+      "command(grep)", "command(grep *)",
+      "command(ls)", "command(ls *)",
+      "command(jq)", "command(jq *)"
     ]
   }
 }
