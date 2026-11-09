@@ -20,7 +20,7 @@ This guide takes an operator from a new or existing Google Cloud project to a wo
 |---|---|
 | Tools | `gcloud`, Terraform 1.9 or later, `jq`, `curl`, Go 1.26 (for the MCP server tests), Python 3.12 or later (for the agent tests) |
 | Roles | Owner (`roles/owner`) on the project. Organization Policy Administrator (`roles/orgpolicy.policyAdmin`) only when Tier 4 (Model Armor) is enabled and the organization restricts policy members |
-| Project | A new or existing project with billing enabled. All resources use `var.name_prefix` (default `geap`), all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` sweeps only `<name_prefix>-*` resources |
+| Project | A new or existing project with billing enabled. All resources use `var.name_prefix` (default `geap`), all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` sweeps only `<name_prefix>-*` resources by default. Its three project-wide steps run only with `--include-project-wide` (see [runbooks/teardown.md](runbooks/teardown.md)) |
 | Region | `us-central1`. The agent, the gateways, and Agent Registry must be in the same region |
 
 ### Antigravity CLI (`agy`) Harness
@@ -273,7 +273,7 @@ In `ENFORCE` mode, `scripts/ask_agent.sh "Set ITEM-001 to in_progress."` returns
 
 - **Promote or roll back gateway policies (`geap-reset`):** Start new agents or tools with `iap_enforcement_mode = "DRY_RUN"` in `terraform/terraform.tfvars`, verify tool traffic, and switch to `iap_enforcement_mode = "ENFORCE"` for production enforcement. To return the environment to `DRY_RUN` and reset the sample MCP server state, follow [runbooks/switch_policy_mode.md](runbooks/switch_policy_mode.md) (which also documents the idle hourly and daily resource costs).
 - **Onboard a new agent:** Follow [runbooks/add_agent.md](runbooks/add_agent.md) to deploy an additional ADK agent, bind it to the shared gateways, and scope its single agent principal in IAM and `policies/iap_access_policy.yaml`.
-- **Tear down the foundation (`geap-teardown`):** Run `scripts/cleanup.sh` to destroy all Terraform-managed resources in the project, sweep any out-of-state GEAP resources and bindings, and delete the regional Cloud Build source bucket. By default, `--keep-log-bucket` keeps the audit log bucket active so a subsequent `terraform apply` does not hit the 7-day Cloud Logging soft-delete lock (pass `--purge-all` to delete the log bucket as well).
+- **Tear down the foundation (`geap-teardown`):** Follow [runbooks/teardown.md](runbooks/teardown.md). `scripts/cleanup.sh` runs `terraform destroy`, then sweeps the `<name_prefix>-*` resources that are not in the state. `--keep-log-bucket` (default) keeps the audit log bucket, and `--purge-all` soft-deletes it for 7 days. Three project-wide steps (the Cloud Build source bucket, all `gcp-sa-dep` Model Armor roles, and the domain restriction overrides) only report what they find, unless you pass `--include-project-wide` in a project that holds only the starter pack. The APIs stay on. The runbook has the full table of what the script deletes and keeps.
 
 ## 8. Troubleshooting
 

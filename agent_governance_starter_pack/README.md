@@ -20,7 +20,7 @@ project. The product definition is in [conductor/product.md](conductor/product.m
 | 1 MCP server (`mcp-server/`) | A sample Go MCP server on Cloud Run with one read-only tool (`get_status`) and one write tool (`update_status`). The IAP policy allows the read tool and denies the write tool |
 | Policies (`policies/`) | The IAP access policy and the Model Armor settings |
 | 5 scripts (`scripts/`) | `preflight.sh` (read-only readiness check), `package_agent.sh` (build the agent archive), `ask_agent.sh` (send a prompt to an agent), `read_audit_log.sh` (read gateway and IAP logs), and `cleanup.sh` (remove all starter pack resources from the project) |
-| 2 runbooks (`runbooks/`) | `add_agent.md` (onboard a second agent with its own identity and tool access) and `switch_policy_mode.md` (move the IAP policy between `DRY_RUN` and `ENFORCE`, and reset the sample data) |
+| 3 runbooks (`runbooks/`) | `add_agent.md` (onboard a second agent with its own identity and tool access), `switch_policy_mode.md` (move the IAP policy between `DRY_RUN` and `ENFORCE`, and reset the sample data), and `teardown.md` (what `cleanup.sh` deletes and keeps) |
 | Agent harness (`AGENTS.md`, `settings.json`, `.agents/skills/`) | Safety rules, permission gates, and 5 skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`) so a coding agent can run the steps above. A person must approve every `terraform apply` and every clean-up |
 | Claude Code harness (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills`) | `CLAUDE.md` imports `AGENTS.md`. `.claude/settings.json` holds the same allow, ask, and deny lists as `settings.json`. `.claude/skills` is a symlink to `.agents/skills`, so both harnesses use one copy of the 5 skills. Draft, see [GUIDE.md](GUIDE.md) Section 1 |
 
@@ -158,7 +158,7 @@ sequenceDiagram
 | [`mcp-server/`](mcp-server/) | A sample MCP server in Go, with one read-only tool and one write tool | 3 |
 | [`policies/`](policies/) | The IAP access policy and the Model Armor settings | 3 |
 | [`pipelines/`](pipelines/) | Not built (component 5) | 5 |
-| [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state | 6 |
+| [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state. Tear down the starter pack | 6 |
 | [`scripts/`](scripts/) | Preflight scan, package the agent, ask the agent, read the audit log, clean up | 6 |
 | [`.agents/skills/`](.agents/skills/) | CLI skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`), [`AGENTS.md`](AGENTS.md), and [`settings.json`](settings.json) | 6 |
 
@@ -175,7 +175,7 @@ These are links only. The starter pack does not use code from them.
 Prerequisites: a new or existing Google Cloud project with billing, `gcloud`, Terraform 1.9 or
 later, and the Owner role on the project. All resources use `var.name_prefix` (default `geap`),
 all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` removes only `<name_prefix>-*`
-resources. The mini build uses `us-central1`.
+resources by default ([runbooks/teardown.md](runbooks/teardown.md)). The mini build uses `us-central1`.
 
 ```bash
 cd agent_governance_starter_pack
@@ -239,5 +239,6 @@ To remove all starter pack resources from the project, run:
 scripts/cleanup.sh
 ```
 
-The script runs `terraform destroy`, removes resources that are not in the Terraform state, and
-deletes the Cloud Build source bucket. It deletes only the `<name_prefix>-*` resources.
+The script runs `terraform destroy`, then removes the `<name_prefix>-*` resources that are not in the
+Terraform state. Three project-wide steps run only with `--include-project-wide`. The APIs stay on.
+[runbooks/teardown.md](runbooks/teardown.md) lists what the script deletes and what it keeps.
