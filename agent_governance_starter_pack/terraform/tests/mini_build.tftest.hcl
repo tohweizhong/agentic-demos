@@ -284,3 +284,21 @@ run "registry_has_the_tool_spec" {
     error_message = "The registered MCP server must have the two tools from tool_spec.json."
   }
 }
+
+run "drs_exception_is_narrow" {
+  command = apply
+
+  variables {
+    allow_google_managed_members = true
+  }
+
+  assert {
+    condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].inherit_from_parent == true
+    error_message = "The project exception must keep the parent allow list (inherit_from_parent)."
+  }
+
+  assert {
+    condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].rules[0].values[0].allowed_values == tolist(["is:C02h8e9nw"])
+    error_message = "The project exception must add only the Google customer ID, not allow all members."
+  }
+}

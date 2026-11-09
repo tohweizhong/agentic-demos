@@ -128,6 +128,12 @@ variable "allow_google_managed_members" {
   default     = false
 }
 
+variable "drs_exception_allowed_values" {
+  description = "Values that the project exception adds to iam.allowedPolicyMemberDomains when allow_google_managed_members is true. is:C02h8e9nw is the Google customer ID that owns tenant-project service agents."
+  type        = list(string)
+  default     = ["is:C02h8e9nw"]
+}
+
 variable "agent_source_archive" {
   description = "The path of the agent source archive, relative to this folder. scripts/package_agent.sh writes it."
   type        = string
