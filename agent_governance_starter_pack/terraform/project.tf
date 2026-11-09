@@ -118,9 +118,16 @@ resource "google_org_policy_policy" "allow_google_managed_members" {
   name   = "projects/${var.project_id}/policies/iam.allowedPolicyMemberDomains"
   parent = "projects/${var.project_id}"
 
+  # Narrow exception: keep the parent allow list and add the Google customer ID
+  # that owns the tenant-project service agents (for example gcp-sa-dep). This is
+  # the Argolis guidance (go/argolis-tips). Set allow_google_managed_members back
+  # to false and apply again after the three Model Armor roles exist.
   spec {
+    inherit_from_parent = true
     rules {
-      allow_all = "TRUE"
+      values {
+        allowed_values = var.drs_exception_allowed_values
+      }
     }
   }
 
