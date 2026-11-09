@@ -29,7 +29,10 @@ fi
 REGION="$(tf_output region)"
 PROJECT="$(tf_output project_id)"
 API="https://${REGION}-aiplatform.googleapis.com/v1/${AGENT}"
-TOKEN="$(gcloud auth print-access-token)"
+get_token() {
+  gcloud auth application-default print-access-token 2>/dev/null || gcloud auth print-access-token
+}
+TOKEN="$(get_token)"
 
 call() {
   curl -sS --fail-with-body -X POST "$1" \
@@ -47,7 +50,7 @@ if [[ -z "${SESSION_ID}" ]]; then
     if [[ "${_try}" -lt 3 ]]; then
       echo "[retry] Waiting 10s for endpoint/IAM readiness..." >&2
       sleep 10
-      TOKEN="$(gcloud auth print-access-token)"
+      TOKEN="$(get_token)"
     fi
   done
   [[ -n "${SESSION_ID}" ]] || { echo "ERROR: async_create_session failed after 3 attempts on ${AGENT}" >&2; exit 1; }
@@ -90,7 +93,7 @@ while [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; do
     if [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; then
       echo "[retry] Waiting 10s for IAM propagation..." >&2
       sleep 10
-      TOKEN="$(gcloud auth print-access-token)"
+      TOKEN="$(get_token)"
 
       if [[ -z "${PASSED_SESSION_ID}" ]]; then
         body_session="$(jq -n --arg u "${USER_ID}" '{class_method: "async_create_session", input: {user_id: $u}}')"
