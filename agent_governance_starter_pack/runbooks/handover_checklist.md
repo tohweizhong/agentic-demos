@@ -8,7 +8,7 @@ Use this checklist when the starter pack moves from the build team to the team t
 | # | Check | How to check | Owner | Result |
 |---|---|---|---|---|
 | 1.1 | The customer repository has the starter pack at a known commit | `git log -1` in the customer clone | | |
-| 1.2 | Terraform state is in a remote, versioned backend (not a laptop or Cloud Shell) | `terraform -chdir=terraform state list` works from a second machine | | |
+| 1.2 | Terraform state is in a remote, versioned backend (not a laptop or Cloud Shell) | `scripts/init_remote_state.sh --apply`, then `terraform -chdir=terraform state list` works from a second machine | | |
 | 1.3 | `terraform.tfvars` is stored outside Git and backed up | Location and access list written down | | |
 | 1.4 | `scripts/deploy_checks.sh` passes on the handover commit | `DEPLOY_CHECKS: PASS (...)` | | |
 | 1.5 | `terraform -chdir=terraform plan` shows no changes | `No changes.` | | |

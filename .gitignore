@@ -244,3 +244,6 @@ smoke_prober_results.json
 
 # Internal reference documents. Keep local only.
 ge_utils/sdp_content_policy/*.pdf
+
+# Remote state backend written by scripts/init_remote_state.sh (names the project)
+agent_governance_starter_pack/terraform/backend.tf
