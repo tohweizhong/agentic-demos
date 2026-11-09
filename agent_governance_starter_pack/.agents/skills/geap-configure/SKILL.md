@@ -85,7 +85,7 @@ Use this part when `terraform/terraform.tfvars` exists and the user asks to move
 
 1. Read the four `enable_*` values and show the current tier.
 2. Give the link to the tier pyramid ([README: Governance tiers](https://github.com/tohweizhong/agentic-demos/blob/main/agent_governance_starter_pack/README.md#governance-tiers)). Show what the next tier adds (one row of the table above), what it costs in time (a gateway takes
-   about 3 minutes to create, an IAP policy about 3 minutes), and what it needs:
+   about 3 minutes to create, an IAP policy about 3 minutes, and a Reasoning Engine replacement for Tier 3 or Tier 5 takes 8 to 12 minutes, so Tier 3 and Tier 5 take 14 to 18 minutes total), and what it needs:
    - Tier 2: nothing more.
    - Tier 3: nothing more. Ask question 6 (IAP mode). Recommend `DRY_RUN`.
    - Tier 4: ask question 5 (domain restricted sharing).

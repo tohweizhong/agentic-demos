@@ -6,6 +6,16 @@ locals {
   agent_archive_path = "${path.module}/${var.agent_source_archive}"
 }
 
+# Attaching or changing an Agent Gateway via in-place UpdateReasoningEngine
+# fails in the internal Cloud Run revision rollout (Error code 13). Force a
+# clean Reasoning Engine replacement when the gateway bindings change.
+resource "terraform_data" "agent_gateway_binding" {
+  input = {
+    egress  = var.enable_egress_gateway
+    ingress = var.enable_ingress_gateway
+  }
+}
+
 resource "google_vertex_ai_reasoning_engine" "agent" {
   project      = var.project_id
   region       = var.region
@@ -79,6 +89,7 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
   }
 
   lifecycle {
+    replace_triggered_by = [terraform_data.agent_gateway_binding]
     precondition {
       condition     = fileexists(local.agent_archive_path)
       error_message = "The agent source archive is missing. Run scripts/package_agent.sh first."
