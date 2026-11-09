@@ -128,8 +128,19 @@ variable "allow_google_managed_members" {
   default     = false
 }
 
+variable "drs_exception_mode" {
+  description = "How the project exception to iam.allowedPolicyMemberDomains works when allow_google_managed_members is true: allow_all (tested) or google_customer_id (Argolis guidance, live test failed on 08 Nov 2026)."
+  type        = string
+  default     = "allow_all"
+
+  validation {
+    condition     = contains(["allow_all", "google_customer_id"], var.drs_exception_mode)
+    error_message = "drs_exception_mode must be allow_all or google_customer_id."
+  }
+}
+
 variable "drs_exception_allowed_values" {
-  description = "Values that the project exception adds to iam.allowedPolicyMemberDomains when allow_google_managed_members is true. is:C02h8e9nw is the Google customer ID that owns tenant-project service agents."
+  description = "Values that the project exception adds to iam.allowedPolicyMemberDomains when drs_exception_mode is google_customer_id. is:C02h8e9nw is the Google customer ID that owns tenant-project service agents."
   type        = list(string)
   default     = ["is:C02h8e9nw"]
 }

@@ -285,7 +285,7 @@ run "registry_has_the_tool_spec" {
   }
 }
 
-run "drs_exception_is_narrow" {
+run "drs_exception_allow_all_by_default" {
   command = apply
 
   variables {
@@ -293,13 +293,27 @@ run "drs_exception_is_narrow" {
   }
 
   assert {
+    condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].rules[0].allow_all == "TRUE"
+    error_message = "The default project exception must be allow_all (the tested mode)."
+  }
+}
+
+run "drs_exception_google_customer_id" {
+  command = apply
+
+  variables {
+    allow_google_managed_members = true
+    drs_exception_mode           = "google_customer_id"
+  }
+
+  assert {
     condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].inherit_from_parent == true
-    error_message = "The project exception must keep the parent allow list (inherit_from_parent)."
+    error_message = "The google_customer_id mode must keep the parent allow list (inherit_from_parent)."
   }
 
   assert {
     condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].rules[0].values[0].allowed_values == tolist(["is:C02h8e9nw"])
-    error_message = "The project exception must add only the Google customer ID, not allow all members."
+    error_message = "The google_customer_id mode must add only the Google customer ID."
   }
 }
 
