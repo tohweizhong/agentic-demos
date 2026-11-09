@@ -227,6 +227,24 @@ if [[ "${LOG_BUCKET_STATE}" == "NOT_FOUND" ]]; then
   fi
 fi
 
+# 7b. Credentials that Terraform will use (Application Default Credentials).
+# gcloud and Terraform look for ADC in different places. In Cloud Shell, gcloud
+# keeps its files in $CLOUDSDK_CONFIG, but the Terraform provider reads
+# $GOOGLE_APPLICATION_CREDENTIALS or ~/.config/gcloud only, and else asks the
+# metadata server (found in the manual rehearsal on 09 Nov 2026).
+TF_ADC_SOURCE="none"
+TF_ADC_FIX=""
+if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" && -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
+  TF_ADC_SOURCE="GOOGLE_APPLICATION_CREDENTIALS"
+elif [[ -f "${HOME}/.config/gcloud/application_default_credentials.json" ]]; then
+  TF_ADC_SOURCE="well_known_file"
+elif [[ -n "${CLOUDSDK_CONFIG:-}" && -f "${CLOUDSDK_CONFIG}/application_default_credentials.json" ]]; then
+  TF_ADC_SOURCE="cloudsdk_config_only"
+  TF_ADC_FIX="export GOOGLE_APPLICATION_CREDENTIALS=\"${CLOUDSDK_CONFIG}/application_default_credentials.json\""
+elif curl -s -m 3 -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" 2>/dev/null | grep -q "@"; then
+  TF_ADC_SOURCE="metadata_server"
+fi
+
 # 8. Compute blockers and warnings
 REPORT="$(jq -n \
   --arg ts "${TIMESTAMP}" \
@@ -256,6 +274,8 @@ REPORT="$(jq -n \
   --argjson cloud_run "${CLOUD_RUN_JSON}" \
   --arg log_bucket_id "${LOG_BUCKET_ID}" \
   --arg log_bucket_state "${LOG_BUCKET_STATE}" \
+  --arg tf_adc_source "${TF_ADC_SOURCE}" \
+  --arg tf_adc_fix "${TF_ADC_FIX}" \
   '
   def blockers:
     [
@@ -264,6 +284,11 @@ REPORT="$(jq -n \
       (if ($has_admin | not) then "Caller does not have roles/owner or roles/editor on the project." else empty end),
       (if $log_bucket_state == "DELETE_REQUESTED" then
         "Log bucket " + $log_bucket_id + " is in DELETE_REQUESTED state (7-day soft-delete lock). Undelete it before apply: gcloud logging buckets undelete " + $log_bucket_id + " --location=" + $region + " --project=" + $project
+       else empty end),
+      (if $tf_adc_source == "none" then
+        "Terraform has no credentials: no GOOGLE_APPLICATION_CREDENTIALS file, no ~/.config/gcloud ADC file, and no metadata server account. Run: gcloud auth application-default login"
+       elif $tf_adc_source == "cloudsdk_config_only" then
+        "Terraform cannot find the ADC file. It is only in $CLOUDSDK_CONFIG (Cloud Shell). Run this in the same shell before terraform or agy: " + $tf_adc_fix
        else empty end),
       (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3) and ($allow_gmm | not)) then
         "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Approach 1, 2, or 3 in GUIDE Section 3 before terraform apply, or set enable_model_armor = false."
@@ -297,6 +322,7 @@ REPORT="$(jq -n \
       region: $region,
       name_prefix: $prefix
     },
+    terraform_credentials: {source: $tf_adc_source},
     caller: {
       account: $caller,
       roles: $caller_roles,
