@@ -25,6 +25,29 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role="roles/cloudbuild.builds.builder" \
   --condition=None >/dev/null
 
+# Gateway tabs (DEMO ONLY): custom role with logging.logEntries.list and
+# logging.privateLogEntries.list (needed for cloudaudit.googleapis.com/data_access),
+# so the client service account can read Model Armor and IAP audit log entries.
+if ! gcloud iam roles describe agentAuthDemoLogReader \
+    --project="${PROJECT_ID}" >/dev/null 2>&1; then
+  echo "Creating custom role agentAuthDemoLogReader."
+  gcloud iam roles create agentAuthDemoLogReader \
+    --project="${PROJECT_ID}" \
+    --title="Agent auth demo: read gateway log entries" \
+    --permissions="logging.logEntries.list,logging.privateLogEntries.list" \
+    --stage=GA >/dev/null
+else
+  gcloud iam roles update agentAuthDemoLogReader \
+    --project="${PROJECT_ID}" \
+    --permissions="logging.logEntries.list,logging.privateLogEntries.list" \
+    --stage=GA >/dev/null
+fi
+echo "Granting agentAuthDemoLogReader to ${CLIENT_SA_EMAIL}."
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${CLIENT_SA_EMAIL}" \
+  --role="projects/${PROJECT_ID}/roles/agentAuthDemoLogReader" \
+  --condition=None >/dev/null
+
 # The env var list uses "|" as the separator, because PROJECT_OPTIONS and
 # LOCATION_OPTIONS hold commas.
 echo "Deploying ${CLIENT_SERVICE} from ${CLIENT_DIR}."
@@ -34,7 +57,7 @@ gcloud beta run deploy "${CLIENT_SERVICE}" \
   --source="${CLIENT_DIR}" \
   --build-service-account="projects/${PROJECT_ID}/serviceAccounts/${BUILD_SA_EMAIL}" \
   --service-account="${CLIENT_SA_EMAIL}" \
-  --set-env-vars="^|^GOOGLE_CLOUD_PROJECT=${PROJECT_ID}|GOOGLE_CLOUD_LOCATION=${REGION}|AGENT_ID=${AGENT_ID}|AUTH_PROVIDER_NAME=${AUTH_PROVIDER_NAME}|GITHUB_APP_URL=${GITHUB_APP_URL:-https://github.com/settings/developers}|PROJECT_OPTIONS=${PROJECT_OPTIONS:-}|LOCATION_OPTIONS=${LOCATION_OPTIONS:-}" \
+  --set-env-vars="^|^GOOGLE_CLOUD_PROJECT=${PROJECT_ID}|GOOGLE_CLOUD_LOCATION=${REGION}|AGENT_ID=${AGENT_ID}|INGRESS_AGENT_ID=${INGRESS_AGENT_ID:-}|EGRESS_AGENT_ID=${EGRESS_AGENT_ID:-}|AUTH_PROVIDER_NAME=${AUTH_PROVIDER_NAME}|GITHUB_APP_URL=${GITHUB_APP_URL:-https://github.com/settings/developers}|PROJECT_OPTIONS=${PROJECT_OPTIONS:-}|LOCATION_OPTIONS=${LOCATION_OPTIONS:-}" \
   --no-allow-unauthenticated \
   --iap \
   --quiet

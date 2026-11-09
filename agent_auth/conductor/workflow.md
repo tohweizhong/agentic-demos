@@ -151,6 +151,14 @@ that also concludes a phase in `plan.md`.
         fail after your second proposed fix, you **must stop**, report the
         persistent failure, and ask the user for guidance.
 
+    -   **Visual check for UI changes:** If the phase changed a file in
+        `client/static/`, run the visual check at both viewports before step 4:
+        `cd client && .venv/bin/python tests/visual_check.py /tmp/vc` and
+        `VW=1024 VH=560 .venv/bin/python tests/visual_check.py /tmp/vc_narrow`.
+        All checks must pass. Then open each PNG file and look at it yourself.
+        Fix any visual defect that you see before you ask the user to review.
+        If the change adds a new view or state, add it to the script.
+
 4.  **Propose a Detailed, Actionable Manual Verification Plan:**
 
     -   **CRITICAL:** To generate the plan, first analyze `product.md`,

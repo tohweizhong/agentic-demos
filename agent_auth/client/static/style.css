@@ -44,9 +44,10 @@ body {
    Styles the pinned left navigation drawer housing agent and user settings.
    ========================================================================== */
 .sidebar {
-  width: 320px;
+  width: 300px;
   background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  border-right: none;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -112,10 +113,15 @@ body {
 .messages-container {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 16px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Each message keeps its full height. Only the container scrolls. */
+.messages-container > * {
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -123,7 +129,7 @@ body {
    Provides distinct visual styling for user, agent, system, and error bubbles.
    ========================================================================== */
 .message {
-  max-width: 75%;
+  max-width: 88%;
   padding: 12px 18px;
   border-radius: 18px;
   line-height: 1.55;
@@ -150,6 +156,12 @@ body {
 
 .agent-message {
   align-self: flex-start;
+  max-width: 96%;
+  width: fit-content;
+  box-sizing: border-box;
+  /* No overflow here. With overflow set, the flex column can shrink the
+     bubble and add a scroll bar inside it. */
+  flex-shrink: 0;
   background-color: var(--message-agent-bg);
   color: var(--message-agent-text);
   border-bottom-left-radius: 4px;
@@ -231,11 +243,31 @@ body {
 
 /* Active Agent Profile configurations */
 .agent-info-pane {
-  margin-top: 20px;
+  margin-top: 0;
   padding: 16px;
   border-radius: 12px;
   background-color: var(--chat-bg);
   border: 1px solid var(--border-color);
+}
+
+.connection-settings {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  background-color: var(--chat-bg);
+}
+
+.connection-settings summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.connection-settings-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .agent-info-pane h4 {
@@ -243,7 +275,6 @@ body {
   font-weight: 500;
   color: var(--text-muted);
   margin-bottom: 10px;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
@@ -263,12 +294,14 @@ body {
 .info-label {
   color: var(--text-muted);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .info-value {
   color: var(--text-color);
   font-weight: 600;
-  word-break: break-all;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 /* Custom scrollbars */
@@ -506,66 +539,103 @@ body {
   height: auto;
 }
 
-.flow-svg .party-box {
+.flow-svg .party-box,
+.compact-svg .party-box {
   fill: #f0f4f9;
   stroke: #5f6368;
 }
 
-.flow-svg .party-name {
+.flow-svg .party-name,
+.compact-svg .party-name {
   font-size: 13px;
   font-weight: 600;
   text-anchor: middle;
 }
 
-.flow-svg .party-sub {
+.flow-svg .party-sub,
+.compact-svg .party-sub {
   font-size: 10px;
   fill: #5f6368;
   text-anchor: middle;
 }
 
-.flow-svg .lifeline {
+.flow-svg .lifeline,
+.compact-svg .lifeline {
   stroke: #bdc1c6;
   stroke-dasharray: 4 4;
 }
 
-.flow-svg .step-line {
+.flow-svg .step-line,
+.compact-svg .step-line {
   stroke: #80868b;
   stroke-width: 1.5;
 }
 
-.flow-svg .arrow-head-normal {
+.flow-svg .arrow-head-normal,
+.compact-svg .arrow-head-normal {
   fill: #80868b;
 }
 
-.flow-svg .arrow-head-active {
+.flow-svg .arrow-head-active,
+.compact-svg .arrow-head-active {
   fill: #174ea6;
 }
 
-.flow-svg .step-label {
+.flow-svg .step-label,
+.compact-svg .step-label {
   font-size: 10.5px;
   text-anchor: middle;
   fill: #3c4043;
 }
 
-.flow-svg .step-now {
+.flow-svg .step-now,
+.compact-svg .step-now {
   font-size: 10px;
   font-weight: 700;
   fill: #174ea6;
   visibility: hidden;
 }
 
-.flow-svg .flow-step.active .step-line {
-  stroke: #174ea6;
-  stroke-width: 3;
-  marker-end: url(#arrow-active);
+.flow-svg .flow-step.done .step-line,
+.compact-svg .flow-step.done .step-line {
+  stroke: #8ab4f8;
+  stroke-width: 2;
 }
 
-.flow-svg .flow-step.active .step-label {
+/* The arrowhead of a done step has the same light blue as its line. */
+.flow-svg .arrow-head-done,
+.compact-svg .arrow-head-done {
+  fill: #8ab4f8;
+}
+
+.flow-svg .flow-step.done .step-line {
+  marker-end: url(#flow-arrow-done);
+}
+
+.compact-svg .flow-step.done .step-line {
+  marker-end: url(#compact-arrow-done);
+}
+
+.flow-svg .flow-step.done .step-label,
+.compact-svg .flow-step.done .step-label {
+  fill: #1a73e8;
+}
+
+.flow-svg .flow-step.active .step-line,
+.compact-svg .flow-step.active .step-line {
+  stroke: #174ea6;
+  stroke-width: 3;
+  marker-end: url(#flow-arrow-active);
+}
+
+.flow-svg .flow-step.active .step-label,
+.compact-svg .flow-step.active .step-label {
   fill: #174ea6;
   font-weight: 700;
 }
 
-.flow-svg .flow-step.active .step-now {
+.flow-svg .flow-step.active .step-now,
+.compact-svg .flow-step.active .step-now {
   visibility: visible;
 }
 
@@ -684,16 +754,990 @@ body {
 
 .answer-text.markdown table {
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .answer-text.markdown th,
 .answer-text.markdown td {
   border: 1px solid var(--border-color);
-  padding: 4px 8px;
+  padding: 4px 6px;
   text-align: left;
+  word-break: break-word;
 }
 
 .answer-text.markdown a {
   color: #1a73e8;
+}
+
+/* agentic-demos change: Step mode switch. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.step-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.step-switch input {
+  width: 32px;
+  height: 18px;
+  accent-color: #174ea6;
+  cursor: pointer;
+}
+
+.step-switch input:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* agentic-demos change: Step mode cards. */
+.step-card {
+  align-self: center;
+  width: min(560px, 92%);
+  border: 1px solid #c6dafc;
+  border-left: 4px solid #174ea6;
+  border-radius: 10px;
+  background-color: #f8fbff;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: step-card-in 200ms ease-out;
+}
+
+.step-card:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.step-card.skipped {
+  border-left-color: #80868b;
+  background-color: #f8f9fa;
+}
+
+.step-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #174ea6;
+}
+
+.step-card.skipped .step-number {
+  color: #5f6368;
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.step-text {
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.step-details summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #1a73e8;
+}
+
+.step-details dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+}
+
+.step-details dt {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.step-next {
+  align-self: flex-start;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 16px;
+  background-color: #174ea6;
+  color: #ffffff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.step-next:disabled {
+  background-color: #dadce0;
+  color: #5f6368;
+  cursor: not-allowed;
+}
+
+.step-next:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.step-wait {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+@keyframes step-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-card {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   agentic-demos change: layout track. Header, switch, presentation mode.
+   ========================================================================== */
+.chat-header {
+  align-items: flex-start;
+}
+
+.chat-header .header-left {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* A real switch: a track and a thumb. The checkbox is invisible (opacity 0)
+   and lies on top of the track, so that a click and the keyboard work on it. */
+.step-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.step-switch input {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+  accent-color: auto;
+}
+
+.switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #9aa0a6;
+  transition: background-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 150ms ease;
+}
+
+.step-switch input:checked + .switch-track {
+  background-color: #174ea6;
+}
+
+.step-switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(16px);
+}
+
+.step-switch input:focus-visible + .switch-track {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.sidebar {
+  transition: width 200ms ease;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.presentation-toggle {
+  border: 1px solid var(--border-color);
+  background-color: var(--chat-bg);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.presentation-toggle:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.sidebar.folded {
+  width: 48px;
+}
+
+.sidebar.folded .sidebar-header {
+  padding: 12px 8px;
+  justify-content: center;
+}
+
+.sidebar.folded .sidebar-header h2,
+.sidebar.folded .settings-form {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .switch-track,
+  .switch-thumb {
+    transition: none;
+  }
+}
+
+/* agentic-demos change: "Auth Manager" tab. */
+.am-panel p,
+.am-panel li {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  max-width: 820px;
+}
+
+.am-panel ol {
+  padding-left: 22px;
+}
+
+.am-panel code {
+  font-family: 'Roboto Mono', Consolas, Menlo, monospace;
+  font-size: 0.85em;
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.am-table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  max-width: 820px;
+}
+
+.am-table th,
+.am-table td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.am-table th {
+  background-color: var(--sidebar-bg);
+}
+
+.am-footer {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+}
+
+/* agentic-demos change: folded step cards (layout track L1). */
+.step-card.folded {
+  padding: 4px 12px;
+  gap: 0;
+  animation: none;
+}
+
+.step-card.folded.reopened {
+  padding: 8px 16px 12px;
+}
+
+.step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.step-fold {
+  border: none;
+  background: none;
+  padding: 4px 0;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #174ea6;
+  cursor: pointer;
+  width: 100%;
+}
+
+.step-card.skipped .step-fold {
+  color: #5f6368;
+}
+
+.step-fold:hover {
+  text-decoration: underline;
+}
+
+.step-fold:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* agentic-demos change: split view and compact 3LO view (layout track L4, L5). */
+.playground-panel {
+  flex-direction: row;
+}
+
+.chat-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.compact-flow {
+  display: none;
+}
+
+.playground-panel.split .compact-flow {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 300px;
+  width: 300px;
+  border-left: 1px solid var(--border-color);
+  background-color: #fbfcfe;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.compact-svg {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+}
+
+.compact-svg .party-name {
+  font-size: 9px;
+}
+
+.compact-svg .step-label {
+  font-size: 9px;
+  paint-order: stroke;
+  stroke: #fbfcfe;
+  stroke-width: 3px;
+}
+
+.compact-svg .step-now {
+  font-size: 9px;
+}
+
+.compact-svg .flow-step.active .step-line {
+  marker-end: url(#compact-arrow-active);
+}
+
+.compact-strip {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 6px;
+}
+
+.compact-strip li {
+  flex: 0 0 auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  background-color: var(--chat-bg);
+  white-space: nowrap;
+}
+
+.compact-strip li.active {
+  border-color: #174ea6;
+  background-color: #174ea6;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.compact-strip li.active::before {
+  content: '\25B6  ';
+}
+
+/* Narrow screens: the compact view is a strip above the chat. */
+@media (max-width: 1100px) {
+  .playground-panel.split {
+    flex-direction: column;
+  }
+
+  .playground-panel.split .compact-flow {
+    order: -1;
+    flex: 0 0 auto;
+    width: auto;
+    border-left: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .playground-panel.split .compact-diagram {
+    display: none;
+  }
+
+  .playground-panel.split .compact-strip {
+    display: flex;
+  }
+}
+
+/* agentic-demos change: resizable compact panel (layout track L8). */
+.playground-panel.split .compact-flow {
+  flex: 0 0 var(--compact-width, 384px);
+  width: var(--compact-width, 384px);
+  border-left: none;
+  overflow: hidden;
+}
+
+.playground-panel.split .compact-diagram {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.playground-panel.split .compact-svg {
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: 100%;
+  display: block;
+}
+
+.compact-resizer {
+  display: none;
+}
+
+.playground-panel.split .compact-resizer {
+  display: block;
+  flex: 0 0 8px;
+  cursor: col-resize;
+  background-color: var(--border-color);
+  border-left: 3px solid var(--chat-bg);
+  border-right: 3px solid var(--chat-bg);
+  touch-action: none;
+}
+
+.playground-panel.split .compact-resizer:hover,
+.playground-panel.split .compact-resizer:focus-visible {
+  background-color: #1a73e8;
+  outline: none;
+}
+
+@media (max-width: 1100px) {
+  .playground-panel.split .compact-flow {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  .playground-panel.split .compact-diagram {
+    display: none;
+  }
+
+  .playground-panel.split .compact-resizer {
+    display: none;
+  }
+
+  #playground-panel > .sidebar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   agentic-demos change: one colour scheme (layout track L9).
+   Main colour: Google blue. Red only for warnings. Green only for "allowed".
+   Each state also has a text label. All text meets WCAG AA contrast.
+   ========================================================================== */
+:root {
+  --color-main: #1a73e8;
+  --color-main-dark: #174ea6;
+  --color-main-light: #e8f0fe;
+  --color-on-main: #ffffff;
+  --color-warning: #c5221f;
+  --color-warning-light: #fce8e6;
+  --color-allowed: #137333;
+  --color-allowed-light: #e6f4ea;
+  --color-text: #1f1f1f;
+  --color-text-muted: #5f6368;
+  /* Material web components use these variables. */
+  --md-sys-color-primary: var(--color-main);
+  --md-sys-color-on-primary: var(--color-on-main);
+  --md-sys-color-secondary-container: var(--color-main-light);
+  --md-sys-color-on-secondary-container: var(--color-main-dark);
+  --md-ref-typeface-brand: 'Google Sans', 'Segoe UI', Roboto, sans-serif;
+  --md-ref-typeface-plain: 'Google Sans', 'Segoe UI', Roboto, sans-serif;
+}
+
+.tab[aria-selected='true'] {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+/* Governance Tier tab accent colours (WCAG AA >= 4.5:1). */
+.tab-tier-identity {
+  border-color: #1a73e8;
+  color: #174ea6;
+  background-color: #ffffff;
+}
+
+.tab-tier-identity[aria-selected='true'] {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.tab-tier-docs {
+  border-color: #185abc;
+  color: #185abc;
+  background-color: #ffffff;
+}
+
+.tab-tier-docs[aria-selected='true'] {
+  background-color: #185abc;
+  border-color: #185abc;
+  color: #ffffff;
+}
+
+.tab-tier-egress {
+  border-color: #007b83;
+  color: #00686f;
+  background-color: #ffffff;
+}
+
+.tab-tier-egress[aria-selected='true'] {
+  background-color: #007b83;
+  border-color: #007b83;
+  color: #ffffff;
+}
+
+.tab-tier-ingress {
+  border-color: #a54500;
+  color: #8a3800;
+  background-color: #ffffff;
+}
+
+.tab-tier-ingress[aria-selected='true'] {
+  background-color: #a54500;
+  border-color: #a54500;
+  color: #ffffff;
+}
+
+md-outlined-button {
+  --md-outlined-button-leading-space: 16px;
+  --md-outlined-button-trailing-space: 16px;
+  padding: 0 16px;
+  min-width: max-content;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.demo-controls md-outlined-button {
+  --md-outlined-button-leading-space: 10px;
+  --md-outlined-button-trailing-space: 10px;
+  padding: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 0.82rem;
+}
+
+.sidebar-header {
+  flex-shrink: 0;
+  background-color: var(--sidebar-bg);
+  z-index: 2;
+}
+
+.tab:focus-visible,
+.step-switch input:focus-visible + .switch-track,
+.presentation-toggle:focus-visible,
+.step-fold:focus-visible,
+.step-next:focus-visible,
+.step-card:focus-visible {
+  outline-color: var(--color-main);
+}
+
+.step-switch input:checked + .switch-track {
+  background-color: var(--color-main);
+}
+
+.switch-state {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  min-width: 22px;
+}
+
+.step-switch input:checked ~ .switch-state {
+  color: var(--color-main-dark);
+}
+
+.step-chip {
+  background-color: var(--color-main-light);
+  color: var(--color-main-dark);
+}
+
+.demo-note a,
+.flow-reset a,
+.am-panel a,
+.answer-text.markdown a,
+#demo-github-link {
+  color: var(--color-main);
+}
+
+.step-card {
+  border-color: #c6dafc;
+  border-left-color: var(--color-main);
+}
+
+.step-number,
+.step-fold,
+.step-details summary {
+  color: var(--color-main-dark);
+}
+
+.step-next {
+  background-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.compact-strip li.active {
+  border-color: var(--color-main);
+  background-color: var(--color-main);
+  color: var(--color-on-main);
+}
+
+.flow-svg .arrow-head-active,
+.compact-svg .arrow-head-active {
+  fill: var(--color-main);
+}
+
+.flow-svg .flow-step.active .step-line,
+.compact-svg .flow-step.active .step-line {
+  stroke: var(--color-main);
+}
+
+.flow-svg .flow-step.active .step-label,
+.flow-svg .step-now,
+.compact-svg .flow-step.active .step-label,
+.compact-svg .step-now,
+.flow-steps li.active {
+  fill: var(--color-main-dark);
+  color: var(--color-main-dark);
+}
+
+/* Red only for warnings. The panel background is white, so that the main
+   colour of the link keeps a 4.5:1 contrast. */
+.demo-controls {
+  border-color: var(--color-warning);
+  background-color: #ffffff;
+}
+
+.demo-badge {
+  background-color: var(--color-warning);
+  color: var(--color-on-main);
+}
+
+.error-message {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+/* Green only for "allowed". The gateway tabs use these classes. */
+.state-allowed {
+  color: var(--color-allowed);
+  background-color: var(--color-allowed-light);
+}
+
+.state-blocked {
+  color: var(--color-warning);
+  background-color: var(--color-warning-light);
+}
+
+/* ==========================================================================
+   agentic-demos change: Gateway tabs (Ingress & Egress).
+   ========================================================================== */
+.gateway-panel {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.gateway-chat-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 55%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.gateway-decision-col {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 42%;
+  width: 42%;
+  max-width: 540px;
+  min-width: 340px;
+  border-left: 1px solid var(--border-color);
+  background-color: #fbfcfe;
+  padding: 16px;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.gateway-decision-col h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.gateway-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: #fbfcfe;
+  font-size: 0.85rem;
+}
+
+.gateway-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.gateway-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gateway-engine {
+  color: var(--color-text-muted);
+}
+
+.gateway-engine code {
+  font-family: 'Roboto Mono', Consolas, Menlo, monospace;
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+
+.gateway-usecase {
+  margin: 2px 0 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  width: 100%;
+}
+
+.sample-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background-color: var(--chat-bg);
+  z-index: 2;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sample-prompt {
+  border: 1px solid #c6dafc;
+  background-color: var(--color-main-light);
+  color: var(--color-main-dark);
+  border-radius: 14px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sample-prompt:hover {
+  background-color: #d2e3fc;
+}
+
+.sample-prompt:focus-visible {
+  outline: 2px solid var(--color-main);
+  outline-offset: 2px;
+}
+
+.gateway-block-banner {
+  border: 1px solid var(--color-warning);
+  border-left: 4px solid var(--color-warning);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.gateway-diagram {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 8px;
+}
+
+.gateway-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gateway-svg .party-box {
+  fill: #f0f4f9;
+  stroke: #5f6368;
+}
+
+.gateway-svg .party-name {
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.gateway-svg .party-sub {
+  font-size: 10px;
+  fill: #5f6368;
+  text-anchor: middle;
+}
+
+.gateway-svg .step-line {
+  stroke: var(--color-main);
+  stroke-width: 2;
+}
+
+.gateway-hint {
+  align-self: center;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 85%;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 0.9rem;
+}
+
+.gateway-log-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gateway-log-status {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.gateway-log-table {
+  overflow-x: auto;
+}
+
+.gateway-log-note {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--color-text-muted);
+  border-radius: 6px;
+}
+
+.gateway-log-note code {
+  font-family: 'Roboto Mono', Consolas, Menlo, monospace;
+  font-size: 0.95em;
+}
+
+.gateway-log-table table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.78rem;
+  background-color: #ffffff;
+}
+
+.gateway-log-table th,
+.gateway-log-table td {
+  border: 1px solid var(--border-color);
+  padding: 5px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.gateway-log-table th {
+  background-color: var(--sidebar-bg);
+  font-weight: 600;
+}
+
+.decision-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.75rem;
 }

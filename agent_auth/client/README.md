@@ -39,7 +39,60 @@ The client does three things:
 | `static/script.js`, `static/vendor/` | Agent answers render as Markdown when the stream ends (plain text while it streams). The client uses vendored copies of marked and DOMPurify, not a CDN. Raw HTML from the model is escaped, and DOMPurify sanitizes the result. Images are not rendered. Links open in a new tab with `rel="noopener noreferrer"`. |
 | `static/index.html`, `static/script.js` | New "New conversation" button. It clears the chat, the step chip, and the timings. The next message starts a new agent session. It does not remove the GitHub token that Auth Manager stores. To remove the token, use Demo controls, Reset Auth Manager consent. |
 | `static/style.css` | Fix: the 3LO diagram showed as a thin strip, because the scrolling flex panel shrank it. The panel children now keep their size. |
+| `static/index.html`, `static/script.js`, `static/style.css` | New "Step mode" switch and step cards. See [Step mode](#step-mode). |
+| `tests/` | New browser tests (fake agent, headless Chrome) and backend unit tests. See [tests/README.md](tests/README.md). |
+| `static/index.html`, `static/script.js`, `static/style.css` | Layout: tabs under the title, a real "Step mode" switch with an On/Off text label, presentation mode, an "Auth Manager" tab, folded step cards, a resizable split view (40% default, 380–560 px) with a compact 3LO diagram, and a unified Google blue colour scheme (red only for warnings and errors, green only for allowed). See [Layout](#layout). |
+| `main.py`, `static/index.html`, `static/script.js`, `static/style.css` | Gateway tabs: "Ingress gateway" (`CLIENT_TO_AGENT` with Model Armor inspection) and "Egress gateway" (`AGENT_TO_ANYWHERE` with IAP access policy on MCP tools). Each tab connects to its own remote agent (`INGRESS_AGENT_ID`, `EGRESS_AGENT_ID`), provides three sample prompts, shows a friendly banner when a gateway blocks a request or tool call, and displays a live Cloud Logging decision panel (`GET /demo/gateway-logs?kind=ingress\|egress`). |
 | `Dockerfile` | New file. It runs the client on Cloud Run. |
+
+## Step mode
+
+Step mode shows the live 3LO flow one step at a time, in the Playground chat.
+Turn it on with the "Step mode" switch in the chat header. It is off by
+default. The browser remembers the choice.
+
+- The backend runs at full speed. The page keeps the agent events in a queue.
+- Each of the 12 3LO steps shows as a card in the chat. Only the newest card
+  has a "Next step" button. The button waits until the data for the next step
+  is ready, and shows the reason.
+- Each card has a short sentence and a "Details" link: who acts, what happens,
+  what data moves, what stays hidden, where it runs, and real values from the
+  run (local time, session ID, masked nonce). The cards never show a token.
+- The click that shows step 5 opens the GitHub window. After the consent, the
+  client resumes the agent at once, in the background. The cards for steps 7
+  to 12 still wait for clicks. The answer shows at step 12.
+- When Auth Manager already has the token, steps 4 to 10 say "Skipped: token
+  already stored".
+- If the consent request is older than 10 minutes at the step 5 click, the
+  card says that it expired. Send the prompt again.
+- The right arrow key or Enter clicks "Next step". The step chip and the
+  "How 3LO works" diagram follow the current card.
+- "New conversation" removes the cards and clears the queue.
+
+With Step mode off, the Playground works as before.
+
+## Layout
+
+- **Header:** the tabs are under the title. The "Step mode" switch and
+  "New conversation" are on the right.
+- **Presentation mode:** the button in the configuration panel header folds
+  the panel to a thin bar, and unfolds it. The browser remembers the choice.
+- **Tabs:** "Playground", "How 3LO works", and "Auth Manager". The
+  "Auth Manager" tab is information only. It makes no API call.
+- **Folded cards:** in Step mode, only the current card stays open. Each past
+  card is one line, for example "✓ Step 3: The agent asks Auth Manager for a
+  token". A click, Enter, or Space opens the card again.
+- **Split view:** in Step mode, the chat is on the left, and a compact 3LO
+  diagram with short labels is on the right (40% width by default, resizable
+  between 380 px and 560 px with the mouse or arrow keys, saved in
+  `localStorage`). On a window narrower than 1100 px, the compact view is a
+  strip above the chat. The current step is marked in the compact view, the
+  strip, and the "How 3LO works" tab.
+- **Colour scheme:** one main colour (Google blue `#1a73e8`) for buttons, tabs,
+  the switch, the step chip, and links. Red (`#c5221f`) is used only for
+  warnings ("Demo only") and errors. Green (`#137333`) is reserved for allowed
+  gateway actions. Every state also has a text label.
+- With Step mode off, the chat uses the full width.
 
 ## Vendored libraries
 

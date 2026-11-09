@@ -51,6 +51,15 @@ if AGENT_PROJECT_DIR not in sys.path:
 
 app = FastAPI()
 
+
+@app.middleware("http")
+async def no_cache_static_assets(request: Request, call_next):
+  resp = await call_next(request)
+  path = request.url.path
+  if path == "/" or path.startswith("/static/"):
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+  return resp
+
 # Global cache for local runners to persist session history
 local_runners = {}
 
@@ -208,6 +217,185 @@ async def demo_config():
   return {
       "github_app_url": DEMO_GITHUB_APP_URL,
       "auth_provider": parts[2] if parts else None,
+      "ingressAgentId": os.environ.get("INGRESS_AGENT_ID", ""),
+      "egressAgentId": os.environ.get("EGRESS_AGENT_ID", ""),
+  }
+
+
+LOGGING_API = "https://logging.googleapis.com/v2"
+_SHORT_INFO_TYPES = {
+    "US_SOCIAL_SECURITY_NUMBER": "SSN",
+}
+
+
+def _parse_ingress_entry(entry: dict) -> dict:
+  """Normalizes one Model Armor sanitize_operations log entry."""
+  payload = entry.get("jsonPayload") or {}
+  result = payload.get("sanitizationResult") or payload.get("filterResult") or {}
+  meta = (
+      result.get("sanitizationMetadata")
+      or payload.get("sanitizationMetadata")
+      or {}
+  )
+  verdict = str(
+      result.get("sanitizationVerdict")
+      or payload.get("sanitizationVerdict")
+      or ""
+  )
+  match_state = str(
+      result.get("filterMatchState") or payload.get("filterMatchState") or ""
+  )
+  blocked = (
+      "BLOCK" in verdict.upper() or match_state.upper() == "MATCH_FOUND"
+  )
+  decision = "Blocked" if blocked else "Allowed"
+
+  op = str(
+      payload.get("operationType")
+      or (entry.get("labels") or {}).get(
+          "modelarmor.googleapis.com/operation_type"
+      )
+      or meta.get("target")
+      or ""
+  )
+  template_id = str(
+      ((entry.get("resource") or {}).get("labels") or {}).get("template_id")
+      or meta.get("templateId")
+      or ""
+  )
+  if "RESPONSE" in op.upper() or "response" in template_id.lower():
+    target = "Model response"
+  else:
+    target = "User prompt"
+
+  filter_results = (
+      result.get("filterResults") or payload.get("filterResults") or {}
+  )
+  sdp = (filter_results.get("sdp") or {}).get("sdpFilterResult") or {}
+  info_types = (
+      (sdp.get("deidentifyResult") or {}).get("infoTypes")
+      or (sdp.get("inspectResult") or {}).get("infoTypes")
+      or sdp.get("infoTypes")
+      or []
+  )
+  if info_types:
+    short = [_SHORT_INFO_TYPES.get(str(t), str(t)) for t in info_types]
+    detail = f"SDP ({', '.join(short)})"
+  elif blocked:
+    reason = str(result.get("sanitizationVerdictReason") or "")
+    detail = f"{reason} ({template_id})" if reason and template_id else (
+        reason or template_id or "Blocked by filter"
+    )
+  else:
+    detail = f"No match ({template_id})" if template_id else "No match"
+
+  return {
+      "timestamp": entry.get("timestamp") or entry.get("receiveTimestamp") or "",
+      "decision": decision,
+      "target": target,
+      "detail": detail,
+  }
+
+
+def _parse_egress_entry(entry: dict) -> dict:
+  """Normalizes one IAP GatekeeperAuthorizer.AuthorizeUser log entry."""
+  proto = entry.get("protoPayload") or {}
+  auth_list = proto.get("authorizationInfo") or []
+  auth0 = (
+      auth_list[0] if auth_list and isinstance(auth_list[0], dict) else {}
+  )
+  granted = bool(auth0.get("granted"))
+  decision = "Allowed" if granted else "Blocked"
+
+  meta = proto.get("metadata") or {}
+  mcp = meta.get("mcp_attributes") or {}
+  tool = mcp.get("mcp_tool_name") or meta.get("mcp_tool_name") or ""
+  mcp_method = mcp.get("mcp_method") or meta.get("mcp_method") or ""
+  if tool and mcp_method:
+    target = f"{mcp_method}: {tool}"
+  elif tool:
+    target = str(tool)
+  elif mcp_method:
+    target = str(mcp_method)
+  else:
+    res_name = str(proto.get("resourceName") or auth0.get("resource") or "")
+    target = res_name.split("/")[-1] if res_name else "MCP server"
+
+  detail = str(
+      auth0.get("permission") or "iap.webServiceVersions.egressViaIAP"
+  )
+  return {
+      "timestamp": entry.get("timestamp") or entry.get("receiveTimestamp") or "",
+      "decision": decision,
+      "target": target,
+      "detail": detail,
+  }
+
+
+@app.get("/demo/gateway-logs")
+async def demo_gateway_logs(
+    kind: str, http_request: Request, response: Response
+):
+  if not iap_user_id(http_request):
+    response.status_code = 403
+    return {"error": "Demo controls work only behind IAP."}
+  if kind not in ("ingress", "egress"):
+    response.status_code = 400
+    return {"error": "kind must be ingress or egress."}
+  parts = _demo_provider_parts()
+  project_id = (
+      parts[0]
+      if parts
+      else os.environ.get("GOOGLE_CLOUD_PROJECT", default_project or "")
+  )
+  if not project_id:
+    response.status_code = 500
+    return {"error": "Set GOOGLE_CLOUD_PROJECT or AUTH_PROVIDER_NAME."}
+
+  if kind == "ingress":
+    log_filter = (
+        f'logName="projects/{project_id}/logs/'
+        'modelarmor.googleapis.com%2Fsanitize_operations"'
+        ' AND resource.labels.template_id:"agw-nov26-us-central1-cta"'
+    )
+    parser = _parse_ingress_entry
+  else:
+    log_filter = (
+        f'logName="projects/{project_id}/logs/'
+        'cloudaudit.googleapis.com%2Fdata_access"'
+        ' AND protoPayload.serviceName="iap.googleapis.com"'
+        ' AND protoPayload.authorizationInfo.permission='
+        '"iap.webServiceVersions.egressViaIAP"'
+        ' AND labels."iap.googleapis.com/audited_resource_type"='
+        '"agentregistry.googleapis.com/McpServer"'
+    )
+    parser = _parse_egress_entry
+
+  url = f"{LOGGING_API}/entries:list"
+  body = {
+      "resourceNames": [f"projects/{project_id}"],
+      "filter": log_filter,
+      "orderBy": "timestamp desc",
+      "pageSize": 20,
+  }
+  status, data = await asyncio.to_thread(_demo_call, "POST", url, body)
+  entries = (
+      data.get("entries", [])
+      if status == 200 and isinstance(data, dict)
+      else []
+  )
+  rows = [parser(e) for e in entries if isinstance(e, dict)]
+  return {
+      "kind": kind,
+      "command": (
+          f"gcloud logging read '{log_filter}' --project={project_id}"
+          " --limit=20 --format=json"
+      ),
+      "http": f"POST {url}",
+      "status": status,
+      "rows": rows,
+      "entries": entries,
+      "response": data,
   }
 
 

@@ -58,99 +58,217 @@ $(function() {
     return el;
   };
 
-  // Draws the flow as an inline SVG sequence diagram, and the text list.
-  const buildFlowDiagram = () => {
-    const colW = 160;
-    const left = 80;
-    const top = 70;
-    const rowH = 40;
-    const width = left * 2 + colW * (FLOW_PARTIES.length - 1);
-    const height = top + rowH * FLOW_STEPS.length + 40;
-    const x = {};
-    FLOW_PARTIES.forEach((p, i) => { x[p.id] = left + i * colW; });
+  // Short labels for the compact diagram (layout track L4).
+  const FLOW_SHORT = {
+    1: 'Prompt', 2: 'Call agent', 3: 'Ask for token', 4: 'Consent request',
+    5: 'Open GitHub', 6: 'Approve', 7: 'Code to AM', 8: 'Store token',
+    9: 'Back to client', 10: 'Finalize', 11: 'Call GitHub', 12: 'Answer',
+  };
+  const FLOW_PARTY_SHORT = {
+    user: 'User', client: 'Client', agent: 'Agent', am: 'AM', gh: 'GitHub',
+    mcp: 'MCP',
+  };
 
-    const svg = svgEl('svg', {
+  /**
+   * Draws the 3LO flow as an inline SVG sequence diagram.
+   * @param {!Object} cfg Sizes, labels, and IDs for this drawing.
+   * @return {!SVGElement} The SVG element.
+   */
+  const drawSequenceSvg = (cfg) => {
+    const width = cfg.left * 2 + cfg.colW * (FLOW_PARTIES.length - 1);
+    const height = cfg.top + cfg.rowH * FLOW_STEPS.length + cfg.bottom;
+    const x = {};
+    FLOW_PARTIES.forEach((p, i) => { x[p.id] = cfg.left + i * cfg.colW; });
+    const svgAttrs = {
       viewBox: `0 0 ${width} ${height}`, role: 'img',
-      'aria-labelledby': 'flow-title flow-desc', class: 'flow-svg'});
-    svg.appendChild(svgEl('title', {id: 'flow-title'}, '3LO flow diagram'));
-    svg.appendChild(svgEl('desc', {id: 'flow-desc'},
-        'Sequence diagram with six parties and twelve numbered steps. ' +
-        'The list under the diagram has the same steps as text.'));
+      'aria-labelledby': `${cfg.prefix}title ${cfg.prefix}desc`,
+      class: cfg.svgClass,
+    };
+    if (cfg.preserveAspectRatio) {
+      svgAttrs.preserveAspectRatio = cfg.preserveAspectRatio;
+    }
+    const svg = svgEl('svg', svgAttrs);
+    svg.appendChild(svgEl('title', {id: `${cfg.prefix}title`}, cfg.title));
+    svg.appendChild(svgEl('desc', {id: `${cfg.prefix}desc`}, cfg.desc));
     const defs = svgEl('defs');
-    ['normal', 'active'].forEach((kind) => {
+    ['normal', 'active', 'done'].forEach((kind) => {
       const marker = svgEl('marker', {
-        id: `arrow-${kind}`, viewBox: '0 0 10 10', refX: '9', refY: '5',
+        id: `${cfg.prefix}arrow-${kind}`, viewBox: '0 0 10 10', refX: '9', refY: '5',
         markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse'});
       marker.appendChild(svgEl('path', {d: 'M0,0 L10,5 L0,10 z', class: `arrow-head-${kind}`}));
       defs.appendChild(marker);
     });
     svg.appendChild(defs);
+    const arrow = `url(#${cfg.prefix}arrow-normal)`;
 
     FLOW_PARTIES.forEach((p) => {
       svg.appendChild(svgEl('line', {
-        x1: x[p.id], y1: top - 10, x2: x[p.id], y2: height - 10, class: 'lifeline'}));
+        x1: x[p.id], y1: cfg.top - 10, x2: x[p.id], y2: height - 10, class: 'lifeline'}));
       svg.appendChild(svgEl('rect', {
-        x: x[p.id] - 70, y: 6, width: 140, height: 46, rx: 8, class: 'party-box'}));
-      svg.appendChild(svgEl('text', {x: x[p.id], y: 25, class: 'party-name'}, p.name));
-      svg.appendChild(svgEl('text', {x: x[p.id], y: 42, class: 'party-sub'}, p.sub));
+        x: x[p.id] - cfg.boxW / 2, y: 6, width: cfg.boxW, height: cfg.boxH, rx: 6,
+        class: 'party-box'}));
+      svg.appendChild(svgEl('text', {x: x[p.id], y: cfg.nameY, class: 'party-name'},
+          cfg.partyName(p)));
+      if (cfg.partySub) {
+        svg.appendChild(svgEl('text', {x: x[p.id], y: cfg.subY, class: 'party-sub'},
+            cfg.partySub(p)));
+      }
     });
 
     FLOW_STEPS.forEach((s, i) => {
-      const y = top + rowH * i + 20;
-      const g = svgEl('g', {class: 'flow-step', id: `flow-step-${s.n}`});
+      const y = cfg.top + cfg.rowH * i + 20;
+      const attrs = {'class': 'flow-step', 'data-flow-step': String(s.n)};
+      if (cfg.stepIds) {
+        attrs.id = `flow-step-${s.n}`;
+      }
+      const g = svgEl('g', attrs);
+      const label = cfg.label(s);
       if (s.from === s.to) {
         const x0 = x[s.from];
         g.appendChild(svgEl('path', {
-          d: `M${x0},${y - 8} h40 v16 h-38`, class: 'step-line', fill: 'none',
-          'marker-end': 'url(#arrow-normal)'}));
-        g.appendChild(svgEl('text', {x: x0 + 48, y: y + 4, class: 'step-label', 'text-anchor': 'start'},
-            `${s.n}. ${s.text}`));
+          d: `M${x0},${y - 8} h${cfg.loopW} v16 h-${cfg.loopW - 2}`, class: 'step-line',
+          fill: 'none', 'marker-end': arrow}));
+        g.appendChild(svgEl('text', {x: x0 + cfg.loopW + 8, y: y + 4, class: 'step-label',
+          'text-anchor': 'start'}, label));
       } else {
         const x1 = x[s.from];
         const x2 = x[s.to];
         const dir = x2 > x1 ? 1 : -1;
         g.appendChild(svgEl('line', {
           x1: x1 + dir * 4, y1: y, x2: x2 - dir * 4, y2: y, class: 'step-line',
-          'marker-end': 'url(#arrow-normal)'}));
-        const midX = (x1 + x2) / 2;
-        g.appendChild(svgEl('text', {x: midX, y: y - 6, class: 'step-label'},
-            `${s.n}. ${s.text}`));
+          'marker-end': arrow}));
+        const labelX = cfg.labelAtStart ? Math.min(x1, x2) + 3 : (x1 + x2) / 2;
+        g.appendChild(svgEl('text', {x: labelX, y: y - 5, class: 'step-label',
+          'text-anchor': cfg.labelAtStart ? 'start' : 'middle'}, label));
       }
       // Text marker, so that the highlight does not depend on color only.
-      g.appendChild(svgEl('text', {x: 8, y: y + 4, class: 'step-now', 'text-anchor': 'start'}, 'NOW'));
+      g.appendChild(svgEl('text', {x: 2, y: y + 4, class: 'step-now', 'text-anchor': 'start'},
+          cfg.nowText));
       svg.appendChild(g);
     });
+    return svg;
+  };
 
-    $('#flow-diagram').empty().append(svg);
+  // Draws the full diagram in the "How 3LO works" tab, the text list, and
+  // the compact diagram and strip of the Step mode split view.
+  const buildFlowDiagram = () => {
+    $('#flow-diagram').empty().append(drawSequenceSvg({
+      prefix: 'flow-', svgClass: 'flow-svg', stepIds: true,
+      title: '3LO flow diagram',
+      desc: 'Sequence diagram with six parties and twelve numbered steps. ' +
+          'The list under the diagram has the same steps as text.',
+      colW: 160, left: 80, top: 70, rowH: 40, bottom: 40,
+      boxW: 140, boxH: 46, nameY: 25, subY: 42, loopW: 40,
+      partyName: (p) => p.name, partySub: (p) => p.sub,
+      label: (s) => `${s.n}. ${s.text}`, labelAtStart: false, nowText: 'NOW',
+    }));
 
     const $list = $('#flow-steps').empty();
     FLOW_STEPS.forEach((s) => {
       $list.append($('<li>').attr('id', `flow-item-${s.n}`).attr('value', s.n).text(s.text));
     });
+
+    $('#compact-diagram').empty().append(drawSequenceSvg({
+      prefix: 'compact-', svgClass: 'compact-svg', stepIds: false,
+      preserveAspectRatio: 'xMidYMin meet',
+      title: '3LO flow, compact view',
+      desc: 'Twelve numbered steps with short labels. The step card has the full text.',
+      colW: 44, left: 26, top: 36, rowH: 30, bottom: 10,
+      boxW: 40, boxH: 20, nameY: 20, subY: 0, loopW: 18,
+      partyName: (p) => FLOW_PARTY_SHORT[p.id], partySub: null,
+      label: (s) => `${s.n} ${FLOW_SHORT[s.n]}`, labelAtStart: true,
+      nowText: '\u25B6',
+    }));
+    const $strip = $('#compact-strip').empty();
+    FLOW_STEPS.forEach((s) => {
+      $strip.append($('<li>').attr('data-flow-step', String(s.n))
+          .text(`${s.n} ${FLOW_SHORT[s.n]}`));
+    });
   };
 
   const STEP_NAMES = {
+    '1': 'You send the prompt',
+    '2': 'The client calls the agent',
+    '3': 'The agent asks Auth Manager for a token',
+    '4': 'Auth Manager returns a consent request',
+    '5': 'The client opens GitHub in a new window',
+    '6': 'You approve the app on GitHub',
+    '7': 'GitHub redirects to Auth Manager with the code',
+    '8': 'Auth Manager exchanges the code and stores the token',
+    '9': 'Auth Manager redirects the window back to the client',
+    '10': 'The client calls finalize_credentials with the nonce',
+    '11': 'The agent resumes, gets the token, and calls GitHub',
+    '12': 'The agent streams the answer to you',
     '1,2': 'Prompt sent',
     '4,5': 'Consent request received',
-    '6': 'Waiting for approval on GitHub',
     '7,8,9,10': 'GitHub redirect, token stored, finalize',
-    '11': 'Agent calls GitHub with the token',
-    '12': 'Answer received',
   };
   let currentSteps = [];
+  let liveStepQueue = [];
+  let liveStepTimer = null;
+  let liveQueuedSet = new Set();
+
+  const liveStepPaceMs = () => (
+      window.LIVE_STEP_PACE_MS !== undefined ? window.LIVE_STEP_PACE_MS : 250);
 
   // Highlights the given step numbers in the diagram and the list.
   const setStep = (steps, label) => {
     currentSteps = steps;
     $('.flow-step').removeClass('active');
-    $('#flow-steps li').removeAttr('aria-current').removeClass('active');
+    $('#flow-steps li, #compact-strip li').removeAttr('aria-current').removeClass('active');
     steps.forEach((n) => {
-      $(`#flow-step-${n}`).addClass('active');
-      $(`#flow-item-${n}`).attr('aria-current', 'step').addClass('active');
+      $(`.flow-step[data-flow-step="${n}"]`).removeClass('done').addClass('active');
+      $(`#flow-item-${n}, #compact-strip li[data-flow-step="${n}"]`)
+          .attr('aria-current', 'step').removeClass('done').addClass('active');
     });
     const name = label || STEP_NAMES[steps.join(',')] || '';
     $('#step-chip').text(steps.length ?
         `3LO step ${steps.join('-')}: ${name}` : `3LO step: ${label || 'none'}`);
+  };
+
+  const resetLiveSteps = () => {
+    if (liveStepTimer) {
+      clearInterval(liveStepTimer);
+      liveStepTimer = null;
+    }
+    liveStepQueue = [];
+    liveQueuedSet = new Set();
+    $('.flow-step, #flow-steps li, #compact-strip li').removeClass('done');
+  };
+
+  const advanceLiveStep = () => {
+    if (!liveStepQueue.length) {
+      if (liveStepTimer) {
+        clearInterval(liveStepTimer);
+        liveStepTimer = null;
+      }
+      return;
+    }
+    currentSteps.forEach((prev) => {
+      $(`.flow-step[data-flow-step="${prev}"]`).addClass('done');
+      $(`#flow-item-${prev}, #compact-strip li[data-flow-step="${prev}"]`).addClass('done');
+    });
+    const next = liveStepQueue.shift();
+    setStep([next]);
+    if (!liveStepQueue.length && liveStepTimer) {
+      clearInterval(liveStepTimer);
+      liveStepTimer = null;
+    }
+  };
+
+  const queueLiveSteps = (stepsArray) => {
+    stepsArray.forEach((n) => {
+      if (!liveQueuedSet.has(n)) {
+        liveQueuedSet.add(n);
+        liveStepQueue.push(n);
+      }
+    });
+    if (!liveStepTimer && liveStepQueue.length) {
+      advanceLiveStep();
+      if (liveStepQueue.length) {
+        liveStepTimer = setInterval(advanceLiveStep, liveStepPaceMs());
+      }
+    }
   };
 
   // ---- Timings of the last run. Browser memory only. ----
@@ -332,25 +450,573 @@ $(function() {
     if (e.key === 'agent-auth-complete') completeAuth('storage');
   });
 
-  // ---- Tabs. ----
-  const selectTab = (which) => {
-    const isHow = which === 'how';
-    $('#tab-play').attr({'aria-selected': String(!isHow), 'tabindex': isHow ? '-1' : '0'});
-    $('#tab-how').attr({'aria-selected': String(isHow), 'tabindex': isHow ? '0' : '-1'});
-    $('#how-panel').prop('hidden', !isHow);
-    $('#playground-panel').prop('hidden', isHow);
+  // ---- Presentation mode (track playground_layout_20261108). ----
+  // The button folds the configuration panel to a thin bar. The browser
+  // remembers the choice.
+  const PRESENTATION_KEY = 'agentAuthPresentation';
+
+  /**
+   * Folds or unfolds the configuration panel.
+   * @param {boolean} folded True to fold the panel.
+   */
+  const setPresentationMode = (folded) => {
+    const label = folded ? 'Unfold the configuration panel' :
+        'Fold the configuration panel (presentation mode)';
+    $('#settings-sidebar').toggleClass('folded', folded);
+    $('#presentation-toggle').attr({
+      'aria-expanded': String(!folded),
+      'aria-label': label,
+      'title': label,
+    });
+    $('#presentation-toggle .material-symbols-outlined')
+        .text(folded ? 'right_panel_open' : 'right_panel_close');
+    localStorage.setItem(PRESENTATION_KEY, folded ? '1' : '0');
   };
-  $('#tab-play').on('click', () => selectTab('play'));
-  $('#tab-how').on('click', () => selectTab('how'));
+  setPresentationMode(localStorage.getItem(PRESENTATION_KEY) === '1');
+  $('#presentation-toggle').on('click', () => {
+    setPresentationMode(!$('#settings-sidebar').hasClass('folded'));
+  });
+
+  // ---- Step mode (track step_mode_3lo_20261108). ----
+  // With Step mode on, the backend runs at full speed. The page keeps the
+  // agent events in a queue, and the answer stays hidden until step 12.
+  const STEP_MODE_KEY = 'agentAuthStepMode';
+  const $stepSwitch = $('#step-mode-switch');
+  $stepSwitch.prop('checked', localStorage.getItem(STEP_MODE_KEY) === '1');
+  // Layout track L4: the split view shows on the 3LO GitHub tab.
+  const applyStepLayout = () => {
+    const on = $stepSwitch.prop('checked') === true;
+    $('#playground-panel').addClass('split');
+    // Layout track L9: the switch state also shows as text.
+    $('.step-switch .switch-state').text(on ? 'On' : 'Off');
+  };
+  $stepSwitch.on('change', function() {
+    localStorage.setItem(STEP_MODE_KEY, this.checked ? '1' : '0');
+    applyStepLayout();
+    applyCompactWidth();
+  });
+  applyStepLayout();
+
+  // ---- Resizable compact panel (layout track L8). ----
+  const COMPACT_WIDTH_KEY = 'agentAuthCompactWidth';
+  const COMPACT_MIN = 380;
+  const COMPACT_MAX = 560;
+  const COMPACT_KEY_STEP = 20;
+  const $panel = $('#playground-panel');
+  const $resizer = $('#compact-resizer');
+
+  /** @return {number} A width between the minimum and the maximum. */
+  const clampCompact = (w) => Math.round(Math.min(COMPACT_MAX, Math.max(COMPACT_MIN, w)));
+
+  /** @return {number} The saved width, or 40 percent of the Playground area. */
+  const compactWidth = () => {
+    const saved = Number(localStorage.getItem(COMPACT_WIDTH_KEY));
+    return clampCompact(saved > 0 ? saved : 0.4 * $panel.width());
+  };
+
+  /**
+   * Sets the width of the compact panel with a CSS variable. The strip
+   * layout below 1100 px does not use this variable.
+   * @param {number=} width The new width. Default: the saved width.
+   * @param {boolean=} save True to save the width in localStorage.
+   */
+  const applyCompactWidth = (width = undefined, save = false) => {
+    const w = width === undefined ? compactWidth() : clampCompact(width);
+    $panel[0].style.setProperty('--compact-width', `${w}px`);
+    $resizer.attr('aria-valuenow', String(w));
+    if (save) {
+      localStorage.setItem(COMPACT_WIDTH_KEY, String(w));
+    }
+  };
+  applyCompactWidth();
+  $(window).on('resize', () => {
+    if (!localStorage.getItem(COMPACT_WIDTH_KEY)) {
+      applyCompactWidth();
+    }
+  });
+
+  // Mouse or touch drag: the width changes by the distance that the pointer
+  // moves. A move to the left makes the panel wider.
+  $resizer.on('pointerdown', (e) => {
+    e.preventDefault();
+    const el = $resizer[0];
+    el.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const startWidth = Number($resizer.attr('aria-valuenow')) || compactWidth();
+    const widthAt = (ev) => startWidth + (startX - ev.clientX);
+    const onMove = (ev) => applyCompactWidth(widthAt(ev));
+    const onUp = (ev) => {
+      applyCompactWidth(widthAt(ev), true);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+    };
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+  });
+
+  // Keyboard: the left arrow key makes the panel wider, the right arrow key
+  // makes it narrower.
+  $resizer.on('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    const now = Number($resizer.attr('aria-valuenow')) || compactWidth();
+    const delta = e.key === 'ArrowLeft' ? COMPACT_KEY_STEP : -COMPACT_KEY_STEP;
+    applyCompactWidth(now + delta, true);
+  });
+
+  /** @return {boolean} True when the Step mode switch is on. */
+  const isStepMode = () => $stepSwitch.prop('checked') === true;
+
+  /** The Step mode run of the current prompt, or null. */
+  let activeStepRun = null;
+
+  /** Shows the queue length on the body element, for tests and debugging. */
+  const setQueueCount = (n) => {
+    document.body.dataset.stepQueue = String(n);
+  };
+
+  /**
+   * Creates the state of one Step mode run.
+   * @param {!jQuery} $bubble The hidden agent bubble of this run.
+   * @return {!Object} The run state.
+   */
+  const createStepRun = ($bubble) => {
+    const run = {
+      $bubble: $bubble,
+      events: 0,
+      // 'consent' when Auth Manager asks for consent, 'token' when the token
+      // is already stored.
+      path: null,
+      credential: null,
+      credentialAt: null,
+      consentDone: false,
+      resumeStarted: false,
+      answerReady: false,
+      failed: false,
+      sessionId: null,
+      times: {},
+    };
+    run.onEvent = (data) => {
+      run.events += 1;
+      setQueueCount(run.events);
+      // A tool call alone does not show the path: the tool can still ask
+      // for consent. A tool result or answer text without a consent request
+      // shows that Auth Manager already has the token.
+      const parts = (data.content && data.content.parts) || [];
+      const toolRanOrText = parts.some((p) => p.text ||
+          p.function_response || p.functionResponse) || Boolean(data.text);
+      if (!run.path && toolRanOrText) {
+        run.path = 'token';
+        run.times.agent = Date.now();
+      }
+      run.notify();
+    };
+    run.onCredential = (data) => {
+      run.path = 'consent';
+      run.credential = data;
+      run.credentialAt = Date.now();
+      run.times.agent = run.times.agent || run.credentialAt;
+      run.notify();
+    };
+    run.onStreamEnd = () => {
+      if (run.$bubble.find('.answer-text').length) {
+        run.answerReady = true;
+        run.times.answer = Date.now();
+        if (!run.path) {
+          run.path = 'token';
+          run.times.agent = run.times.agent || run.times.answer;
+        }
+      }
+      run.notify();
+    };
+    run.onError = () => {
+      run.failed = true;
+      run.$bubble.find('.wait-indicator').remove();
+      $messagesContainer.append(run.$bubble);
+      run.notify();
+    };
+    run.times.send = Date.now();
+    run.shown = 0;
+    run.popupOpened = false;
+    run.expired = false;
+    run.notify = () => updateNextButton(run);
+    return run;
+  };
+
+  // ---- Step cards (Step mode). One table holds the text of each step. ----
+  const STEP_CARDS = {
+    1: {title: 'You send the prompt',
+      text: 'The demo client gets your prompt. IAP gives your user ID.',
+      who: 'You and the demo client.',
+      what: 'Your browser sends the prompt. IAP adds your verified email.',
+      data: 'The prompt text and your user ID (email).',
+      hidden: 'No secret moves in this step.', time: 'send'},
+    2: {title: 'The client calls the agent',
+      text: 'The client sends the prompt to the agent on Agent Runtime.',
+      who: 'The demo client and the agent.',
+      what: 'The client calls stream_query on the agent.',
+      data: 'The prompt, your user ID, and the session ID.',
+      hidden: 'The client has no GitHub token.', time: 'send'},
+    3: {title: 'The agent asks Auth Manager for a token', server: true,
+      text: 'The agent uses its own identity to ask for a GitHub token for you.',
+      who: 'The agent and Auth Manager.',
+      what: 'The agent asks for the token of your user ID.',
+      data: 'Your user ID and the auth provider name.',
+      hidden: 'The agent identity credentials stay in Google Cloud.',
+      time: 'agent'},
+    4: {title: 'Auth Manager asks for consent',
+      text: 'There is no token yet. The agent sends a consent request to the client.',
+      who: 'The agent and the demo client.',
+      what: 'The agent returns adk_request_credential.',
+      data: 'A consent URL and a nonce. The client keeps the nonce in a cookie.',
+      hidden: 'No token exists yet.', time: 'credential'},
+    5: {title: 'The client opens the GitHub window',
+      text: 'The client opens GitHub in a new window.',
+      who: 'The demo client and your browser.',
+      what: 'The browser opens the consent URL on github.com.',
+      data: 'The consent URL. The nonce stays in a cookie.',
+      hidden: 'The client never sees your GitHub password.', time: 'popup'},
+    6: {title: 'You approve on GitHub',
+      text: 'You sign in on github.com and approve the app.',
+      who: 'You and GitHub.',
+      what: 'GitHub asks you to approve the OAuth app.',
+      data: 'Your GitHub password goes only to GitHub.',
+      hidden: 'Google, the client, and the agent never see your password.',
+      time: 'consent'},
+    7: {title: 'GitHub sends the code to Auth Manager', server: true,
+      text: 'GitHub sends an authorization code to the Auth Manager redirect URL.',
+      who: 'GitHub and Auth Manager.',
+      what: 'The code goes to Auth Manager, not to the client.',
+      data: 'The authorization code.',
+      hidden: 'The client never sees the code.', time: 'consent'},
+    8: {title: 'Auth Manager stores the token', server: true,
+      text: 'Auth Manager swaps the code for a token, and stores it in its vault.',
+      who: 'Auth Manager and GitHub.',
+      what: 'Auth Manager gets the token from GitHub.',
+      data: 'The token goes into the Auth Manager vault.',
+      hidden: 'The token stays in the vault.', time: 'consent'},
+    9: {title: 'The browser returns to the client',
+      text: 'Auth Manager sends your browser to the client page /validateUserId.',
+      who: 'Auth Manager, your browser, and the demo client.',
+      what: 'The browser opens the client continue URL.',
+      data: 'A validation state in the URL.',
+      hidden: 'The URL holds no token.', time: 'consent'},
+    10: {title: 'The client finalizes the consent',
+      text: 'The client calls credentials:finalize with the validation state and the nonce.',
+      who: 'The demo client and Auth Manager.',
+      what: 'Auth Manager checks that the same user started and finished the consent.',
+      data: 'The validation state and the nonce.',
+      hidden: 'The client gets no token.', time: 'consent'},
+    11: {title: 'The agent calls GitHub',
+      text: 'The agent gets the token from Auth Manager and calls the GitHub MCP server.',
+      who: 'The agent, Auth Manager, and the GitHub MCP server.',
+      what: 'The agent calls the GitHub tools with your token.',
+      data: 'The token goes from Auth Manager to the agent and to GitHub.',
+      hidden: 'The token never goes to your browser.', time: 'resume'},
+    12: {title: 'The answer comes back',
+      text: 'The agent sends the answer to the client, and the client shows it.',
+      who: 'The agent, the demo client, and you.',
+      what: 'The answer streams back to the chat.',
+      data: 'The answer text.',
+      hidden: 'The answer holds no token.', time: 'answer'},
+  };
+  const SKIPPED_TEXT = 'Skipped: token already stored.';
+  const CONSENT_EXPIRY_DEFAULT_MS = 10 * 60 * 1000;
+
+  /** @return {number} The time after which a consent request can expire. */
+  const consentExpiryMs = () => window.STEP_MODE_CONSENT_EXPIRY_MS ||
+      CONSENT_EXPIRY_DEFAULT_MS;
+
+  /** Shows only the start of a nonce. */
+  const maskNonce = (nonce) => (nonce ? `${String(nonce).slice(0, 4)}...` : '-');
+
+  /**
+   * Tells if the data for a step is ready.
+   * @param {!Object} run The Step mode run.
+   * @param {number} n The step number.
+   * @return {?string} null when the step is ready, else a wait message.
+   */
+  const stepWaitReason = (run, n) => {
+    if (n <= 2) {
+      return null;
+    }
+    if (!run.path) {
+      return 'Waiting for the agent...';
+    }
+    if (run.path === 'token') {
+      if (n === 12 && !run.answerReady) {
+        return 'Waiting for the answer...';
+      }
+      return null;
+    }
+    if (n <= 5) {
+      return null;
+    }
+    if (n === 6) {
+      return run.popupOpened ? null : 'Open the GitHub window first.';
+    }
+    if (n <= 10) {
+      return run.consentDone ? null :
+          'Waiting for your approval in the GitHub window...';
+    }
+    if (n === 11) {
+      return run.resumeStarted ? null : 'Waiting for the agent...';
+    }
+    return run.answerReady ? null : 'Waiting for the answer...';
+  };
+
+  /** Enables or disables the Next step button of the newest card. */
+  const updateNextButton = (run) => {
+    if (run !== activeStepRun || !run.$newest) {
+      return;
+    }
+    const $next = run.$newest.find('.step-next');
+    const $wait = run.$newest.find('.step-wait');
+    if (run.failed) {
+      $next.remove();
+      $wait.text('Stopped on an error. See the message below.');
+      return;
+    }
+    if (!$next.length) {
+      return;
+    }
+    const reason = stepWaitReason(run, run.shown + 1);
+    $next.prop('disabled', reason !== null);
+    $wait.text(reason || '');
+  };
+
+  /**
+   * Adds the card of step n to the chat.
+   * @param {!Object} run The Step mode run.
+   * @param {number} n The step number.
+   * @param {?Object=} override Text that replaces the normal card text.
+   */
+  const showStepCard = (run, n, override = null) => {
+    const info = STEP_CARDS[n];
+    const skipped = run.path === 'token' && n >= 4 && n <= 10;
+    run.shown = n;
+    if (run.$newest) {
+      run.$newest.find('.step-next').remove();
+      run.$newest.find('.step-wait').remove();
+      // Layout track L1: only the current card stays open.
+      foldStepCard(run.$newest);
+    }
+    const idBase = `step-card-${n}-${Date.now()}`;
+    const titleId = `${idBase}-title`;
+    const bodyId = `${idBase}-body`;
+    const $card = $('<section>').addClass('step-card')
+        .toggleClass('skipped', skipped)
+        .attr({'role': 'group', 'aria-labelledby': titleId, 'tabindex': '-1'});
+    const title = override ? override.title : info.title;
+    // The one-line form of the card. It shows when the card is folded.
+    const $fold = $('<button>').attr({
+      'type': 'button',
+      'aria-expanded': 'false',
+      'aria-controls': bodyId,
+      'hidden': true,
+    }).addClass('step-fold').text(`\u2713 Step ${n}: ${title}`);
+    $fold.on('click', () => toggleFoldedCard($card));
+    const $body = $('<div>').addClass('step-body').attr('id', bodyId);
+    $card.append($fold).append($body);
+    $body.append($('<div>').addClass('step-number').text(`Step ${n} of 12`));
+    $body.append($('<div>').addClass('step-title').attr('id', titleId).text(title));
+    $body.append($('<p>').addClass('step-text').text(
+        override ? override.text : (skipped ? SKIPPED_TEXT : info.text)));
+    if (!override) {
+      const $details = $('<details>').addClass('step-details');
+      $details.append($('<summary>').text('Details'));
+      const time = run.times[info.time];
+      const rows = [
+        ['Who acts', info.who],
+        ['What happens', skipped ?
+            'Nothing. Auth Manager already has a token for you.' : info.what],
+        ['What data moves', info.data],
+        ['What stays hidden', info.hidden],
+        ['Where it runs', info.server ? 'Runs on the server. Your browser does not see this step.' :
+            'Your browser sees this step.'],
+        ['Time (this run)', time ? fmtLocal(time) : '-'],
+        ['Session ID (this run)', currentSessionId || '-'],
+      ];
+      if (n === 4 || n === 5) {
+        rows.push(['Nonce (masked)', maskNonce(run.credential && run.credential.consent_nonce)]);
+      }
+      const $dl = $('<dl>');
+      rows.forEach(([k, v]) => {
+        $dl.append($('<dt>').text(k)).append($('<dd>').text(v));
+      });
+      $details.append($dl);
+      $body.append($details);
+    }
+    if (n < 12 && !(override && override.final)) {
+      const $next = $('<button>').attr('type', 'button').addClass('step-next')
+          .attr('aria-label', `Next step: step ${n + 1} of 12`).text('Next step');
+      $next.on('click', () => onNextStep(run));
+      $body.append($next);
+      $body.append($('<span>').addClass('step-wait').attr('aria-live', 'polite'));
+    }
+    $messagesContainer.append($card);
+    run.$newest = $card;
+    setStep([n], skipped ? 'skipped, token already stored' : title);
+    updateNextButton(run);
+    const $focus = $card.find('.step-next:not(:disabled)');
+    ($focus.length ? $focus : $card).trigger('focus');
+    $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
+  };
+
+  /**
+   * Folds a past card to one line (layout track L1).
+   * @param {!jQuery} $card The card to fold.
+   */
+  const foldStepCard = ($card) => {
+    $card.addClass('folded');
+    $card.find('.step-fold').prop('hidden', false).attr('aria-expanded', 'false');
+    $card.find('.step-body').prop('hidden', true);
+  };
+
+  /**
+   * Opens a folded card, or folds it again.
+   * @param {!jQuery} $card The card.
+   */
+  const toggleFoldedCard = ($card) => {
+    const $fold = $card.find('.step-fold');
+    const open = $fold.attr('aria-expanded') === 'true';
+    $fold.attr('aria-expanded', String(!open));
+    $card.find('.step-body').prop('hidden', open);
+    $card.toggleClass('reopened', !open);
+  };
+
+  /** Opens the GitHub consent window from the step 5 click. */
+  const openConsentWindow = (run) => {
+    const thisAuth = pendingAuth;
+    const popup = window.open(run.credential.popup_auth_uri, '_blank');
+    run.popupOpened = true;
+    run.times.popup = Date.now();
+    markTiming('popup');
+    if (popup && thisAuth) {
+      thisAuth.timer = setInterval(() => {
+        if (popup.closed && pendingAuth === thisAuth) {
+          completeAuth('popup closed');
+        }
+      }, 500);
+    }
+  };
+
+  /** Handles a click on Next step. */
+  const onNextStep = (run) => {
+    if (run !== activeStepRun) {
+      return;
+    }
+    const n = run.shown + 1;
+    if (n > 12 || stepWaitReason(run, n) !== null) {
+      return;
+    }
+    if (n === 5 && run.path === 'consent') {
+      if (Date.now() - run.credentialAt > consentExpiryMs()) {
+        run.expired = true;
+        pendingAuth = null;
+        showStepCard(run, 5, {
+          title: 'The consent request expired',
+          text: 'The consent request expired during the pause. ' +
+              'Send the prompt again.',
+          final: true,
+        });
+        return;
+      }
+      openConsentWindow(run);
+    }
+    showStepCard(run, n);
+    if (n === 12) {
+      run.$bubble.find('.wait-indicator').remove();
+      $messagesContainer.append(run.$bubble);
+      $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
+    }
+  };
+
+  // F10: the right arrow key or Enter clicks Next step.
+  $(document).on('keydown', (e) => {
+    if (!activeStepRun || (e.key !== 'ArrowRight' && e.key !== 'Enter')) {
+      return;
+    }
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag) || e.target.isContentEditable) {
+      return;
+    }
+    // The arrow keys on the tabs move between the tabs. The arrow keys on
+    // the separator resize the compact panel.
+    if ($(e.target).closest('.tabs, .compact-resizer').length) {
+      return;
+    }
+    // Enter on a button already clicks that button.
+    if (e.key === 'Enter' && (tag === 'button' || tag === 'summary' || tag === 'a' ||
+        tag.startsWith('md-'))) {
+      return;
+    }
+    const $next = $('#messages-container .step-card .step-next').last();
+    if ($next.length && !$next.prop('disabled')) {
+      e.preventDefault();
+      $next.trigger('click');
+    }
+  });
+
+  // ---- Tabs. ----
+  // agentic-demos change: five tabs (3LO GitHub, Egress gateway, Ingress
+  // gateway, How 3LO works, Auth Manager).
+  const TABS = [
+    ['play', '#tab-play', '#playground-panel'],
+    ['egress', '#tab-egress', '#egress-panel'],
+    ['ingress', '#tab-ingress', '#ingress-panel'],
+    ['how', '#tab-how', '#how-panel'],
+    ['auth', '#tab-auth-manager', '#auth-manager-panel'],
+  ];
+
+  /**
+   * Shows one tab and hides the other tabs.
+   * @param {string} which The tab name.
+   */
+  const selectTab = (which) => {
+    TABS.forEach(([name, tabId, panelId]) => {
+      const selected = name === which;
+      $(tabId).attr({'aria-selected': String(selected), 'tabindex': selected ? '0' : '-1'});
+      $(panelId).prop('hidden', !selected);
+    });
+    const isPlay = which === 'play';
+    $('.header-right').prop('hidden', !isPlay);
+    $('#step-chip').prop('hidden', !isPlay);
+    $('#settings-sidebar').prop('hidden', !isPlay);
+    if ((which === 'ingress' || which === 'egress') &&
+        !$(`#${which}-log-table table`).length) {
+      fetchGatewayLogs(which);
+    }
+  };
+  TABS.forEach(([name, tabId]) => {
+    $(tabId).on('click', () => selectTab(name));
+  });
   $('.tabs').on('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-      const toHow = $('#tab-play').attr('aria-selected') === 'true';
-      selectTab(toHow ? 'how' : 'play');
-      $(toHow ? '#tab-how' : '#tab-play').trigger('focus');
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') {
+      return;
+    }
+    const current = TABS.findIndex(([, tabId]) => $(tabId).attr('aria-selected') === 'true');
+    const step = e.key === 'ArrowRight' ? 1 : TABS.length - 1;
+    const [name, tabId] = TABS[(current + step) % TABS.length];
+    selectTab(name);
+    $(tabId).trigger('focus');
+    e.preventDefault();
+  });
+  $('#am-open-demo-controls').on('click', (e) => {
+    e.preventDefault();
+    selectTab('play');
+    const details = document.getElementById('demo-controls');
+    if (details) {
+      details.open = true;
+      details.scrollIntoView({behavior: 'smooth'});
     }
   });
   $('#open-demo-controls').on('click', (e) => {
     e.preventDefault();
+    selectTab('play');
     const details = document.getElementById('demo-controls');
     if (details) {
       details.open = true;
@@ -364,6 +1030,9 @@ $(function() {
   $('#new-conversation').on('click', () => {
     clearWaits();
     pendingAuth = null;
+    activeStepRun = null;
+    setQueueCount(0);
+    $('.step-card').remove();
     latestRequestId++;
     currentSessionId = null;
     document.cookie =
@@ -372,6 +1041,7 @@ $(function() {
     appendMessage('New conversation started.', 'system-message');
     timings = {};
     renderTimings();
+    resetLiveSteps();
     setStep([]);
     updateAgentInfoPane();
   });
@@ -632,23 +1302,16 @@ $(function() {
 
   const shortName = (value) => (value ? String(value).split('/').pop() : '');
 
-  // Shows an API time (UTC) in the browser local time with the zone, and
-  // the UTC time. Example: "08 Nov 2026 15:00 SGT (07:00 UTC)".
+  // Shows an API time (UTC) in the short SGT format without year or inline UTC.
+  // Example: "09 Nov 10:10 SGT".
   const formatTime = (iso) => {
     if (!iso) return '';
     const d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
     const local = d.toLocaleString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit',
-      minute: '2-digit', hour12: false}).replace(',', '');
-    // The zone name comes from the browser language, for example "SGT" for
-    // en-SG or "GMT+8" for en-US.
-    const zonePart = new Intl.DateTimeFormat(undefined, {timeZoneName: 'short'})
-        .formatToParts(d).find((p) => p.type === 'timeZoneName');
-    const zone = zonePart ? ` ${zonePart.value}` : '';
-    const utc = d.toLocaleString('en-GB', {
-      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'});
-    return `${local}${zone} (${utc} UTC)`;
+      day: '2-digit', month: 'short', hour: '2-digit',
+      minute: '2-digit', hour12: false, timeZone: 'Asia/Singapore'}).replace(',', '');
+    return `${local} SGT`;
   };
 
   const showSummaryTable = (summaries) => {
@@ -664,8 +1327,8 @@ $(function() {
       $row.append($('<td>').text(shortName(s.workloadId)));
       $row.append($('<td>').text(shortName(s.authProvider)));
       $row.append($('<td>').text((s.scopes || []).join(' ')));
-      $row.append($('<td>').text(formatTime(s.firstAccessTime)));
-      $row.append($('<td>').text(formatTime(s.lastAccessTime)));
+      $row.append($('<td>').attr('title', s.firstAccessTime || '').text(formatTime(s.firstAccessTime)));
+      $row.append($('<td>').attr('title', s.lastAccessTime || '').text(formatTime(s.lastAccessTime)));
       $table.append($row);
     });
     $('#demo-table').empty().append($table);
@@ -684,9 +1347,279 @@ $(function() {
     }
   };
 
+  // ---- Gateway tabs (track gateway_tabs_20261108). ----
+  const gatewayState = {
+    ingress: {agentId: '', sessionId: null, pollTimer: null, pollEndAt: 0},
+    egress: {agentId: '', sessionId: null, pollTimer: null, pollEndAt: 0},
+  };
+
+  /**
+   * Draws a three-box gateway architecture diagram as inline SVG.
+   * @param {string} prefix ID prefix for SVG elements.
+   * @param {!Array<!Array<string>>} boxes [title, subtitle] for the 3 boxes.
+   * @return {!SVGElement}
+   */
+  const drawGatewaySvg = (prefix, boxes) => {
+    const svg = svgEl('svg', {
+      viewBox: '0 0 460 66', role: 'img',
+      'aria-label': boxes.map((b) => `${b[0]} ${b[1]}`).join(' -> '),
+      class: 'gateway-svg',
+    });
+    const xs = [10, 155, 320];
+    const ws = [115, 135, 130];
+    boxes.forEach(([title, sub], i) => {
+      const bx = xs[i];
+      const bw = ws[i];
+      svg.appendChild(svgEl('rect', {
+        x: bx, y: 8, width: bw, height: 48, rx: 6, class: 'party-box',
+      }));
+      svg.appendChild(svgEl('text', {
+        x: bx + bw / 2, y: 28, class: 'party-name',
+      }, title));
+      svg.appendChild(svgEl('text', {
+        x: bx + bw / 2, y: 44, class: 'party-sub',
+      }, sub));
+      if (i < 2) {
+        const x1 = bx + bw + 4;
+        const x2 = xs[i + 1] - 4;
+        svg.appendChild(svgEl('line', {
+          x1: x1, y1: 32, x2: x2, y2: 32, class: 'step-line',
+        }));
+      }
+    });
+    return svg;
+  };
+
+  $('#ingress-diagram').empty().append(drawGatewaySvg('ing-', [
+    ['Client', '(Browser)'],
+    ['Ingress Gateway', '(Model Armor)'],
+    ['Agent', '(Agent Runtime)'],
+  ]));
+  $('#egress-diagram').empty().append(drawGatewaySvg('egr-', [
+    ['Agent', '(Agent Runtime)'],
+    ['Egress Gateway', '(IAP Policy)'],
+    ['MCP Server', '(Tools)'],
+  ]));
+
+  const renderGatewayLogTable = (kind, rows) => {
+    const $wrap = $(`#${kind}-log-table`).empty();
+    const $table = $('<table>');
+    const $head = $('<tr>');
+    ['Time', 'Decision', 'Target', 'Detail'].forEach((c) => {
+      $head.append($('<th>').attr('scope', 'col').text(c));
+    });
+    $table.append($('<thead>').append($head));
+    const $tbody = $('<tbody>');
+    if (!rows || !rows.length) {
+      $tbody.append($('<tr>').append(
+          $('<td>').attr('colspan', 4).text('No log entries found yet.')));
+    } else {
+      rows.forEach((r) => {
+        const allowed = r.decision === 'Allowed';
+        const $badge = $('<span>')
+            .addClass(`decision-badge ${allowed ? 'state-allowed' : 'state-blocked'}`)
+            .text(allowed ? 'Allowed' : 'Blocked');
+        $tbody.append($('<tr>')
+            .append($('<td>').attr('title', r.timestamp || '').text(formatTime(r.timestamp)))
+            .append($('<td>').append($badge))
+            .append($('<td>').text(r.target || ''))
+            .append($('<td>').text(r.detail || '')));
+      });
+    }
+    $table.append($tbody);
+    $wrap.append($table);
+  };
+
+  async function fetchGatewayLogs(kind) {
+    try {
+      const resp = await fetch(`/demo/gateway-logs?kind=${kind}`);
+      const data = await resp.json();
+      if (data.command) {
+        $(`#${kind}-gcloud-cmd`).text(`$ ${data.command}`);
+      }
+      renderGatewayLogTable(kind, data.rows || []);
+    } catch (e) {
+      $(`#${kind}-log-status`).text(`Log error: ${e.message}`);
+    }
+  }
+
+  const startGatewayPoll = (kind) => {
+    const st = gatewayState[kind];
+    if (st.pollTimer) clearInterval(st.pollTimer);
+    $(`#${kind}-log-status`).text('Waiting for the log...');
+    const interval = window.GATEWAY_POLL_INTERVAL_MS || 15000;
+    st.pollEndAt = Date.now() + 180000;
+    st.pollTimer = setInterval(() => {
+      fetchGatewayLogs(kind);
+      if (Date.now() >= st.pollEndAt) {
+        clearInterval(st.pollTimer);
+        st.pollTimer = null;
+        $(`#${kind}-log-status`).text('');
+      }
+    }, interval);
+  };
+
+  const resetGatewayChat = (kind) => {
+    const st = gatewayState[kind];
+    st.sessionId = null;
+    if (st.pollTimer) {
+      clearInterval(st.pollTimer);
+      st.pollTimer = null;
+    }
+    $(`#${kind}-log-status`).text('');
+    $(`#${kind}-messages`).html(
+        '<div class="gateway-hint">' +
+        'Click a sample prompt above or type a message below.' +
+        '</div>');
+  };
+
+  // Each gateway has its own block signals. A redacted SSN in an allowed
+  // Egress answer is not an Egress block, so the two lists are separate.
+  const GATEWAY_BLOCK_SIGNALS = {
+    ingress: ['[us_social_security_number]', 'blocked by model armor',
+      'model armor', 'cannot provide', 'violated'],
+    egress: ['mcp session connection lost', 'connection error',
+      'permission denied', 'access denied'],
+  };
+  const isGatewayBlockedText = (t, kind = 'ingress') => {
+    const s = String(t || '').toLowerCase();
+    return (GATEWAY_BLOCK_SIGNALS[kind] || []).some((w) => s.includes(w));
+  };
+
+  const gatewayBannerText = (kind) => (kind === 'ingress' ?
+      'Blocked by Ingress Gateway (Model Armor): the SDP filter detected ' +
+      'sensitive data (such as a Social Security Number) and blocked the response.' :
+      'Blocked by Egress Gateway (IAP policy): the access policy denied the ' +
+      'outbound MCP tool call (such as send_email) and closed the MCP connection.');
+
+  async function sendGatewayMessage(kind, promptText) {
+    const $input = $(`#${kind}-input`);
+    const $btn = $(`#${kind}-send-btn`);
+    const $msgs = $(`#${kind}-messages`);
+    const text = (promptText !== undefined ? promptText : $input.val()).trim();
+    if (!text) return;
+    $input.val('');
+    $btn.prop('disabled', true);
+
+    const $userDiv = $('<div>').addClass('message user-message')
+        .append($('<div>').addClass('message-content').text(text));
+    $msgs.append($userDiv);
+
+    const $agentDiv = $('<div>').addClass('message agent-message');
+    const $contentDiv = $('<div>').addClass('message-content');
+    $agentDiv.append($contentDiv);
+    $msgs.append($agentDiv);
+    showWait($contentDiv, 'dots', 'The agent is working...');
+    startGatewayPoll(kind);
+
+    const st = gatewayState[kind];
+    const body = {
+      message: text,
+      agent_type: 'remote',
+      project_id: $('#project-id').val() || '',
+      location: $('#location').val() || '',
+      agent_id: st.agentId,
+      user_id: $('#user-id').val() || 'default_user_id',
+    };
+    if (st.sessionId) body.session_id = st.sessionId;
+
+    const addBlockBannerIfNeeded = (raw) => {
+      if (isGatewayBlockedText(raw, kind) &&
+          !$contentDiv.find('.gateway-block-banner').length) {
+        $contentDiv.prepend(
+            $('<div>').addClass('gateway-block-banner state-blocked')
+                .text(gatewayBannerText(kind)));
+      }
+    };
+
+    try {
+      const resp = await fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buf = '';
+      while (true) {
+        const {value, done} = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, {stream: true});
+        while (true) {
+          const end = buf.indexOf('\n\n');
+          if (end === -1) break;
+          const ev = buf.substring(0, end);
+          buf = buf.substring(end + 2);
+          if (!ev.startsWith('data: ')) continue;
+          const data = JSON.parse(ev.substring(6));
+          if (data.session_id) {
+            st.session_id = data.session_id;
+            st.sessionId = data.session_id;
+            continue;
+          }
+          const err = data.error || data.error_message || data.errorMessage;
+          if (err) {
+            $contentDiv.find('.wait-indicator').remove();
+            addBlockBannerIfNeeded(err);
+            $contentDiv.append($('<div>').addClass('error-header').text(`Error: ${err}`));
+            $agentDiv.addClass('error-message');
+          } else if (data.content && data.content.parts) {
+            data.content.parts.forEach((p) => {
+              if (p.text) {
+                $contentDiv.find('.wait-indicator').remove();
+                addBlockBannerIfNeeded(p.text);
+                appendAnswer($contentDiv, p.text);
+              }
+            });
+          } else if (data.text) {
+            $contentDiv.find('.wait-indicator').remove();
+            addBlockBannerIfNeeded(data.text);
+            appendAnswer($contentDiv, data.text);
+          }
+        }
+      }
+      $contentDiv.find('.wait-indicator').remove();
+      finalizeAnswers($contentDiv);
+    } catch (e) {
+      $contentDiv.find('.wait-indicator').remove();
+      addBlockBannerIfNeeded(e.message);
+      $contentDiv.append($('<div>').addClass('error-header').text(`Error: ${e.message}`));
+      $agentDiv.addClass('error-message');
+    }
+    $msgs.scrollTop($msgs.prop('scrollHeight'));
+  }
+
+  ['ingress', 'egress'].forEach((kind) => {
+    resetGatewayChat(kind);
+    $(`#${kind}-panel .sample-prompt`).on('click', function() {
+      sendGatewayMessage(kind, $(this).attr('data-prompt') || $(this).text().trim());
+    });
+    $(`#${kind}-input`).on('input', function() {
+      $(`#${kind}-send-btn`).prop('disabled', $(this).val().trim() === '');
+    });
+    $(`#${kind}-input`).on('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendGatewayMessage(kind);
+      }
+    });
+    $(`#${kind}-send-btn`).on('click', () => sendGatewayMessage(kind));
+    $(`#${kind}-new-conversation`).on('click', () => resetGatewayChat(kind));
+    $(`#${kind}-refresh-logs`).on('click', () => {
+      $(`#${kind}-log-status`).text('');
+      fetchGatewayLogs(kind);
+    });
+  });
+
   $.getJSON('/demo/config').done((cfg) => {
     if (cfg && cfg.github_app_url) {
       $('#demo-github-link').attr('href', cfg.github_app_url);
+    }
+    if (cfg) {
+      gatewayState.ingress.agentId = cfg.ingressAgentId || '';
+      gatewayState.egress.agentId = cfg.egressAgentId || '';
+      $('#ingress-agent-id').text(gatewayState.ingress.agentId || '-');
+      $('#egress-agent-id').text(gatewayState.egress.agentId || '-');
     }
   });
 
@@ -724,6 +1657,11 @@ $(function() {
   });
 
   $sendBtn.on('click', sendMessage);
+
+  $('.play-sample-prompt').on('click', function() {
+    $userInput.val($(this).attr('data-prompt') || $(this).text().trim());
+    sendMessage();
+  });
 
   /**
    * Handles the user message submission workflow, disabling input controls
@@ -767,10 +1705,39 @@ $(function() {
       $agentMessageDiv = $(existingAgentMessageDiv);
       $contentDiv = $agentMessageDiv.find('.message-content');
       isFirstEvent = false;
+    } else if (isStepMode()) {
+      // agentic-demos change: Step mode keeps the agent bubble hidden (not
+      // in the page) until step 12.
+      $agentMessageDiv = $('<div>').addClass('message agent-message')
+          .append($('<div>').addClass('message-content'));
+      $contentDiv = $agentMessageDiv.find('.message-content');
+      activeStepRun = createStepRun($agentMessageDiv);
+      setQueueCount(0);
+      showStepCard(activeStepRun, 1);
     } else {
+      activeStepRun = null;
       $agentMessageDiv = appendMessage('', 'agent-message');
       $contentDiv = $agentMessageDiv.find('.message-content');
     }
+    // The Step mode run that owns this bubble, or null.
+    const stepRun = (activeStepRun &&
+        activeStepRun.$bubble[0] === $agentMessageDiv[0]) ? activeStepRun : null;
+    // In Step mode, the step cards control the step chip and the waits.
+    const liveStep = (steps, label) => {
+      if (!stepRun) {
+        if (!steps.length) {
+          resetLiveSteps();
+          setStep([], label);
+        } else {
+          queueLiveSteps(steps);
+        }
+      }
+    };
+    const liveWait = (kind, waitText) => {
+      if (!stepRun) {
+        showWait($contentDiv, kind, waitText);
+      }
+    };
 
     // agentic-demos change: loading state, step highlight, and timing.
     const requestId = ++latestRequestId;
@@ -779,8 +1746,9 @@ $(function() {
       pendingAuth = null;
       timings = {};
       markTiming('send');
-      setStep([1, 2]);
-      showWait($contentDiv, 'dots', 'The agent is working...');
+      if (!stepRun) resetLiveSteps();
+      liveStep([1, 2, 3]);
+      liveWait('dots', 'The agent is working...');
     }
 
     const agentType = $('#agent-type-select').val() || 'remote';
@@ -843,10 +1811,6 @@ $(function() {
 
       if (isAuthResume) {
         markTiming('resume');
-        // Show steps 7-10 for a short time before step 11.
-        setTimeout(() => {
-          if (currentSteps.join(',') === '7,8,9,10') setStep([11]);
-        }, 1200);
       }
 
       const reader = response.body.getReader();
@@ -881,6 +1845,9 @@ $(function() {
               // agentic-demos change: do not empty the bubble here. The
               // loading state stays until there is text or a status line.
               isFirstEvent = false;
+              if (stepRun && !data.popup_auth_uri) {
+                stepRun.onEvent(data);
+              }
 
               if (data.popup_auth_uri) {
                 if (data.consent_nonce) {
@@ -895,29 +1862,39 @@ $(function() {
                 // closes.
                 clearWaits();
                 markTiming('credential');
-                setStep([4, 5]);
+                liveStep([4, 5, 6]);
                 pendingAuth = {
                   done: false,
                   timer: null,
                   resume: () => {
                     clearWaits();
                     markTiming('validated');
-                    setStep([7, 8, 9, 10]);
-                    $contentDiv.append(
-                        '<br><em>Authentication complete. Resuming session...</em><br>');
-                    showWait($contentDiv, 'spinner', 'Getting your data from GitHub...');
+                    if (stepRun) {
+                      // Step mode: resume at once, in the background.
+                      stepRun.consentDone = true;
+                      stepRun.resumeStarted = true;
+                      stepRun.times.consent = Date.now();
+                      stepRun.notify();
+                    } else {
+                      liveStep([7, 8, 9, 10, 11]);
+                      $contentDiv.append(
+                          '<br><em>Authentication complete. Resuming session...</em><br>');
+                      showWait($contentDiv, 'spinner', 'Getting your data from GitHub...');
+                    }
                     executeChatRequest(
                         '', true, data.auth_request_function_call_id,
                         data.auth_config, $agentMessageDiv[0]);
                   },
                 };
+                if (stepRun) {
+                  // Step mode: the step 5 card opens the GitHub window.
+                  stepRun.onCredential(data);
+                  continue;
+                }
                 const thisAuth = pendingAuth;
                 const popup = window.open(data.popup_auth_uri, '_blank');
                 if (popup) {
                   markTiming('popup');
-                  setTimeout(() => {
-                    if (pendingAuth === thisAuth) setStep([6]);
-                  }, 1500);
                   thisAuth.timer = setInterval(() => {
                     if (popup.closed && pendingAuth === thisAuth) {
                       completeAuth('popup closed');
@@ -936,7 +1913,7 @@ $(function() {
               if (errorMsg) {
                 clearWaits();
                 pendingAuth = null;
-                setStep([], 'stopped on an error');
+                liveStep([], 'stopped on an error');
                 const $err = $('<div>')
                                  .addClass('error-header')
                                  .text(`Error: ${errorMsg}`);
@@ -949,18 +1926,27 @@ $(function() {
                   $contentDiv.append($pre);
                 }
                 $agentMessageDiv.addClass('error-message');
+                if (stepRun) {
+                  stepRun.onError();
+                }
               } else if (data.content && data.content.parts) {
                 data.content.parts.forEach(part => {
                   const fc = part.function_call || part.functionCall;
+                  const fr = part.function_response || part.functionResponse;
                   if (fc && fc.name && fc.name !== 'adk_request_credential' &&
                       !data.popup_auth_uri) {
-                    setWaitText($contentDiv, `The agent is calling a tool: ${fc.name}...`);
+                    if (!stepRun) {
+                      setWaitText($contentDiv, `The agent is calling a tool: ${fc.name}...`);
+                    }
+                  }
+                  if (fr) {
+                    liveStep([11]);
                   }
                   if (part.text) {
                     clearWaits();
                     markTiming('firstText');
                     markTiming('lastText', true);
-                    setStep([12]);
+                    liveStep([11, 12]);
                     appendAnswer($contentDiv, part.text);
                   }
                 });
@@ -984,6 +1970,11 @@ $(function() {
       // only while the consent is pending.
       if (!pendingAuth && requestId === latestRequestId) clearWaits();
       finalizeAnswers($contentDiv);
+      if (stepRun) {
+        // Step mode: the bubble stays hidden until step 12.
+        stepRun.onStreamEnd();
+        return;
+      }
       // Never leave an empty bubble.
       const $visible = $contentDiv.clone();
       $visible.find('.wait-indicator').remove();
@@ -994,13 +1985,16 @@ $(function() {
       console.error('Error during query stream processing:', error);
       clearWaits();
       pendingAuth = null;
-      setStep([], 'stopped on an error');
+      liveStep([], 'stopped on an error');
       finalizeAnswers($contentDiv);
       $contentDiv.append(
           $('<div>')
               .addClass('error-header')
               .text(`Network / connection error: ${error.message}`));
       $agentMessageDiv.addClass('error-message');
+      if (stepRun) {
+        stepRun.onError();
+      }
       $messagesContainer.scrollTop($messagesContainer.prop('scrollHeight'));
     }
   }

@@ -2,12 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Agent Assistant</title>
+    <title>Agent Identity &amp; Governance</title>
     <!-- Include custom styles -->
-    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/style.css?v=23" />
     <!-- Google Material Fonts -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit&family=Material+Symbols+Outlined"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Roboto:wght@400;500;600&family=Material+Symbols+Outlined"
       rel="stylesheet"
     />
     <!-- Import Google Material 3 Web Components -->
@@ -16,153 +16,49 @@
   </head>
   <body>
     <div class="app-container">
-      <!-- Sidebar for Settings (Material 3 styled form) -->
-      <div id="settings-sidebar" class="sidebar">
-        <div class="sidebar-header">
-          <h2>Configuration Settings</h2>
-        </div>
-        <div class="settings-form">
-          <!-- Agent Type Selection -->
-          <md-outlined-select id="agent-type-select" label="Agent Type">
-            <md-select-option value="local">
-              <div slot="headline">Local Agent</div>
-            </md-select-option>
-            <md-select-option value="remote" selected>
-              <div slot="headline">Remote Agent (Vertex AI)</div>
-            </md-select-option>
-          </md-outlined-select>
-
-          <!-- Local Agent Settings -->
-          <div id="local-settings" style="display: none;">
-            <md-outlined-select id="local-agent-select" label="Select Local Agent">
-              <md-select-option value="">
-                <div slot="headline">Select an agent...</div>
-              </md-select-option>
-            </md-outlined-select>
-            <input type="hidden" id="local-agent" />
-          </div>
-
-          <!-- Remote Agent Settings -->
-          <div id="remote-settings">
-            <!-- agentic-demos change: dropdowns. The server sends the options. -->
-            <md-outlined-select id="project-id" label="Project ID" required>
-            </md-outlined-select>
-            <md-outlined-select id="location" label="Location" required>
-            </md-outlined-select>
-
-            <md-filled-button id="load-agents-btn" class="btn-full">
-              <span class="material-symbols-outlined" slot="icon">sync</span>
-              Load Remote Agents
-            </md-filled-button>
-
-            <md-outlined-select id="agent-select" label="Select Engine">
-              <md-select-option value="">
-                <div slot="headline">Select an engine...</div>
-              </md-select-option>
-            </md-outlined-select>
-            <!-- Hidden hold for current target ID -->
-            <input type="hidden" id="agent-id" />
-          </div>
-
-          <!-- User ID for authentication tracking -->
-          <md-outlined-text-field
-            id="user-id"
-            label="User ID"
-            value="default_user_id"
-            required
-          ></md-outlined-text-field>
-
-          <md-filled-button id="save-settings" class="btn-full">
-            <span class="material-symbols-outlined" slot="icon">save</span>
-            Save & Apply Settings
-          </md-filled-button>
-
-          <!-- Active Agent & Session Profile Pane -->
-          <div id="agent-info-pane" class="agent-info-pane">
-            <h4>Active Agent Profile</h4>
-            <div class="info-grid">
-              <div class="info-row">
-                <span class="info-label">Mode:</span>
-                <span class="info-value" id="info-agent-mode">Remote Vertex AI</span>
-              </div>
-              <div class="info-row" id="info-row-local-agent" style="display: none;">
-                <span class="info-label">Local Agent:</span>
-                <span class="info-value" id="info-local-agent">-</span>
-              </div>
-              <div class="info-row" id="info-row-project-id">
-                <span class="info-label">Project ID:</span>
-                <span class="info-value" id="info-project-id">-</span>
-              </div>
-              <div class="info-row" id="info-row-location">
-                <span class="info-label">Location:</span>
-                <span class="info-value" id="info-location">-</span>
-              </div>
-              <div class="info-row" id="info-row-agent-id">
-                <span class="info-label">Target ID:</span>
-                <span class="info-value" id="info-agent-id">-</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Session ID:</span>
-                <span class="info-value" id="info-session-id">No active session</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">User ID:</span>
-                <span class="info-value" id="info-user-id">default_user_id</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- agentic-demos change: Demo controls panel. DEMO ONLY. -->
-          <details id="demo-controls" class="demo-controls">
-            <summary>
-              Demo controls <span class="demo-badge">Demo only</span>
-            </summary>
-            <p class="demo-note">
-              To see the GitHub consent page again, also revoke the GitHub
-              token: open
-              <a id="demo-github-link" href="https://github.com/settings/developers"
-                target="_blank" rel="noopener">GitHub OAuth Apps</a>,
-              select the app, and click "Revoke all user tokens".
-            </p>
-            <md-outlined-button id="demo-reset-btn" class="btn-full">
-              <span class="material-symbols-outlined" slot="icon">restart_alt</span>
-              Reset Auth Manager consent
-            </md-outlined-button>
-            <md-outlined-button id="demo-summary-btn" class="btn-full">
-              <span class="material-symbols-outlined" slot="icon">table_view</span>
-              Show access summary
-            </md-outlined-button>
-            <div id="demo-table" class="demo-table"></div>
-            <pre id="demo-output" class="demo-output">$ </pre>
-          </details>
-        </div>
-      </div>
-
       <!-- Main Chat Area -->
       <div class="chat-container">
         <!-- Header with title and clear chat button -->
         <header class="chat-header">
           <div class="header-left">
-            <div class="agent-info">
-              <h1>Agent Playground</h1>
+            <!-- agentic-demos change: title, step chip, and tabs under the title. -->
+            <div class="title-row">
+              <div class="agent-info">
+                <h1>Agent Identity &amp; Governance</h1>
+              </div>
+              <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
             </div>
-            <!-- agentic-demos change: current 3LO step, as text. -->
-            <span id="step-chip" class="step-chip" aria-live="polite">3LO step: none</span>
+            <div class="tabs" role="tablist" aria-label="Main views">
+              <button type="button" class="tab tab-tier-identity" role="tab" id="tab-play"
+                aria-selected="true" aria-controls="playground-panel">3LO GitHub</button>
+              <button type="button" class="tab tab-tier-egress" role="tab" id="tab-egress"
+                aria-selected="false" aria-controls="egress-panel" tabindex="-1">Egress gateway</button>
+              <button type="button" class="tab tab-tier-ingress" role="tab" id="tab-ingress"
+                aria-selected="false" aria-controls="ingress-panel" tabindex="-1">Ingress gateway</button>
+              <button type="button" class="tab tab-tier-docs" role="tab" id="tab-how"
+                aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
+              <button type="button" class="tab tab-tier-docs" role="tab" id="tab-auth-manager"
+                aria-selected="false" aria-controls="auth-manager-panel" tabindex="-1">Auth Manager</button>
+            </div>
           </div>
-          <div class="header-right">
+          <div class="header-right header-actions">
+            <!-- agentic-demos change: Step mode switch. Off by default. -->
+            <label class="step-switch" for="step-mode-switch">
+              <input type="checkbox" id="step-mode-switch" role="switch"
+                aria-describedby="step-mode-help" />
+              <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+              <span>Step mode</span>
+              <span class="switch-state" aria-hidden="true">Off</span>
+            </label>
+            <span id="step-mode-help" class="sr-only">
+              Shows the 3LO flow one step at a time. Click Next step to see each step.
+            </span>
             <!-- agentic-demos change: start a new agent session. -->
             <md-outlined-button id="new-conversation"
               title="Clears the chat and starts a new session. It does not remove the stored GitHub token. To remove it, use Demo controls, Reset Auth Manager consent."
               aria-label="New conversation. Clears the chat and starts a new session. It does not remove the stored GitHub token.">
               New conversation
             </md-outlined-button>
-            <!-- agentic-demos change: tabs for the main area. -->
-            <div class="tabs" role="tablist" aria-label="Main views">
-              <button type="button" class="tab" role="tab" id="tab-play"
-                aria-selected="true" aria-controls="playground-panel">Playground</button>
-              <button type="button" class="tab" role="tab" id="tab-how"
-                aria-selected="false" aria-controls="how-panel" tabindex="-1">How 3LO works</button>
-            </div>
           </div>
         </header>
         <!-- agentic-demos change: "How 3LO works" panel. -->
@@ -207,24 +103,306 @@
             <md-outlined-button id="clear-timings">Clear timings</md-outlined-button>
           </div>
         </section>
-        <div id="playground-panel" class="playground-panel" role="tabpanel" aria-labelledby="tab-play">
-        <!-- Message History Container -->
-        <div id="messages-container" class="messages-container"></div>
-        <!-- Input Area -->
-        <footer class="input-container">
-          <input
-            type="text"
-            id="user-input"
-            placeholder="Type a message to your agent..."
-            autofocus
-            autocomplete="off"
-          />
+        <!-- agentic-demos change: "Auth Manager" tab. Information only. No API calls. -->
+        <section id="auth-manager-panel" class="how-panel am-panel" role="tabpanel"
+          aria-labelledby="tab-auth-manager" hidden>
+          <h2>Auth Manager</h2>
 
-          <md-filled-icon-button id="send-btn" disabled>
-            <span class="material-symbols-outlined">send</span>
-          </md-filled-icon-button>
-        </footer>
+          <h3>What Auth Manager is</h3>
+          <p>Auth Manager is part of Agent Identity. It is a Google-managed vault and broker for third-party credentials. The agent asks Auth Manager for a token when it needs one. The agent never stores tokens.</p>
+
+          <h3>Auth providers</h3>
+          <p>An auth provider is the configuration for one third-party app. It belongs to one project and one location. Types: 3-legged OAuth (3LO, the user gives consent), 2-legged OAuth (2LO, client credentials, no user), and API key. This demo uses one 3LO provider for GitHub.</p>
+
+          <h3>Who may use a provider</h3>
+          <p>IAM controls access. The role <code>roles/agentidentity.user</code> on the provider lets one principal get tokens from it. In this demo, the agent identity has this role, and the demo client service account has it to finish the consent. Grant it on the provider, not on the project.</p>
+
+          <h3>The vault</h3>
+          <p>Auth Manager stores one authorization for each provider and each user ID. The client sends the user ID. Take the user ID only from a verified login, such as the IAP header. Auth Manager does not check the user ID against a login.</p>
+
+          <h3>The 3LO consent, in short</h3>
+          <ol>
+            <li>The agent asks for a token. There is none, so the client gets a consent URL and a one-time nonce.</li>
+            <li>The user approves on the provider site. The provider sends a code to Auth Manager, not to the client.</li>
+            <li>Auth Manager swaps the code for a token and stores it.</li>
+            <li>The client finishes the flow with the validation state and the nonce. Then the agent gets the token.</li>
+          </ol>
+
+          <h3>What "Reset Auth Manager consent" deletes</h3>
+          <table class="am-table">
+            <thead>
+              <tr><th scope="col">Item</th><th scope="col">Deleted?</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Your stored token in the vault, for this provider and your user ID</td><td>Yes</td></tr>
+              <tr><td>The record of your consent in Auth Manager</td><td>Yes, together with the token (inference)</td></tr>
+              <tr><td>A refresh token, if one exists</td><td>Probably yes (inference). A classic GitHub OAuth app normally gives no refresh token</td></tr>
+            </tbody>
+          </table>
+
+          <h3>What the reset does not delete</h3>
+          <table class="am-table">
+            <thead>
+              <tr><th scope="col">Item</th><th scope="col">Why it stays</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>The auth provider, with its client ID and client secret</td><td>The reset acts on one user, not on the provider</td></tr>
+              <tr><td>The IAM grants on the provider</td><td>IAM is separate from the vault</td></tr>
+              <tr><td>The access summary records</td><td>They are history, kept for about 13 months</td></tr>
+              <tr><td>Your approval of the app on GitHub</td><td>GitHub keeps it. To see the GitHub consent page again, also revoke the app tokens on GitHub</td></tr>
+              <tr><td>Tokens of other user IDs</td><td>The reset uses only your login identity</td></tr>
+              <tr><td>The agent, its sessions, and the chat</td><td>The reset does not change Agent Runtime</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Revoke in two places</h3>
+          <p>A revoke on the provider site alone does not reach Auth Manager. Auth Manager keeps the old token, and the next tool call fails (in tests: "MCP session connection lost" or a malformed function call). Revoke in Auth Manager (revokeAuthorization) and on the provider site. To reset both in this demo, use the <a href="#demo-controls" id="am-open-demo-controls">Demo controls panel</a>.</p>
+
+          <h3>Audit</h3>
+          <p>Access summaries show which agent used which provider for which user. Times are rounded down to the hour. Records stay for about 13 months, and you cannot delete them. They are history, not a list of stored tokens.</p>
+
+          <h3>Console view</h3>
+          <p>The agent Identity tab in the Google Cloud console lists a provider only after the agent has used it. It shows use, not permission. To check permission, read the IAM policy of the provider.</p>
+
+          <footer class="am-footer">Facts tested in a demo project in November 2026. Items marked inference are not confirmed.</footer>
+        </section>
+        <div id="playground-panel" class="playground-panel split" role="tabpanel" aria-labelledby="tab-play">
+          <!-- Left column: chat and sample prompts -->
+          <div class="chat-column">
+            <div class="sample-prompts" id="play-sample-prompts" aria-label="Sample prompts for 3LO GitHub">
+              <button type="button" class="play-sample-prompt sample-prompt" data-prompt="list my repositories">list my repositories</button>
+              <button type="button" class="play-sample-prompt sample-prompt" data-prompt="list my recent PRs">list my recent PRs</button>
+            </div>
+            <!-- Message History Container -->
+            <div id="messages-container" class="messages-container"></div>
+            <!-- Input Area -->
+            <footer class="input-container">
+              <input
+                type="text"
+                id="user-input"
+                placeholder="Type a message to your agent..."
+                autofocus
+                autocomplete="off"
+              />
+
+              <md-filled-icon-button id="send-btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+              </md-filled-icon-button>
+            </footer>
+          </div>
+          <!-- Middle column: drag handle and compact 3LO diagram -->
+          <div id="compact-resizer" class="compact-resizer" role="separator"
+            aria-orientation="vertical" aria-controls="compact-flow"
+            aria-label="Resize the 3LO diagram. Use the left and right arrow keys."
+            aria-valuemin="380" aria-valuemax="560" aria-valuenow="380" tabindex="0"></div>
+          <aside id="compact-flow" class="compact-flow" aria-label="3LO flow, compact view">
+            <div id="compact-diagram" class="compact-diagram"></div>
+            <ol id="compact-strip" class="compact-strip"></ol>
+          </aside>
+          <!-- Far-right column: Configuration Settings -->
+          <div id="settings-sidebar" class="sidebar">
+            <div class="sidebar-header">
+              <h2>Configuration Settings</h2>
+              <button type="button" id="presentation-toggle" class="presentation-toggle"
+                aria-controls="settings-form" aria-expanded="true"
+                aria-label="Fold the configuration panel (presentation mode)"
+                title="Fold the configuration panel (presentation mode)">
+                <span class="material-symbols-outlined" aria-hidden="true">right_panel_close</span>
+              </button>
+            </div>
+            <div class="settings-form" id="settings-form">
+              <md-outlined-select id="agent-type-select" label="Agent Type">
+                <md-select-option value="local">
+                  <div slot="headline">Local Agent</div>
+                </md-select-option>
+                <md-select-option value="remote" selected>
+                  <div slot="headline">Remote Agent (Vertex AI)</div>
+                </md-select-option>
+              </md-outlined-select>
+
+              <div id="local-settings" style="display: none;">
+                <md-outlined-select id="local-agent-select" label="Select Local Agent">
+                  <md-select-option value="">
+                    <div slot="headline">Select an agent...</div>
+                  </md-select-option>
+                </md-outlined-select>
+                <input type="hidden" id="local-agent" />
+              </div>
+
+              <div id="remote-settings">
+                <md-outlined-select id="project-id" label="Project ID" required>
+                </md-outlined-select>
+                <md-outlined-select id="location" label="Location" required>
+                </md-outlined-select>
+
+                <md-filled-button id="load-agents-btn" class="btn-full">
+                  <span class="material-symbols-outlined" slot="icon">sync</span>
+                  Load Remote Agents
+                </md-filled-button>
+
+                <md-outlined-select id="agent-select" label="Select Engine">
+                  <md-select-option value="">
+                    <div slot="headline">Select an engine...</div>
+                  </md-select-option>
+                </md-outlined-select>
+                <input type="hidden" id="agent-id" />
+              </div>
+
+              <md-outlined-text-field
+                id="user-id"
+                label="User ID"
+                value="default_user_id"
+                required
+              ></md-outlined-text-field>
+
+              <md-filled-button id="save-settings" class="btn-full">
+                <span class="material-symbols-outlined" slot="icon">save</span>
+                Save & Apply Settings
+              </md-filled-button>
+
+              <!-- Active Agent & Session Profile Pane -->
+              <div id="agent-info-pane" class="agent-info-pane">
+                <h4>Active Agent Profile</h4>
+                <div class="info-grid">
+                  <div class="info-row">
+                    <span class="info-label">Mode:</span>
+                    <span class="info-value" id="info-agent-mode">Remote Vertex AI</span>
+                  </div>
+                  <div class="info-row" id="info-row-local-agent" style="display: none;">
+                    <span class="info-label">Local Agent:</span>
+                    <span class="info-value" id="info-local-agent">-</span>
+                  </div>
+                  <div class="info-row" id="info-row-project-id">
+                    <span class="info-label">Project ID:</span>
+                    <span class="info-value" id="info-project-id">-</span>
+                  </div>
+                  <div class="info-row" id="info-row-location">
+                    <span class="info-label">Location:</span>
+                    <span class="info-value" id="info-location">-</span>
+                  </div>
+                  <div class="info-row" id="info-row-agent-id">
+                    <span class="info-label">Target ID:</span>
+                    <span class="info-value" id="info-agent-id">-</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Session ID:</span>
+                    <span class="info-value" id="info-session-id">No active session</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">User ID:</span>
+                    <span class="info-value" id="info-user-id">default_user_id</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- agentic-demos change: Demo controls panel. DEMO ONLY. -->
+              <details id="demo-controls" class="demo-controls">
+                <summary>
+                  Demo controls <span class="demo-badge">Demo only</span>
+                </summary>
+                <p class="demo-note">
+                  To see the GitHub consent page again, also revoke the GitHub
+                  token: open
+                  <a id="demo-github-link" href="https://github.com/settings/developers"
+                    target="_blank" rel="noopener">GitHub OAuth Apps</a>,
+                  select the app, and click "Revoke all user tokens".
+                </p>
+                <md-outlined-button id="demo-reset-btn" class="btn-full">
+                  <span class="material-symbols-outlined" slot="icon">restart_alt</span>
+                  Reset Auth Manager consent
+                </md-outlined-button>
+                <md-outlined-button id="demo-summary-btn" class="btn-full">
+                  <span class="material-symbols-outlined" slot="icon">table_view</span>
+                  Show access summary
+                </md-outlined-button>
+                <div id="demo-table" class="demo-table"></div>
+                <pre id="demo-output" class="demo-output">$ </pre>
+              </details>
+            </div>
+          </div>
         </div>
+
+        <!-- agentic-demos change: Ingress gateway tab (G1). -->
+        <section id="ingress-panel" class="gateway-panel" role="tabpanel" aria-labelledby="tab-ingress" hidden>
+          <div class="gateway-chat-col">
+            <div class="gateway-bar">
+              <div class="gateway-meta">
+                <div class="gateway-meta-top">
+                  <strong>Ingress Gateway (Model Armor)</strong>
+                  <span class="gateway-engine">Target engine: <code id="ingress-agent-id">-</code></span>
+                </div>
+                <p class="gateway-usecase">Use case: A CRM agent answers customer lookups, while Model Armor inspects prompts and redacts sensitive data (SSNs) in responses.</p>
+              </div>
+              <md-outlined-button id="ingress-new-conversation">New conversation</md-outlined-button>
+            </div>
+            <div class="sample-prompts" aria-label="Sample prompts for Ingress gateway">
+              <button type="button" class="sample-prompt" data-prompt="what are the names of our west customers?">Allow: List West region customers</button>
+              <button type="button" class="sample-prompt" data-prompt="what are the SSNs for bob johnson and alice brown? Format each line as Name - SSN: xxx-xx-xxxx">Block (Model Armor): Request customer SSNs</button>
+              <button type="button" class="sample-prompt" data-prompt="what are bob johnson's and alice brown's email addresses?">Allow: List customer email addresses</button>
+            </div>
+            <div id="ingress-messages" class="messages-container"></div>
+            <footer class="input-container">
+              <input type="text" id="ingress-input" placeholder="Send a prompt through the Ingress Gateway..." autocomplete="off" />
+              <md-filled-icon-button id="ingress-send-btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+              </md-filled-icon-button>
+            </footer>
+          </div>
+          <aside class="gateway-decision-col" aria-label="Ingress gateway decisions">
+            <h3>Ingress flow &amp; Model Armor decisions</h3>
+            <div id="ingress-diagram" class="gateway-diagram"></div>
+            <div class="gateway-log-header">
+              <md-outlined-button id="ingress-refresh-logs">Refresh logs</md-outlined-button>
+              <span id="ingress-log-status" class="gateway-log-status" aria-live="polite"></span>
+            </div>
+            <div id="ingress-log-table" class="gateway-log-table"></div>
+            <pre id="ingress-gcloud-cmd" class="demo-output">$ gcloud logging read ...</pre>
+          </aside>
+        </section>
+
+        <!-- agentic-demos change: Egress gateway tab (G2). -->
+        <section id="egress-panel" class="gateway-panel" role="tabpanel" aria-labelledby="tab-egress" hidden>
+          <div class="gateway-chat-col">
+            <div class="gateway-bar">
+              <div class="gateway-meta">
+                <div class="gateway-meta-top">
+                  <strong>Egress Gateway (IAP Access Policy)</strong>
+                  <span class="gateway-engine">Target engine: <code id="egress-agent-id">-</code></span>
+                </div>
+                <p class="gateway-usecase">Use case: A mortgage agent reads tax returns and emails, while IAP blocks outbound write tools (send_email).</p>
+              </div>
+              <md-outlined-button id="egress-new-conversation">New conversation</md-outlined-button>
+            </div>
+            <div class="sample-prompts" aria-label="Sample prompts for Egress gateway">
+              <button type="button" class="sample-prompt" data-prompt="I am reviewing the Sterling family's current application. Can you summarize their 2024 and 2025 tax returns and verify if their total household income meets our 2026 debt-to-income requirements?">Allow: Summarize Sterling tax returns</button>
+              <button type="button" class="sample-prompt" data-prompt="Can you send a summary of this to my email jane@example.com?">Block (IAP): Email summary to jane@example.com</button>
+              <button type="button" class="sample-prompt" data-prompt="Can you read my latest emails from the corporate inbox?">Allow: Read latest corporate inbox emails</button>
+            </div>
+            <div id="egress-messages" class="messages-container"></div>
+            <footer class="input-container">
+              <input type="text" id="egress-input" placeholder="Send a prompt to test Egress Gateway MCP policy..." autocomplete="off" />
+              <md-filled-icon-button id="egress-send-btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+              </md-filled-icon-button>
+            </footer>
+          </div>
+          <aside class="gateway-decision-col" aria-label="Egress gateway decisions">
+            <h3>Egress flow &amp; IAP policy decisions</h3>
+            <div id="egress-diagram" class="gateway-diagram"></div>
+            <div class="gateway-log-header">
+              <md-outlined-button id="egress-refresh-logs">Refresh logs</md-outlined-button>
+              <span id="egress-log-status" class="gateway-log-status" aria-live="polite"></span>
+            </div>
+            <div id="egress-log-table" class="gateway-log-table"></div>
+            <p class="gateway-log-note" id="egress-log-note">
+              Note: IAP Policy V2 does not write denied MCP <code>tools/call</code>
+              requests (such as <code>send_email</code>) to the audit log. The
+              table shows only allowed calls. The red banner in the chat comes
+              from the error that the agent returns when IAP blocks the call.
+            </p>
+            <pre id="egress-gcloud-cmd" class="demo-output">$ gcloud logging read ...</pre>
+          </aside>
+        </section>
       </div>
     </div>
 
@@ -234,6 +412,6 @@
     <script src="/static/vendor/marked.umd.js"></script>
     <script src="/static/vendor/purify.min.js"></script>
     <!-- Local JavaScript Hook -->
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js?v=23"></script>
   </body>
 </html>
