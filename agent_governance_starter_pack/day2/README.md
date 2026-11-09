@@ -40,10 +40,16 @@ This tool is new. It is not in the backlog items 11 to 23. It is backlog item #2
 
 - The principal set for all agent identities in one project is
   `//agents.global.org-ORGANIZATION_ID.system.id.goog/attribute.container/projects/PROJECT_NUMBER`.
-- The plan is to bind a principal access boundary policy to this principal set at the project.
-- The policy itself is an organization resource. An organization administrator must create it.
-  The starter pack [`AGENTS.md`](../AGENTS.md) does not allow organization-level changes, so a
-  person must do this step.
+- The plan is to bind a principal access boundary policy to this principal set.
+- To create a principal access boundary policy, you need the role
+  `roles/iam.principalAccessBoundaryAdmin` on the organization. Thus an organization administrator
+  creates the policy. Source:
+  [Create and apply principal access boundary policies](https://docs.cloud.google.com/iam/docs/principal-access-boundary-policies-create),
+  checked on 09 Nov 2026.
+- The binding to the agent identities principal set of one project is a project-level binding.
+- The starter pack [`AGENTS.md`](../AGENTS.md) does not allow organization-level changes. Thus a
+  person must create the policy. The Day-2 tool can only make the project-level binding, after
+  approval.
 - Not tested. The behavior with Agent Identity and the egress Agent Gateway is not checked.
 
 ## Backlog items that stay in the starter pack
