@@ -91,7 +91,7 @@ $(function() {
     svg.appendChild(svgEl('title', {id: `${cfg.prefix}title`}, cfg.title));
     svg.appendChild(svgEl('desc', {id: `${cfg.prefix}desc`}, cfg.desc));
     const defs = svgEl('defs');
-    ['normal', 'active'].forEach((kind) => {
+    ['normal', 'active', 'done'].forEach((kind) => {
       const marker = svgEl('marker', {
         id: `${cfg.prefix}arrow-${kind}`, viewBox: '0 0 10 10', refX: '9', refY: '5',
         markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse'});

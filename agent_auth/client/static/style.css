@@ -602,6 +602,20 @@ body {
   stroke-width: 2;
 }
 
+/* The arrowhead of a done step has the same light blue as its line. */
+.flow-svg .arrow-head-done,
+.compact-svg .arrow-head-done {
+  fill: #8ab4f8;
+}
+
+.flow-svg .flow-step.done .step-line {
+  marker-end: url(#flow-arrow-done);
+}
+
+.compact-svg .flow-step.done .step-line {
+  marker-end: url(#compact-arrow-done);
+}
+
 .flow-svg .flow-step.done .step-label,
 .compact-svg .flow-step.done .step-label {
   fill: #1a73e8;
