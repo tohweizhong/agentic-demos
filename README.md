@@ -27,7 +27,7 @@
   * [ge_list_agents](./ge_utils/ge_list_agents/): Gemini Enterprise Agent Lister & Identity Resolver
   * [sdp_content_policy](./ge_utils/sdp_content_policy/): Scripts for managing SDP content policies on data stores
   * [ge_wif_scim_check](./ge_utils/ge_wif_scim_check/): Script to check a WIF pool for SCIM tenants and the provider attribute mapping
-* [geap_starter_pack](./geap_starter_pack/): Draft design of a governed GEAP starter pack (landing zone, Agent Identity, Agent Registry, Agent Gateway, reference agent on Agent Runtime)
+* [agent_governance_starter_pack](./agent_governance_starter_pack/): Draft agent governance starter pack for Gemini Enterprise Agent Platform (landing zone, Agent Identity, Agent Registry, Agent Gateway, reference agent on Agent Runtime)
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI
