@@ -1,0 +1,16 @@
+{
+  "starter-pack-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/agy_guard.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
