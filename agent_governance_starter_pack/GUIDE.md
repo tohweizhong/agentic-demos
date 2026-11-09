@@ -53,13 +53,13 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scri
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Returns `iap_enforcement_mode` to `DRY_RUN` and resets the sample MCP server state |
 | `geap-teardown` | `.agents/skills/geap-teardown/SKILL.md` | Destroys all Terraform resources and sweeps any out-of-state GEAP resources in the project (requires human confirmation) |
 
-**Permission control for `agy`.** `agy` reads permission rules only from user-level files (`~/.gemini/antigravity-cli/settings.json`, `~/.gemini/config/config.json`). A workspace cannot ship permission rules. So this folder ships a `PreToolUse` hook instead: `.agents/hooks.json` runs `scripts/agy_guard.sh` before each command. The guard checks the full command line, including commands behind `cd ... &&`, pipes, and `bash -c`:
+**Permission control for `agy`.** `agy` reads permission rules only from user-level files (`~/.gemini/antigravity-cli/settings.json`, `~/.gemini/config/config.json`). A workspace cannot ship permission rules. So this folder ships a `PreToolUse` hook instead: `.agents/hooks.json` runs `sh ../scripts/agy_guard.sh` before each command (agy runs hooks from the `.agents/` folder). The guard checks the full command line, including commands behind `cd ... &&`, pipes, and `bash -c`:
 
 | Decision | Commands |
 |---|---|
 | `deny` | Piped input into `cleanup.sh`, `yes \|`, `gcloud organizations ...`, `gcloud org-policies set-policy/delete/reset`, `terraform`, `gcloud`, or `cleanup.sh` inside `bash -c` or `eval` |
 | `force_ask` (a person must approve) | `terraform apply/destroy/import/state rm`, `cleanup.sh`, `gcloud ... delete`, IAM policy changes |
-| `allow` | The read-only scripts (`preflight.sh`, `deploy_checks.sh`, `teardown_plan.sh`, `package_agent.sh`, `ask_agent.sh`, `read_audit_log.sh`, `configure.sh --dry-run/--show`), `terraform plan/output/validate/fmt/test/state list`, `gcloud ... describe/list` |
+| `auto_approve` | The read-only scripts (`preflight.sh`, `deploy_checks.sh`, `teardown_plan.sh`, `package_agent.sh`, `ask_agent.sh`, `read_audit_log.sh`, `configure.sh --dry-run/--show`), `terraform plan/output/validate/fmt/test/state list`, `gcloud ... describe/list` |
 | `ask` | Everything else |
 
 Sources (checked 09 Nov 2026 in the Jetski source): rule files in `cli/store/permissions.go`, hook format in `cortex/customization/hooks/jsonhook/SPEC.md`. The guard was tested with sample tool calls. It is not yet tested inside an `agy` session.
