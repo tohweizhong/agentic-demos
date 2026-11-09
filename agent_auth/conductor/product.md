@@ -68,6 +68,11 @@ on Cloud Run with IAP.
 - B5 After B3 and B4: one combined journey view (3LO, ingress, egress, audit).
 - B6 "MCP" info tab in the demo UI: explain MCP tool annotations (`readOnlyHint`,
   `destructiveHint`), tool discovery (`tools/list`), and per-tool CEL policies.
+- B7 "OIDC" tab in the demo UI (agentic OIDC): the agent gets an OIDC ID token
+  for its own Agent Identity, with no user, and calls a protected service such
+  as a Cloud Run API. Show the ID token claims (issuer, subject, audience) and
+  the IAM check on the receiving service. Verify first which token types Agent
+  Identity can issue on Agent Runtime.
 
 ## Out of scope
 
