@@ -72,6 +72,7 @@ tfvars_bool() {
 ENABLE_EGRESS="$(tfvars_bool enable_egress_gateway true)"
 ENABLE_INGRESS="$(tfvars_bool enable_ingress_gateway false)"
 ENABLE_MA="$(tfvars_bool enable_model_armor true)"
+ALLOW_GMM="$(tfvars_bool allow_google_managed_members false)"
 NEEDS_MA_ROLES="false"
 if [[ "${ENABLE_MA}" == "true" && ( "${ENABLE_EGRESS}" == "true" || "${ENABLE_INGRESS}" == "true" ) ]]; then
   NEEDS_MA_ROLES="true"
@@ -226,6 +227,7 @@ REPORT="$(jq -n \
   --argjson existing_ma_roles "${EXISTING_MA_ROLES}" \
   --argjson ma_roles_count "${MA_ROLES_COUNT}" \
   --argjson needs_ma_roles "${NEEDS_MA_ROLES}" \
+  --argjson allow_gmm "${ALLOW_GMM}" \
   --argjson tf_state_count "${TF_STATE_COUNT}" \
   --argjson gateways "${GATEWAYS_JSON}" \
   --argjson agents "${AGENTS_JSON}" \
@@ -243,12 +245,15 @@ REPORT="$(jq -n \
       (if $log_bucket_state == "DELETE_REQUESTED" then
         "Log bucket " + $log_bucket_id + " is in DELETE_REQUESTED state (7-day soft-delete lock). Undelete it before apply: gcloud logging buckets undelete " + $log_bucket_id + " --location=" + $region + " --project=" + $project
        else empty end),
-      (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3)) then
-        "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Option B or Option C before terraform apply, or set enable_model_armor = false."
+      (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3) and ($allow_gmm | not)) then
+        "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Approach 1, 2, or 3 in GUIDE Section 3 before terraform apply, or set enable_model_armor = false."
        else empty end)
     ];
   def warnings:
     [
+      (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3) and $allow_gmm) then
+        "allow_google_managed_members = true: Terraform sets a temporary project exception to iam.allowedPolicyMemberDomains for the 3 Model Armor roles (Approach 2). Set it back to false and apply again after the roles exist."
+       else empty end),
       (if ($missing_apis | length) > 0 then
         (($missing_apis | length | tostring) + " required APIs are not enabled yet. Terraform will enable them during apply.")
        else empty end),

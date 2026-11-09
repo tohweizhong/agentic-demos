@@ -62,6 +62,7 @@ scripts/cleanup.sh [--keep-log-bucket | --purge-all] [--include-project-wide]
 |---|---|---|
 | `terraform destroy` fails on `<name_prefix>-egress-ma-policy` with `Error code 13, message: an internal error has occurred` | Seen twice on 09 Nov 2026. A direct REST `DELETE` on the same policy succeeded at once. The cause is not clear | Run the script again. The sweep deletes the policy through the REST API and waits for the operation. Then run the script one more time so `terraform destroy` finishes |
 | The sweep reports an HTTP error such as `401` or `403` | The token is not valid for the REST endpoint. The gcloud CLI token can be bound to Certificate Based Access | Run `gcloud auth application-default login` and run the script again |
+| An agent was deleted outside Terraform (console, API, or the `cleanup.sh` sweep), and its grants stay in the IAM policies | IAM does not remove the bindings of a deleted agent. They name a principal that no longer exists, so nobody can use them | Run `terraform apply` to remove the grants that Terraform owns. To find others, run `gcloud projects get-iam-policy PROJECT_ID --format=json \| grep reasoningEngines/`, and check the service account policies and the gateway access policy too |
 | A deploy fails with `409 ALREADY_EXISTS` on the log bucket | The bucket is soft-deleted (`--purge-all`), or it is in the state of another clone | Wait 7 days, use another `name_prefix`, or run the script with `--keep-log-bucket` from the clone that deployed |
 
 ## Test record

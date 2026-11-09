@@ -4,6 +4,7 @@
 |---|---|---|
 | In progress | [mini_build_20261108](./tracks/mini_build_20261108/index.md) | Mini build of the agent governance starter pack in one sandbox project. Deployed and tested on 08 Nov 2026. Results are in the track plan |
 | New | [manual_test_20261109](./tracks/manual_test_20261109/index.md) | Manual test by the repository owner, from a fresh clone. Not started |
+| Completed | [region_test_20261109](./tracks/region_test_20261109/index.md) | Live test of all five tiers in `asia-southeast1`, by an agent, on 09 Nov 2026 |
 
 ## Open work
 
@@ -18,3 +19,6 @@ all marked `Not built`). Each backlog item becomes a track when work on it start
 
 - [ ] **Track: Manual test by the repository owner**
   *Link: [./tracks/manual_test_20261109/index.md](./tracks/manual_test_20261109/index.md)*
+
+- [x] **Track: Live test in asia-southeast1**
+  *Link: [./tracks/region_test_20261109/index.md](./tracks/region_test_20261109/index.md)*

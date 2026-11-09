@@ -14,6 +14,9 @@ prompt_injection_and_jailbreak:
   enforcement: ENABLED
   confidence_level: MEDIUM_AND_ABOVE
 
+# Set to DISABLED in regions that do not support the malicious URI filter, for
+# example asia-southeast1 (Error 400 CAPABILITY_NOT_SUPPORTED, tested 09 Nov 2026).
+# Terraform then omits the field from the templates.
 malicious_uri:
   enforcement: ENABLED
 
