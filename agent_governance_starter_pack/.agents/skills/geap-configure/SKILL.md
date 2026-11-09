@@ -21,6 +21,11 @@ choose.
 
 ## Questions, in this order
 
+0. **New or existing project.** Ask if the project is new (no agents yet) or already has agents, MCP
+   servers, or gateways that the starter pack did not create. For an existing project, run the
+   `geap-discover` skill after question 1 and show its report. Explain that the starter pack builds
+   the vertical path (its own reference agent and controls), and that the lateral steps for the
+   existing resources are listed in the report but the tools for them are not built yet (backlog item 30).
 1. **Project.** Show the value of `gcloud config get-value project`. Ask the user to confirm it or
    give another project ID. Then find the project number with
    `gcloud projects describe PROJECT_ID --format="value(projectNumber)"` and the organization ID
