@@ -97,8 +97,8 @@ Pick the highest tier that your organization can approve today. Copy its four li
 
 Rules for the tiers:
 
-- Add the tiers in order. The IAP rules in Tier 3 match tools by their Agent Registry name (`destination.agent_registry.mcp_server.tool.name`), so Tier 3 needs Tier 2. Terraform does not check this rule.
-- Model Armor (Tier 4) runs only on a gateway. If both gateway variables are `false`, `enable_model_armor = true` has no effect.
+- Add the tiers in order. The IAP rules in Tier 3 match tools by their Agent Registry name (`destination.agent_registry.mcp_server.tool.name`), so Tier 3 needs Tier 2. If `enable_egress_gateway = true` and `enable_agent_registry = false`, `terraform plan` stops with an error.
+- Model Armor (Tier 4) needs the egress gateway (Tier 3). Terraform reads the gateway service account for the three Model Armor roles from the egress gateway, and the ingress gateway does not return it. If `enable_model_armor = true` and `enable_egress_gateway = false`, `terraform plan` stops with an error.
 - Start every tier that has an egress gateway with `iap_enforcement_mode = "DRY_RUN"`. Change to `ENFORCE` after the checks in Section 6 pass.
 - To move to another tier later, change the four variables and run `terraform plan` and `terraform apply`. Read the plan first. The 08 Nov 2026 test moved up from Tier 1 to Tier 5 on one project. A move down was not tested.
 - Run `scripts/preflight.sh` after you set the variables. It checks the organization policies that the selected tiers need.

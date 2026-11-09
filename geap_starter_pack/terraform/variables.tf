@@ -50,12 +50,23 @@ variable "enable_egress_gateway" {
   description = "Tier 3 (Outbound Access Control): if true, Terraform deploys the Agent-to-Anywhere (egress) gateway and the IAP V2 policy. Set to false to deploy without an egress gateway."
   type        = bool
   default     = true
+
+  # Terraform 1.9 and later can compare two variables in one validation.
+  validation {
+    condition     = !var.enable_egress_gateway || var.enable_agent_registry
+    error_message = "Tier 3 needs Tier 2. The IAP rules match tools by their Agent Registry name. Set enable_agent_registry = true, or set enable_egress_gateway = false."
+  }
 }
 
 variable "enable_model_armor" {
   description = "Tier 4 (Content Safety): if true, Terraform deploys the Model Armor templates, the CONTENT_AUTHZ extension, and the three IAM bindings on the gateway Service Extensions service account."
   type        = bool
   default     = true
+
+  validation {
+    condition     = !var.enable_model_armor || var.enable_egress_gateway
+    error_message = "Tier 4 needs Tier 3. Terraform reads the gateway Service Extensions service account for the three Model Armor roles from the egress gateway. The ingress gateway does not return it. Set enable_egress_gateway = true, or set enable_model_armor = false."
+  }
 }
 
 variable "enable_ingress_gateway" {
