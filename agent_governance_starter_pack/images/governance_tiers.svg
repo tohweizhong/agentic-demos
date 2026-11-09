@@ -1,12 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560" font-family="'Google Sans', Roboto, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600" font-family="'Google Sans', Roboto, Arial, sans-serif">
   <title>Agent governance starter pack tiers</title>
-  <desc>A pyramid of five governance tiers. Tier 1 is the base and is always on. Each higher tier adds one control and one Terraform variable. Tiers 4 and 5 need the domain restricted sharing setup.</desc>
-  <rect x="0" y="0" width="1180" height="560" fill="#ffffff"/>
+  <desc>A pyramid of five governance tiers. Tier 1 is the base and is always on. Each higher tier adds one control and one Terraform variable (the vertical path). On the left, a lateral path for each tier brings existing agents, MCP servers, and clients in the project under the same control. Tiers 4 and 5 need the domain restricted sharing setup.</desc>
+  <rect x="0" y="0" width="1600" height="600" fill="#ffffff"/>
+  <g transform="translate(420,0)">
 
   <!-- Arrow: add tiers from the bottom up -->
   <line x1="14" y1="510" x2="14" y2="50" stroke="#5f6368" stroke-width="2"/>
   <polygon points="14,36 6,54 22,54" fill="#5f6368"/>
-  <text x="34" y="290" font-size="14" fill="#5f6368" transform="rotate(-90 34 290)" text-anchor="middle">Add tiers from the bottom up</text>
+  <text x="34" y="290" font-size="14" fill="#5f6368" transform="rotate(-90 34 290)" text-anchor="middle">Vertical path: add tiers from the bottom up</text>
 
   <!-- Bands. Pyramid center x = 420. Half width = 70 + 320 * (y - 30) / 480. -->
   <!-- Tier 5: y 30 to 126 -->
@@ -67,4 +68,29 @@
     <line x1="722" y1="366" x2="840" y2="366"/>
     <line x1="786" y1="462" x2="840" y2="462"/>
   </g>
+  </g>
+  <!-- Lateral paths: existing resources in the project -->
+  <text x="20" y="22" font-size="13" font-weight="700" fill="#188038">Lateral path: existing resources in the project</text>
+  <text x="20" y="74" font-size="13" fill="#202124">Bind existing agents to the ingress gateway</text>
+  <text x="20" y="92" font-size="12" fill="#5f6368">Move their clients to the gateway URL</text>
+  <line x1="470" y1="82" x2="726" y2="82" stroke="#188038" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="736,82 724,76 724,88" fill="#188038"/>
+  <text x="20" y="170" font-size="13" fill="#202124">No change for each agent</text>
+  <text x="20" y="188" font-size="12" fill="#5f6368">Every agent bound to egress is screened</text>
+  <line x1="470" y1="178" x2="662" y2="178" stroke="#188038" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="672,178 660,172 660,184" fill="#188038"/>
+  <text x="20" y="266" font-size="13" fill="#202124">Bind existing agents to the egress gateway</text>
+  <text x="20" y="284" font-size="12" fill="#5f6368">Add IAP rules for each agent principal (DRY_RUN first)</text>
+  <line x1="470" y1="274" x2="598" y2="274" stroke="#188038" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="608,274 596,268 596,280" fill="#188038"/>
+  <text x="20" y="362" font-size="13" fill="#202124">Register existing MCP servers and endpoints</text>
+  <text x="20" y="380" font-size="12" fill="#5f6368">Tool spec and URL for each server</text>
+  <line x1="470" y1="370" x2="534" y2="370" stroke="#188038" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="544,370 532,364 532,376" fill="#188038"/>
+  <text x="20" y="458" font-size="13" fill="#202124">Move existing agents to AGENT_IDENTITY</text>
+  <text x="20" y="476" font-size="12" fill="#5f6368">Grant roles to each new principal</text>
+  <line x1="470" y1="466" x2="470" y2="466" stroke="#188038" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="480,466 468,460 468,472" fill="#188038"/>
+  <text x="20" y="560" font-size="12" fill="#5f6368">Planned, not built: discovery, adoption plan, and lateral tools.</text>
+  <text x="20" y="578" font-size="12" fill="#5f6368">See conductor/tracks/existing_project_adoption_20261109.</text>
 </svg>
