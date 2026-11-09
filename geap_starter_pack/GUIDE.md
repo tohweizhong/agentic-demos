@@ -80,6 +80,26 @@ You can enable the five governance tiers one step at a time in `terraform/terraf
 | **Tier 4** | **Content Safety (Model Armor)** | Model Armor templates, `CONTENT_AUTHZ` extension, and 3 `gcp-sa-dep` IAM grants | `enable_model_armor` (default `true`) | Screens prompts and tool outputs for prompt injection, jailbreaks, and sensitive data on active gateways. **Only Tier 4 needs the domain restriction setup** |
 | **Tier 5** | **Inbound Client Control (Ingress Gateway)** | Ingress Agent Gateway (`CLIENT_TO_AGENT`) and `clientToAgentConfig` (attaches Model Armor when `enable_model_armor = true`) | `enable_ingress_gateway` (default `false`) | Controls inbound client traffic to the agent |
 
+### Choose Your Tier
+
+Pick the highest tier that your organization can approve today. Copy its four lines into `terraform/terraform.tfvars`:
+
+| Tier | Use it when | `enable_agent_registry` | `enable_egress_gateway` | `enable_model_armor` | `enable_ingress_gateway` | Organization policy change |
+|---|---|---|---|---|---|---|
+| **Tier 1** | You want agents with their own identity first, with no gateway | `false` | `false` | `false` | `false` | None |
+| **Tier 2** | You also want a catalog of approved MCP servers and APIs | `true` | `false` | `false` | `false` | None |
+| **Tier 3** | You also want to allow or deny each tool call. Recommended first production step | `true` | `true` | `false` | `false` | None |
+| **Tier 4** | You also want prompts and answers screened for injection and sensitive data. This is the default in `terraform.tfvars.example` | `true` | `true` | `true` | `false` | Domain restricted sharing setup (see below) |
+| **Tier 5** | You also want to control which clients can call the agent | `true` | `true` | `true` | `true` | Domain restricted sharing setup (see below) |
+
+Rules for the tiers:
+
+- Add the tiers in order. The IAP rules in Tier 3 match tools by their Agent Registry name (`destination.agent_registry.mcp_server.tool.name`), so Tier 3 needs Tier 2. Terraform does not check this rule.
+- Model Armor (Tier 4) runs only on a gateway. If both gateway variables are `false`, `enable_model_armor = true` has no effect.
+- Start every tier that has an egress gateway with `iap_enforcement_mode = "DRY_RUN"`. Change to `ENFORCE` after the checks in Section 6 pass.
+- To move to another tier later, change the four variables and run `terraform plan` and `terraform apply`. Read the plan first. The 08 Nov 2026 test moved up from Tier 1 to Tier 5 on one project. A move down was not tested.
+- Run `scripts/preflight.sh` after you set the variables. It checks the organization policies that the selected tiers need.
+
 When Tier 4 (`enable_model_armor = true`) is active alongside an Agent Gateway, the gateway calls Model Armor through its Service Extensions service account (`service-TENANT_PROJECT_NUMBER@gcp-sa-dep.iam.gserviceaccount.com`), which belongs to a Google-managed tenant project. Terraform grants this account three roles: `roles/modelarmor.calloutUser`, `roles/modelarmor.user`, and `roles/serviceusage.serviceUsageConsumer`.
 
 If you enable Tier 4 (`enable_model_armor = true`), check whether your organization enforces the legacy domain restriction constraint:
@@ -136,10 +156,10 @@ allow_google_managed_members = false
 
 ### How `DRY_RUN` vs `ENFORCE` Works Across Control Layers
 
-| Control Layer | Policy Profile | `DRY_RUN` vs `ENFORCE` Behavior |
-|---|---|---|
-| **IAP Policy V2 (`geap-egress-iap-authz`)** | `REQUEST_AUTHZ` | Controlled by `iap_enforcement_mode` in `terraform.tfvars`. In `DRY_RUN` (`iamEnforcementMode = "DRY_RUN"`), IAP evaluates the access rules in shadow (audit-only) mode and lets all tool calls (`get_status` and `update_status`) pass so platform teams can onboard agents safely. In `ENFORCE` (`iamEnforcementMode` omitted), IAP blocks any tool denied by `policies/iap_access_policy.yaml` (`update_status`) before the request reaches Cloud Run |
-| **Model Armor (`geap-egress-ma-authz`)** | `CONTENT_AUTHZ` | Enforces content filters (`INSPECT_AND_BLOCK`) whenever `enable_model_armor = true`. Model Armor blocks prompt injection and jailbreak attempts with HTTP `403` in both `DRY_RUN` and `ENFORCE` IAP modes |
+| Control Layer | Policy Profile | Controlled By | In `DRY_RUN` | In `ENFORCE` |
+|---|---|---|---|---|
+| **IAP Policy V2 (`geap-egress-iap-authz`)** | `REQUEST_AUTHZ` | `iap_enforcement_mode` in `terraform.tfvars` (sets `iamEnforcementMode = "DRY_RUN"`, or omits it for `ENFORCE`) | IAP evaluates the access rules in shadow (audit-only) mode. All tool calls (`get_status` and `update_status`) pass, so platform teams can onboard agents safely | IAP blocks any tool that `policies/iap_access_policy.yaml` denies (`update_status`) before the request reaches Cloud Run |
+| **Model Armor (`geap-egress-ma-authz`)** | `CONTENT_AUTHZ` | `enable_model_armor` in `terraform.tfvars`. `iap_enforcement_mode` has no effect on Model Armor | Model Armor blocks prompt injection and jailbreak attempts with HTTP `403` (`INSPECT_AND_BLOCK`) | Same as `DRY_RUN`: Model Armor blocks with HTTP `403` |
 
 Package the agent source archive. Terraform reads the archive from `terraform/build/`:
 
