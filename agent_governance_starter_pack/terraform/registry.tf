@@ -193,6 +193,31 @@ moved {
   to   = google_agent_registry_service.mcp[0]
 }
 
+# Lateral path, Tier 2: register MCP servers that already exist in the project
+# (backlog item 30, phase 3). Each entry needs the server URL and a tool spec
+# file (the same format as mcp-server/tool_spec.json).
+resource "google_agent_registry_service" "existing_mcp" {
+  for_each = var.enable_agent_registry ? var.existing_mcp_servers : {}
+
+  project      = var.project_id
+  location     = var.region
+  service_id   = "${var.name_prefix}-ext-${each.key}"
+  display_name = coalesce(each.value.display_name, each.key)
+  description  = "Existing MCP server registered by the starter pack (lateral path)."
+
+  interfaces {
+    url              = each.value.url
+    protocol_binding = "JSONRPC"
+  }
+
+  mcp_server_spec {
+    type    = "TOOL_SPEC"
+    content = jsonencode(jsondecode(file(each.value.tool_spec_file)))
+  }
+
+  depends_on = [google_project_service.this]
+}
+
 # Agent Registry: one endpoint with the Google API hosts that the agent calls.
 resource "google_agent_registry_service" "google_apis" {
   count = var.enable_agent_registry ? 1 : 0

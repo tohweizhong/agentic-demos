@@ -134,6 +134,21 @@ variable "drs_exception_allowed_values" {
   default     = ["is:C02h8e9nw"]
 }
 
+variable "existing_mcp_servers" {
+  description = "Lateral path, Tier 2: MCP servers that already exist in the project and must be registered in Agent Registry. Key: short name (lowercase letters, numbers, hyphens). url: the MCP endpoint. tool_spec_file: path to a tool spec JSON file, relative to the terraform folder or absolute."
+  type = map(object({
+    url            = string
+    tool_spec_file = string
+    display_name   = optional(string)
+  }))
+  default = {}
+
+  validation {
+    condition     = alltrue([for k, v in var.existing_mcp_servers : can(regex("^[a-z][a-z0-9-]{0,20}$", k)) && startswith(v.url, "https://")])
+    error_message = "Each key must be lowercase letters, numbers, or hyphens (up to 21 characters), and each url must start with https://."
+  }
+}
+
 variable "agent_source_archive" {
   description = "The path of the agent source archive, relative to this folder. scripts/package_agent.sh writes it."
   type        = string

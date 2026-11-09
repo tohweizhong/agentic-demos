@@ -19,8 +19,9 @@ Status: in progress. Phase 1 built on 09 Nov 2026.
 
 ## Phase 3: Lateral tools
 
-- [ ] Task: register an existing MCP server (Terraform `google_agent_registry_service`, tool spec from
-      the server or from a file).
+- [x] Task: register an existing MCP server (Terraform `google_agent_registry_service`, tool spec from
+      a file). Done on 09 Nov 2026: variable `existing_mcp_servers`, resource `existing_mcp`, test
+      `existing_mcp_servers_are_registered`. Not applied live.
 - [ ] Task: move an agent to `AGENT_IDENTITY` (deploy again or update in place), and grant its roles to
       the new principal. Record the old principal for clean-up.
 - [ ] Task: bind an agent to the egress or ingress gateway (`agentGatewayConfig` in Terraform).
