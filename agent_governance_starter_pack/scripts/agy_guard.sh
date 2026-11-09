@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # PreToolUse hook for the Antigravity CLI (agy). agy runs it before each
 # run_command call, sends the tool call as JSON on stdin, and reads one JSON
-# decision from stdout: {"decision":"deny|ask|allow|force_ask","reason":"..."}.
+# decision from stdout: {"decision":"deny|ask|auto_approve|force_ask","reason":"..."}.
+# agy runs the hook from the folder that holds hooks.json (.agents/), through sh -c.
+# "allow" is a no-op in agy; "auto_approve" skips a default prompt only
+# (hooks_pb/hooks.proto:205 and :223, checked 09 Nov 2026).
 #
 # Why a hook: agy reads permission rules only from user-level files
 # (~/.gemini/antigravity-cli/settings.json and ~/.gemini/config/). A workspace
@@ -59,6 +62,6 @@ while IFS= read -r part; do
   [[ -z "${part}" ]] && continue
   grep -Eq "${SAFE}" <<<"${part}" || { ALL_SAFE="false"; break; }
 done < <(sed -E 's/(&&|\|\||;|\|)/\n/g' <<<"${CMD}")
-[[ "${ALL_SAFE}" == "true" ]] && out "allow" "Read-only command of the agent governance starter pack."
+[[ "${ALL_SAFE}" == "true" ]] && out "auto_approve" "Read-only command of the agent governance starter pack."
 
 out "ask" "Not on the starter pack read-only list. A person must approve it."
