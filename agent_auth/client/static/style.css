@@ -113,7 +113,7 @@ body {
 .messages-container {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 16px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -124,7 +124,7 @@ body {
    Provides distinct visual styling for user, agent, system, and error bubbles.
    ========================================================================== */
 .message {
-  max-width: 75%;
+  max-width: 88%;
   padding: 12px 18px;
   border-radius: 18px;
   line-height: 1.55;
@@ -151,6 +151,8 @@ body {
 
 .agent-message {
   align-self: flex-start;
+  max-width: 92%;
+  overflow-x: auto;
   background-color: var(--message-agent-bg);
   color: var(--message-agent-text);
   border-bottom-left-radius: 4px;
@@ -670,6 +672,7 @@ body {
 
 .answer-text.markdown {
   white-space: normal;
+  overflow-x: auto;
 }
 
 .answer-text.markdown p,
@@ -1221,10 +1224,6 @@ body {
   display: block;
 }
 
-#play-sample-prompts {
-  padding: 10px 16px 0;
-}
-
 .compact-resizer {
   display: none;
 }
@@ -1542,11 +1541,24 @@ md-outlined-button {
   color: var(--color-text);
 }
 
+.gateway-usecase {
+  margin: 0;
+  padding: 6px 24px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background-color: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
 .sample-prompts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 24px;
+  flex-shrink: 0;
+  background-color: var(--chat-bg);
+  z-index: 2;
+  padding: 10px 24px 8px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .sample-prompt {

@@ -113,6 +113,7 @@ def test_gateway_logs_ingress_parses_model_armor_entries(client, monkeypatch):
   assert body["orderBy"] == "timestamp desc"
   assert body["pageSize"] == 20
   assert "modelarmor.googleapis.com%2Fsanitize_operations" in body["filter"]
+  assert 'resource.labels.template_id:"agw-nov26-us-central1-cta"' in body["filter"]
   assert "gcloud logging read" in data["command"]
   assert len(data["rows"]) == 2
   assert data["rows"][0] == {

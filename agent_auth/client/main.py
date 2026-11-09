@@ -347,6 +347,7 @@ async def demo_gateway_logs(
     log_filter = (
         f'logName="projects/{project_id}/logs/'
         'modelarmor.googleapis.com%2Fsanitize_operations"'
+        ' AND resource.labels.template_id:"agw-nov26-us-central1-cta"'
     )
     parser = _parse_ingress_entry
   else:

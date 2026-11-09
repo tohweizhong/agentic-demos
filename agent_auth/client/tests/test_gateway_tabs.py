@@ -2,7 +2,10 @@
 
 INGRESS_PROMPTS = [
     "what are the names of our west customers?",
-    "what are ssn's for bob johnson and alice brown?",
+    (
+        "what are the SSNs for bob johnson and alice brown? Format each line"
+        " as Name - SSN: xxx-xx-xxxx"
+    ),
     "what are bob johnson's and alice brown's email addresses?",
 ]
 
@@ -54,7 +57,8 @@ def test_ingress_tab_prompts_chat_banner_and_logs(new_page, stats):
   assert not page.locator("#settings-sidebar").is_visible()
   assert "ingress-engine-test" in panel.locator("#ingress-agent-id").inner_text()
 
-  # Check the 3 outcome-labeled buttons and data-prompt attributes.
+  # Check the 3 outcome-labeled buttons, data-prompt attributes, and usecase line.
+  assert "CRM agent" in panel.locator(".gateway-usecase").inner_text()
   assert panel.locator(".sample-prompt").all_inner_texts() == INGRESS_LABELS
   prompts = panel.locator(".sample-prompt").evaluate_all(
       "els => els.map(b => b.getAttribute('data-prompt'))"
@@ -103,6 +107,10 @@ def test_ingress_tab_prompts_chat_banner_and_logs(new_page, stats):
       == "Allowed"
   )
   assert "SDP (SSN)" in panel.locator("#ingress-log-table").inner_text()
+  first_time_cell = panel.locator("#ingress-log-table tbody tr td").first
+  assert "SGT" in first_time_cell.inner_text()
+  assert "2026" not in first_time_cell.inner_text()
+  assert "2026-11-08" in (first_time_cell.get_attribute("title") or "")
   assert (
       "gcloud logging read" in panel.locator("#ingress-gcloud-cmd").inner_text()
   )

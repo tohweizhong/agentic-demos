@@ -1241,23 +1241,16 @@ $(function() {
 
   const shortName = (value) => (value ? String(value).split('/').pop() : '');
 
-  // Shows an API time (UTC) in the browser local time with the zone, and
-  // the UTC time. Example: "08 Nov 2026 15:00 SGT (07:00 UTC)".
+  // Shows an API time (UTC) in the short SGT format without year or inline UTC.
+  // Example: "09 Nov 10:10 SGT".
   const formatTime = (iso) => {
     if (!iso) return '';
     const d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
     const local = d.toLocaleString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit',
-      minute: '2-digit', hour12: false}).replace(',', '');
-    // The zone name comes from the browser language, for example "SGT" for
-    // en-SG or "GMT+8" for en-US.
-    const zonePart = new Intl.DateTimeFormat(undefined, {timeZoneName: 'short'})
-        .formatToParts(d).find((p) => p.type === 'timeZoneName');
-    const zone = zonePart ? ` ${zonePart.value}` : '';
-    const utc = d.toLocaleString('en-GB', {
-      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'});
-    return `${local}${zone} (${utc} UTC)`;
+      day: '2-digit', month: 'short', hour: '2-digit',
+      minute: '2-digit', hour12: false, timeZone: 'Asia/Singapore'}).replace(',', '');
+    return `${local} SGT`;
   };
 
   const showSummaryTable = (summaries) => {
@@ -1273,8 +1266,8 @@ $(function() {
       $row.append($('<td>').text(shortName(s.workloadId)));
       $row.append($('<td>').text(shortName(s.authProvider)));
       $row.append($('<td>').text((s.scopes || []).join(' ')));
-      $row.append($('<td>').text(formatTime(s.firstAccessTime)));
-      $row.append($('<td>').text(formatTime(s.lastAccessTime)));
+      $row.append($('<td>').attr('title', s.firstAccessTime || '').text(formatTime(s.firstAccessTime)));
+      $row.append($('<td>').attr('title', s.lastAccessTime || '').text(formatTime(s.lastAccessTime)));
       $table.append($row);
     });
     $('#demo-table').empty().append($table);
@@ -1366,7 +1359,7 @@ $(function() {
             .addClass(`decision-badge ${allowed ? 'state-allowed' : 'state-blocked'}`)
             .text(allowed ? 'Allowed' : 'Blocked');
         $tbody.append($('<tr>')
-            .append($('<td>').text(formatTime(r.timestamp)))
+            .append($('<td>').attr('title', r.timestamp || '').text(formatTime(r.timestamp)))
             .append($('<td>').append($badge))
             .append($('<td>').text(r.target || ''))
             .append($('<td>').text(r.detail || '')));
@@ -1422,6 +1415,7 @@ $(function() {
   const isGatewayBlockedText = (t) => {
     const s = String(t || '').toLowerCase();
     return s.includes('mcp session connection lost') ||
+        s.includes('[us_social_security_number]') ||
         s.includes('blocked') ||
         s.includes('cannot provide') ||
         s.includes('permission denied') ||
