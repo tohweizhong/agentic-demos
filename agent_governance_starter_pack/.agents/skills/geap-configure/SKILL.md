@@ -26,7 +26,7 @@ choose.
    `gcloud projects describe PROJECT_ID --format="value(projectNumber)"` and the organization ID
    with `gcloud projects get-ancestors PROJECT_ID --format="value(id,type)"` (the row with type
    `organization`). Show both and ask the user to confirm.
-2. **Region.** Offer these options. Do not show test dates to the user. GUIDE.md "Regions other than us-central1" keeps the test record. Copy the model values exactly as written here:
+2. **Region.** Offer these options. Do not show test dates to the user. GUIDE.md "Regions other than us-central1" keeps the test record. The model values below are for your explanation only. `scripts/configure.sh` sets them:
    - `us-central1` (default, tested). Sets `model_id = "gemini-3.8-flash"`,
      `model_location = "global"`, and `malicious_uri.enforcement: ENABLED`.
    - `asia-southeast1` (tested). Sets `model_id = "gemini-3.5-flash"`,
@@ -86,17 +86,24 @@ Use this part when `terraform/terraform.tfvars` exists and the user asks to move
    - Tier 3: nothing more. Ask question 6 (IAP mode). Recommend `DRY_RUN`.
    - Tier 4: ask question 5 (domain restricted sharing).
    - Tier 5: nothing more.
-3. Ask the user to confirm. Change only the `enable_*` value of the next tier (and the answers to
-   questions 5 or 6). Do not change the project, region, or prefix.
+3. Ask the user to confirm. Then run `scripts/configure.sh --move-up` (add
+   `--allow-google-managed-members` or `--mode` only for the answers to questions 5 or 6). The script
+   changes only the tier values and keeps the project, region, and prefix.
 4. Tell the user that the next step is `geap-deploy`, then `geap-verify`.
 
 ## Write the files
 
-1. Show a summary table of all values. Ask the user to confirm.
-2. Write `terraform/terraform.tfvars` with `project_id`, `project_number`, `organization_id`,
-   `region`, `name_prefix`, the four `enable_*` values, `iap_enforcement_mode`,
-   `allow_google_managed_members`, `model_id`, and `model_location`. Keep the comments from
-   `terraform/terraform.tfvars.example`.
-3. Set `malicious_uri.enforcement` in `policies/model_armor.yaml` for the region.
-4. Show the final `terraform/terraform.tfvars`.
+Do not write `terraform/terraform.tfvars` or `policies/model_armor.yaml` yourself. The script
+`scripts/configure.sh` writes them. It holds the fixed region values (model, model location,
+malicious URI filter), so that the values do not depend on the agent.
+
+1. Run the script with `--dry-run` and the answers. Show its `CONFIGURE:` line to the user word for word:
+   ```bash
+   scripts/configure.sh --project PROJECT_ID --region REGION --prefix PREFIX --tier N \
+     --allow-google-managed-members false --mode DRY_RUN --dry-run
+   ```
+   To move up one tier, use `scripts/configure.sh --move-up --dry-run`.
+2. Ask the user to confirm.
+3. Run the same command without `--dry-run`. Show the last lines of its output.
+4. If the region is `asia-southeast1`, tell the user not to commit `policies/model_armor.yaml`.
 5. Tell the user that the next step is `geap-preflight`, then `geap-deploy`.

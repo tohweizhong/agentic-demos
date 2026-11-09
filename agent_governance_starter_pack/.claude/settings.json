@@ -3,6 +3,10 @@
   "permissions": {
     "allow": [
       "Bash(scripts/preflight.sh*)",
+      "Bash(scripts/deploy_checks.sh)",
+      "Bash(scripts/teardown_plan.sh*)",
+      "Bash(scripts/configure.sh*--dry-run*)",
+      "Bash(scripts/configure.sh --show)",
       "Bash(scripts/package_agent.sh)",
       "Bash(scripts/ask_agent.sh*)",
       "Bash(scripts/read_audit_log.sh*)",
