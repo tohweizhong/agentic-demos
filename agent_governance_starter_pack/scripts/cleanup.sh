@@ -201,6 +201,14 @@ LOC="projects/${PROJECT}/locations/${REGION}"
 echo "Checking for leftover Reasoning Engines (${PREFIX}-reference-agent)..."
 RE_LIST="$(curl -s -H "Authorization: Bearer ${TOKEN}" "${AIP}/${LOC}/reasoningEngines" || echo "{}")"
 for re_name in $(echo "${RE_LIST}" | jq -r --arg dn "${PREFIX}-reference-agent" '.reasoningEngines[]? | select(.displayName == $dn) | .name'); do
+  # Remove the project-level grants of the agent principal first. Deleting an
+  # agent does not delete its IAM bindings (found by scripts/doctor.sh on 09 Nov 2026).
+  re_id="${re_name##*/}"
+  for binding in $(gcloud projects get-iam-policy "${PROJECT}" --format=json 2>/dev/null | jq -r --arg id "reasoningEngines/${re_id}" '.bindings[]? | .role as $r | .members[]? | select(endswith($id)) | "\(.)|\($r)"'); do
+    member="${binding%%|*}"; role="${binding##*|}"
+    echo "Removing ${role} from the agent principal ${re_id}..."
+    gcloud projects remove-iam-policy-binding "${PROJECT}" --member="${member}" --role="${role}" --condition=None --quiet >/dev/null || fail "Remove of ${role} from agent ${re_id} failed."
+  done
   api_delete "Reasoning Engine ${re_name}" "${AIP}/${re_name}?force=true" "${AIP}"
 done
 
