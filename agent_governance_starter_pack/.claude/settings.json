@@ -8,6 +8,7 @@
       "Bash(scripts/discover.sh*)",
       "Bash(scripts/check_tool_policy.sh*)",
       "Bash(scripts/check_promotion.sh*)",
+      "Bash(scripts/doctor.sh*)",
       "Bash(scripts/configure.sh*--dry-run*)",
       "Bash(scripts/configure.sh --show)",
       "Bash(scripts/package_agent.sh)",
