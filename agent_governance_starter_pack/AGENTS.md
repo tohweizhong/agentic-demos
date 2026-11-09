@@ -6,6 +6,7 @@ These rules apply to any automated agent or CLI harness that runs in `agent_gove
 
 1. Operate on one sandbox project only: the `project_id` configured in `terraform/terraform.tfvars`.
 1. Use only the skills in `.agents/skills/` and the files in this folder. Do not load user-level skills (for example from `~/.gemini/skills/` or `~/.gemini/config/skills/`), and do not read files outside this folder. Do not add environment variables or flags that a skill in this folder does not name.
+1. During a long command (`terraform apply`, `terraform destroy`, `scripts/cleanup.sh`, or a wait for a policy to apply), report progress to the user every 5 minutes without being asked: the elapsed time, the last completed step from the command output, and the step that runs now. Most of the time goes to Agent Gateway create and delete (about 3 to 5 minutes each).
 1. Never pipe input into a script to answer its prompt (for example `echo PROJECT_ID | scripts/cleanup.sh` or `yes | ...`). Use the flag that the skill names, after the user approves.
 2. Never modify organization-level policies or resources outside the target project.
 3. Run `scripts/preflight.sh` before any Terraform plan or apply. Stop immediately if the report status is `NO_GO`.
