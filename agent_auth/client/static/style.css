@@ -1697,6 +1697,23 @@ md-outlined-button {
   overflow-x: auto;
 }
 
+.gateway-log-note {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--color-text-muted);
+  border-radius: 6px;
+}
+
+.gateway-log-note code {
+  font-family: 'Roboto Mono', Consolas, Menlo, monospace;
+  font-size: 0.95em;
+}
+
 .gateway-log-table table {
   border-collapse: collapse;
   width: 100%;

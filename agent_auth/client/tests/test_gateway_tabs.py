@@ -181,6 +181,9 @@ def test_egress_tab_prompts_chat_banner_and_logs(new_page, stats):
       == "Allowed"
   )
   assert "send_email" in panel.locator("#egress-log-table").inner_text()
+  note = panel.locator("#egress-log-note")
+  assert note.is_visible()
+  assert "does not write denied" in note.inner_text()
   assert (
       "gcloud logging read" in panel.locator("#egress-gcloud-cmd").inner_text()
   )

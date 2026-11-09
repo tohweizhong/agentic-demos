@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Agent Identity &amp; Governance</title>
     <!-- Include custom styles -->
-    <link rel="stylesheet" href="/static/style.css?v=22" />
+    <link rel="stylesheet" href="/static/style.css?v=23" />
     <!-- Google Material Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Roboto:wght@400;500;600&family=Material+Symbols+Outlined"
@@ -394,6 +394,12 @@
               <span id="egress-log-status" class="gateway-log-status" aria-live="polite"></span>
             </div>
             <div id="egress-log-table" class="gateway-log-table"></div>
+            <p class="gateway-log-note" id="egress-log-note">
+              Note: IAP Policy V2 does not write denied MCP <code>tools/call</code>
+              requests (such as <code>send_email</code>) to the audit log. The
+              table shows only allowed calls. The red banner in the chat comes
+              from the error that the agent returns when IAP blocks the call.
+            </p>
             <pre id="egress-gcloud-cmd" class="demo-output">$ gcloud logging read ...</pre>
           </aside>
         </section>
@@ -406,6 +412,6 @@
     <script src="/static/vendor/marked.umd.js"></script>
     <script src="/static/vendor/purify.min.js"></script>
     <!-- Local JavaScript Hook -->
-    <script src="/static/script.js?v=22"></script>
+    <script src="/static/script.js?v=23"></script>
   </body>
 </html>
