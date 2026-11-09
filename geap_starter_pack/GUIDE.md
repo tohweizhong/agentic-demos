@@ -70,7 +70,10 @@ gcloud auth application-default login
 
 ## 3. Choose a Governance Tier and Check Domain Restricted Sharing
 
-You can enable the five governance tiers one step at a time in `terraform/terraform.tfvars`:
+You can enable the five governance tiers one step at a time in `terraform/terraform.tfvars`. Each tier adds one control on top of the tiers below it:
+
+![GEAP starter pack governance tiers](images/governance_tiers.svg)
+
 
 | Tier | Name | GEAP Services | Terraform Variable | Key Behavior |
 |---|---|---|---|---|

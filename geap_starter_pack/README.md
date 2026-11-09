@@ -94,7 +94,12 @@ Legend: solid border = built in the mini build. Dashed border = not built.
 
 ## Governance tiers
 
-You can turn each governance layer on or off with a boolean variable in `terraform/terraform.tfvars`:
+You can turn each governance layer on or off with a boolean variable in `terraform/terraform.tfvars`.
+Each tier adds one control on top of the tiers below it. [GUIDE.md](GUIDE.md#choose-your-tier) shows the
+variable values for each tier.
+
+![GEAP starter pack governance tiers](images/governance_tiers.svg)
+
 
 | Tier | Name | GEAP Services | Terraform Variable | Key Behavior |
 |---|---|---|---|---|
