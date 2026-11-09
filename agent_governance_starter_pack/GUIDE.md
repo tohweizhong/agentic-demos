@@ -38,6 +38,9 @@ A fresh clone has no Terraform state. Do not deploy a second copy into a project
 
 ### Antigravity CLI (`agy`) Harness
 
+> [!NOTE]
+> Not tested. No person or agent has run this harness with `agy` yet. The headless `agy` flags (`agy -p ... --output-format json`) come from an internal assistant and are not checked in public docs.
+
 This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/skills/`) so an operator can run each workflow step through the Antigravity CLI (`agy`) instead of running the shell commands manually:
 
 | Skill | Path | What It Does |
@@ -64,6 +67,19 @@ This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/s
    - `"Run geap-verify to test the deployed agent, Model Armor, and IAP rules."`
    - `"Run geap-reset to switch IAP back to DRY_RUN and reset the sample MCP server."`
    - `"Run geap-teardown to destroy all GEAP resources in my sandbox project."`
+
+#### Run the Whole Flow with `agy`
+
+Set `terraform/terraform.tfvars` first (Section 4). For a region other than `us-central1`, also read "Regions other than us-central1" in Section 4. Then start `agy` in this folder and give these prompts in this order:
+
+| # | Prompt | Expected result |
+|---|---|---|
+| 1 | "Run geap-preflight" | `GO`, or a list of blockers to fix |
+| 2 | "Run geap-deploy" | The agent packages the code, runs the tests and `terraform plan`, then stops and asks for approval before `terraform apply` |
+| 3 | "Run geap-verify" | The read tool works. The write tool works, because `DRY_RUN` only records the decision. A prompt injection gets `403` when Tier 4 or Tier 5 is on |
+| 4 | "Switch to ENFORCE with runbooks/switch_policy_mode.md" | After about 3 minutes, `update_status` fails and `get_status` still works |
+| 5 | "Run geap-reset" | `iap_enforcement_mode` is `DRY_RUN` again |
+| 6 | "Run geap-teardown" | The agent asks you to confirm, then removes the starter pack resources |
 
 ### Claude Code Harness
 
