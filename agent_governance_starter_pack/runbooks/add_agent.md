@@ -40,11 +40,8 @@ Identity, its own grants, and the same egress gateway controls as the reference 
 7. Run the checks and the plan:
 
    ```bash
-   cd terraform
-   terraform fmt -check -recursive
-   terraform validate
-   terraform test
-   terraform plan -out=tfplan
+   scripts/deploy_checks.sh                       # init, fmt, validate, test
+   terraform -chdir=terraform plan -out=tfplan
    ```
 
    Expected: the plan adds one agent and its grants, and changes the access policy. It does not

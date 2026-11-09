@@ -252,7 +252,7 @@ Run the read-only preflight scan (`geap-preflight`) and the offline unit tests:
 
 ```bash
 scripts/preflight.sh
-(cd terraform && terraform init && terraform fmt -check -recursive && terraform validate && terraform test)
+scripts/deploy_checks.sh   # terraform init, fmt, validate, test; prints one DEPLOY_CHECKS line
 (cd mcp-server && go test -cover ./...)
 (cd agent-template && python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt && .venv/bin/python -m pytest)
 ```
@@ -262,9 +262,8 @@ scripts/preflight.sh
 *(CLI harness skill: `geap-deploy`)*
 
 ```bash
-cd terraform
-terraform plan -out=tfplan
-terraform apply tfplan
+terraform -chdir=terraform plan -out=tfplan
+terraform -chdir=terraform apply tfplan
 ```
 
 ### Architecture Design Notes
