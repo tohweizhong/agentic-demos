@@ -41,7 +41,8 @@ get() {  # get URL -> JSON body, or {} and an error line
 
 AGENTS="$(get "https://${REGION}-aiplatform.googleapis.com/v1beta1/${L}/reasoningEngines?pageSize=100" | jq '[.reasoningEngines[]? | {
   name: (.name | split("/") | last), display_name: .displayName,
-  identity_type: (.spec.identityType // "SERVICE_AGENT (default)"),
+  effective_identity: (.spec.effectiveIdentity // empty),
+  identity_type: (.spec.identityType // "SERVICE_ACCOUNT"),
   egress_gateway: (.spec.deploymentSpec.agentGatewayConfig.agentToAnywhereConfig.agentGateway // .spec.agentGatewayConfig.agentToAnywhereConfig.agentGateway // null),
   ingress_gateway: (.spec.deploymentSpec.agentGatewayConfig.clientToAgentConfig.agentGateway // .spec.agentGatewayConfig.clientToAgentConfig.agentGateway // null),
   create_time: .createTime }]')"

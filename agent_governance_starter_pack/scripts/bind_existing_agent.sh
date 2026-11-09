@@ -27,11 +27,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "${PROJECT}" && -n "${REGION}" && -n "${AGENT_ID}" ]] || { echo "ERROR: --project, --region, and --agent-id are required." >&2; exit 2; }
+[[ -n "${EGRESS_GW}" || -n "${INGRESS_GW}" ]] || { echo "ERROR: Pass --egress-gateway or --ingress-gateway." >&2; exit 2; }
 
 TOKEN="$(gcloud auth print-access-token 2>/dev/null || true)"
 [[ -n "${TOKEN}" ]] || { echo "ERROR: gcloud has no token."; exit 1; }
 
-URL="https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT}/locations/${REGION}/reasoningEngines/${AGENT_ID}"
+URL="https://${REGION}-aiplatform.googleapis.com/v1beta1/projects/${PROJECT}/locations/${REGION}/reasoningEngines/${AGENT_ID}"
 response=$(curl -s -w "\n%{http_code}" -m 30 -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "${URL}")
 code=$(tail -n1 <<< "$response")
 body=$(sed '$d' <<< "$response")
@@ -41,18 +42,38 @@ if [[ "${code}" != "200" ]]; then
   exit 1
 fi
 
-ID_TYPE=$(jq -r '.spec.deploymentSpec.identityType // empty' <<< "${body}")
+ID_TYPE=$(jq -r '.spec.identityType // empty' <<< "${body}")
+DISP=$(jq -r '.displayName // empty' <<< "${body}")
 
-echo "Agent Identity Type: ${ID_TYPE:-default}"
+echo "Agent Identity Type: ${ID_TYPE:-SERVICE_ACCOUNT}"
 echo "An in-place update for agent_gateway_config fails with Error 13."
-echo "You must redeploy or create a new Reasoning Engine."
+echo "You must create a new Reasoning Engine."
 
 if [[ "${DRY_RUN}" == "true" ]]; then
   echo "Dry run: no further action."
   exit 0
 fi
 
-# Print instructions
-echo "Run this command to recreate the agent:"
-echo "gcloud ai reasoning-engines create ..."
-# Further exact steps would be inferred or printed here.
+
+echo "Run this command to recreate the agent with the new gateway bindings:"
+echo "curl -X POST -H \"Authorization: Bearer \$(gcloud auth print-access-token)\" \\"
+echo "  -H \"Content-Type: application/json\" -H \"x-goog-user-project: ${PROJECT}\" \\"
+echo "  \"https://${REGION}-aiplatform.googleapis.com/v1beta1/projects/${PROJECT}/locations/${REGION}/reasoningEngines?reasoning_engine_id=${DISP}-gw\" \\"
+echo "  -d '"
+
+if [[ -n "${EGRESS_GW}" ]]; then
+  body=$(echo "${body}" | jq --arg egw "projects/${PROJECT}/locations/${REGION}/agentGateways/${EGRESS_GW}" '
+    .spec.deploymentSpec.agentGatewayConfig.agentToAnywhereConfig.agentGateway = $egw |
+    .spec.packageSpec.imageSpec.buildArgs.AGENT_GATEWAY_ROOT_CERTIFICATES = "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+  ')
+fi
+if [[ -n "${INGRESS_GW}" ]]; then
+  body=$(echo "${body}" | jq --arg igw "projects/${PROJECT}/locations/${REGION}/agentGateways/${INGRESS_GW}" '
+    .spec.deploymentSpec.agentGatewayConfig.clientToAgentConfig.agentGateway = $igw
+  ')
+fi
+
+# Clean up read-only fields so it can be POSTed
+body=$(echo "${body}" | jq 'del(.name, .createTime, .updateTime, .etag)')
+echo "${body}"
+echo "'"

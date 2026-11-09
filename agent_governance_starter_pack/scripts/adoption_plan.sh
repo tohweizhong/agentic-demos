@@ -5,7 +5,7 @@
 #   scripts/adoption_plan.sh --project PROJECT_ID [--region REGION]
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
-need jq
+need jq curl gcloud
 
 PROJECT=""
 REGION="us-central1"
@@ -22,24 +22,41 @@ done
 
 echo "Adoption Plan for Project: ${PROJECT}"
 echo "Running discover.sh..."
-DISCOVER_OUT="$("$(dirname "${BASH_SOURCE[0]}")/discover.sh" --project "${PROJECT}" --region "${REGION}" --markdown)"
+DISCOVER_JSON="$("$(dirname "${BASH_SOURCE[0]}")/discover.sh" --project "${PROJECT}" --region "${REGION}")"
 
-echo "${DISCOVER_OUT}" | grep -E "Tier 2|Tier 3|Tier 4|Tier 5" || true
-
-echo ""
 echo "--- terraform.tfvars Snippets ---"
 echo ""
 
 echo "existing_mcp_servers = {"
-echo "${DISCOVER_OUT}" | awk '/## Cloud Run services/,/## Lateral steps/ { if ($1 == "-" && $2 ~ /^`/) { name=$2; gsub(/`/, "", name); url=$3; print "  " name " = {\n    url            = \"" url "\"\n    tool_spec_file = \"../mcp-server/tool_spec.json\"\n  }" } }'
+echo "${DISCOVER_JSON}" | jq -r '
+  .registry as $reg | .cloud_run[] | select(.name as $rn | ($reg | map(.url // "" | test(($rn // "~") | sub("^https://";""); "i")) | any) | not) |
+  "  \(.name) = {\n    url            = \"\(.url)\"\n    tool_spec_file = \"../mcp-server/tool_spec.json\"\n  }"
+' || true
 echo "}"
 
 echo ""
-echo "existing_agent_principals = ["
-echo "${DISCOVER_OUT}" | awk '/## Agents/,/## Gateways/ { if ($0 ~ /^\| / && $0 !~ /Starter pack/) { match($0, /`([^`]+)`/, arr); if (arr[1] != "") { print "  \"principal://agents.global.org-ORGANIZATION_ID.system.id.goog/resources/aiplatform/projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/" arr[1] "\"," } } }'
-echo "]"
+PROJECT_NUMBER="$(gcloud projects describe "${PROJECT}" --format='value(projectNumber)' 2>/dev/null || true)"
+ORG_ID="$(gcloud projects get-ancestors "${PROJECT}" --format='value(id,type)' 2>/dev/null | awk '$2=="organization"{print $1}')"
 
+echo "existing_agent_principals = ["
+echo "${DISCOVER_JSON}" | jq -r --arg pn "${PROJECT_NUMBER}" --arg org "${ORG_ID}" --arg reg "${REGION}" '
+  .agents[] | select(.starter_pack | not) |
+  if .effective_identity then
+    "  \"principal://\(.effective_identity)\","
+  else
+    "  \"principal://agents.global.org-\($org).system.id.goog/resources/aiplatform/projects/\($pn)/locations/\($reg)/reasoningEngines/\(.name)\","
+  end
+' || true
+echo "]"
 echo ""
+
+WARN_SA=$(echo "${DISCOVER_JSON}" | jq -r '.agents[] | select((.starter_pack | not) and .identity_type == "SERVICE_ACCOUNT") | .name')
+if [[ -n "${WARN_SA}" ]]; then
+  echo "WARNING: The following agents use SERVICE_ACCOUNT instead of AGENT_IDENTITY. You must move them to AGENT_IDENTITY first before applying the principal-based access rules:"
+  echo "${WARN_SA}"
+  echo ""
+fi
+
 echo "--- Per-Agent Gateway Binding Instructions ---"
 echo "To bind an agent to a gateway, run:"
 echo "scripts/bind_existing_agent.sh --project ${PROJECT} --region ${REGION} --agent-id <AGENT_ID> [--egress-gateway GW_NAME] [--ingress-gateway GW_NAME]"

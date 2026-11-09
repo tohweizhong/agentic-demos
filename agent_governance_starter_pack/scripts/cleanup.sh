@@ -122,6 +122,22 @@ if [[ -f "${TF_DIR}/terraform.tfstate" ]]; then
       echo "Detaching the audit log bucket from Terraform state before destroy (--keep-log-bucket)..."
       terraform -chdir="${TF_DIR}" state rm google_logging_project_bucket_config.audit 2>/dev/null || true
     fi
+    
+    # Fix for Problem 24: Remove deleted parents from state to avoid 403 on getIamPolicy during destroy
+    STATE_LIST="$(terraform -chdir="${TF_DIR}" state list 2>/dev/null || true)"
+    if echo "${STATE_LIST}" | grep -q "google_artifact_registry_repository_iam_member.mcp_build_writer"; then
+      if ! gcloud artifacts repositories describe "${PREFIX}-mcp" --location="${REGION}" --project="${PROJECT}" >/dev/null 2>&1; then
+        echo "Artifact Registry ${PREFIX}-mcp is already deleted. Removing from state..."
+        terraform -chdir="${TF_DIR}" state rm google_artifact_registry_repository_iam_member.mcp_build_writer google_artifact_registry_repository.mcp 2>/dev/null || true
+      fi
+    fi
+    if echo "${STATE_LIST}" | grep -q "google_cloud_run_v2_service_iam_member.mcp_invoker"; then
+      if ! gcloud run services describe "${PREFIX}-work-items" --region="${REGION}" --project="${PROJECT}" >/dev/null 2>&1; then
+        echo "Cloud Run service ${PREFIX}-work-items is already deleted. Removing from state..."
+        terraform -chdir="${TF_DIR}" state rm google_cloud_run_v2_service_iam_member.mcp_invoker google_cloud_run_v2_service.mcp 2>/dev/null || true
+      fi
+    fi
+
     echo "Running terraform destroy..."
     if ! terraform -chdir="${TF_DIR}" destroy -auto-approve; then
       fail "terraform destroy reported an error. The sweep continues. Run this script again after it finishes."
