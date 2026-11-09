@@ -23,6 +23,7 @@ Headless CLI runs (for example, `agy -p "<prompt>" --output-format json`) are pe
 
 | Skill | Path | Purpose |
 |---|---|---|
+| `geap-discover` | `.agents/skills/geap-discover/SKILL.md` | Read-only scan of an existing project and the lateral steps for each tier |
 | `geap-configure` | `.agents/skills/geap-configure/SKILL.md` | Ask the user for the project, region, name prefix, governance tier, domain restricted sharing approach, and IAP mode, then write `terraform/terraform.tfvars` |
 | `geap-preflight` | `.agents/skills/geap-preflight/SKILL.md` | Run `scripts/preflight.sh` and inspect the JSON readiness report |
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Package the agent, run offline tests, run `terraform plan`, and wait for human approval before `terraform apply` |

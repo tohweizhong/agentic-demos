@@ -5,6 +5,7 @@
       "Bash(scripts/preflight.sh*)",
       "Bash(scripts/deploy_checks.sh)",
       "Bash(scripts/teardown_plan.sh*)",
+      "Bash(scripts/discover.sh*)",
       "Bash(scripts/configure.sh*--dry-run*)",
       "Bash(scripts/configure.sh --show)",
       "Bash(scripts/package_agent.sh)",

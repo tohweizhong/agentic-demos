@@ -1,14 +1,14 @@
 # Plan: lateral paths for existing projects
 
-Status: plan. No task has started.
+Status: in progress. Phase 1 built on 09 Nov 2026.
 
 ## Phase 1: Discovery
 
-- [ ] Task: `scripts/discover.sh` (read-only). Lists the resources in the specification, with the
+- [x] Task: `scripts/discover.sh` (read-only). Built and tested on 09 Nov 2026 against two projects (4 agents, 2 gateways, 64 registry entries; and the rehearsal project). Lists the resources in the specification, with the
       identity type and gateway bindings of each agent and the registry state of each MCP server.
       Stops with `status: ERROR` when it cannot read the project.
-- [ ] Task: JSON and Markdown report. One table for each tier: what exists, what is governed, what is not.
-- [ ] Task: skill `geap-discover`.
+- [x] Task: JSON and Markdown report (`--markdown`). Starter pack resources are marked and left out of the lateral steps. One table for each tier: what exists, what is governed, what is not.
+- [x] Task: skill `geap-discover`. Not tested in `agy` yet.
 
 ## Phase 2: Adoption plan
 
