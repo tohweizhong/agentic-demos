@@ -49,7 +49,7 @@ fi
 
 # 3. Read-only commands of the starter pack. A compound command is allowed only
 #    if every part is on this list.
-SAFE='^(scripts/(preflight|deploy_checks|teardown_plan|package_agent|ask_agent|read_audit_log)\.sh([[:space:]].*)?|scripts/configure\.sh[[:space:]].*(--dry-run|--show).*|terraform(-chdir=[^[:space:]]+)?([[:space:]]+-chdir=[^[:space:]]+)?[[:space:]]+(plan|output|validate|fmt|test|state[[:space:]]+list|show)([[:space:]].*)?|gcloud[[:space:]].*[[:space:]](describe|list|get-iam-policy|get-ancestors|get-value)([[:space:]].*)?|git[[:space:]]+(status|log|diff|pull)([[:space:]].*)?|cat[[:space:]].*|grep[[:space:]].*|ls([[:space:]].*)?)$'
+SAFE='^(scripts/(preflight|deploy_checks|teardown_plan|package_agent|ask_agent|read_audit_log|discover)\.sh([[:space:]].*)?|scripts/configure\.sh[[:space:]].*(--dry-run|--show).*|terraform(-chdir=[^[:space:]]+)?([[:space:]]+-chdir=[^[:space:]]+)?[[:space:]]+(plan|output|validate|fmt|test|state[[:space:]]+list|show)([[:space:]].*)?|gcloud[[:space:]].*[[:space:]](describe|list|get-iam-policy|get-ancestors|get-value)([[:space:]].*)?|git[[:space:]]+(status|log|diff|pull)([[:space:]].*)?|cat[[:space:]].*|grep[[:space:]].*|ls([[:space:]].*)?)$'
 ALL_SAFE="true"
 while IFS= read -r part; do
   part="$(sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s#^\./##' <<<"${part}")"
