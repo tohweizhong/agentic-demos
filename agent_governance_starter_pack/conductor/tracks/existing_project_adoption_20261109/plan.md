@@ -14,8 +14,8 @@ Status: in progress. Phase 1 built on 09 Nov 2026.
 
 - [ ] Task: `scripts/adoption_plan.sh --tier N` reads the discovery JSON and prints the lateral steps
       for tier N, with risk and order. No change to the project.
-- [ ] Task: `geap-configure` asks "new project or existing project" first, and runs `geap-discover`
-      for an existing project.
+- [x] Task: `geap-configure` asks "new project or existing project" first, and runs `geap-discover`
+      for an existing project. Done on 09 Nov 2026 (skill text only).
 
 ## Phase 3: Lateral tools
 
