@@ -31,22 +31,12 @@ echo "--- terraform.tfvars Snippets ---"
 echo ""
 
 echo "existing_mcp_servers = {"
-echo "${DISCOVER_OUT}" | awk '/Cloud Run service:/ {
-  name = $4
-  url = $NF
-  sub(/^.*\//, "", name)
-  print "  " name " = {"
-  print "    url            = \"" url "\""
-  print "    tool_spec_file = \"../mcp-server/tool_spec.json\" # Update this path"
-  print "  }"
-}'
+echo "${DISCOVER_OUT}" | awk '/## Cloud Run services/,/## Lateral steps/ { if ($1 == "-" && $2 ~ /^`/) { name=$2; gsub(/`/, "", name); url=$3; print "  " name " = {\n    url            = \"" url "\"\n    tool_spec_file = \"../mcp-server/tool_spec.json\"\n  }" } }'
 echo "}"
 
 echo ""
 echo "existing_agent_principals = ["
-echo "${DISCOVER_OUT}" | awk '/principal:\/\// {
-  print "  \"" $NF "\","
-}'
+echo "${DISCOVER_OUT}" | awk '/## Agents/,/## Gateways/ { if ($1 == "|") { print "  \"principal://agents.global.org-ORGANIZATION_ID.system.id.goog/resources/aiplatform/projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/" $4 "\"," } }'
 echo "]"
 
 echo ""
