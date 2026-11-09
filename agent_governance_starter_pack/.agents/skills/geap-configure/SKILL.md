@@ -38,7 +38,7 @@ choose.
    prefix that was used with `scripts/cleanup.sh --purge-all` in the last 7 days fails, because the
    audit log bucket `<prefix>-agent-audit` is soft-deleted. Tell the user that two copies in one
    project collide on the IAP access policy ID even with different prefixes (backlog item 26).
-4. **Governance tier.** Show this table. Ask the user how to roll out:
+4. **Governance tier.** Show this table. Also give the link to the tier pyramid in the README, so that the user can see the picture and read it again later: [README: Governance tiers](https://github.com/tohweizhong/agentic-demos/blob/main/agent_governance_starter_pack/README.md#governance-tiers) (local file: `README.md`, section "Governance tiers", image `images/governance_tiers.svg`). Ask the user how to roll out:
    - **Build up one tier at a time (recommended for a first rollout).** Start at Tier 1. After each
      tier is deployed and verified, the user runs `geap-configure` again to move up one tier. This is
      how a customer team learns each control before it adds the next one.
@@ -73,7 +73,7 @@ choose.
 Use this part when `terraform/terraform.tfvars` exists and the user asks to move up a tier.
 
 1. Read the four `enable_*` values and show the current tier.
-2. Show what the next tier adds (one row of the table above), what it costs in time (a gateway takes
+2. Give the link to the tier pyramid ([README: Governance tiers](https://github.com/tohweizhong/agentic-demos/blob/main/agent_governance_starter_pack/README.md#governance-tiers)). Show what the next tier adds (one row of the table above), what it costs in time (a gateway takes
    about 3 minutes to create, an IAP policy about 3 minutes), and what it needs:
    - Tier 2: nothing more.
    - Tier 3: nothing more. Ask question 6 (IAP mode). Recommend `DRY_RUN`.
