@@ -161,8 +161,8 @@ sequenceDiagram
 | [`mcp-server/`](mcp-server/) | A sample MCP server in Go, with one read-only tool and one write tool | 3 |
 | [`policies/`](policies/) | The IAP access policy and the Model Armor settings | 3 |
 | [`pipelines/`](pipelines/) | Not built (component 5) | 5 |
-| [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state. Tear down the starter pack | 6 |
-| [`scripts/`](scripts/) | Preflight scan, package the agent, ask the agent, read the audit log, clean up | 6 |
+| [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state. Tear down the starter pack. Handover checklist | 6 |
+| [`scripts/`](scripts/) | Preflight scan, configure, offline deploy checks, tool policy check, discovery of an existing project, package the agent, ask the agent, read the audit log, teardown plan, clean up, and the `agy` guard hook | 6 |
 | [`.agents/skills/`](.agents/skills/) | CLI skills (`geap-configure`, `geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`), [`AGENTS.md`](AGENTS.md), and [`.agents/hooks.json`](.agents/hooks.json) with `scripts/agy_guard.sh` | 6 |
 | [`day2/`](day2/) | Plan only. The planned Day-2 tools and their design rules. No tool is built yet | 6 |
 

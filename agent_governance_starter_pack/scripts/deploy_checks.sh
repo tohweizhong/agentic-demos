@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runs the offline checks before a plan: terraform init, fmt, validate, and test.
+# Runs the offline checks before a plan: terraform init, fmt, validate, test, and
+# the tool policy check (scripts/check_tool_policy.sh).
 # Prints one result line at the end, so that an agent or a person can read it:
 #   DEPLOY_CHECKS: PASS (init ok, fmt ok, validate ok, test 12 passed, 0 failed)
 #   DEPLOY_CHECKS: FAIL (<first failed step>)
@@ -21,5 +22,6 @@ cat "${LOG}.test" >>"${LOG}"
 SUMMARY="$(grep -Eo '[0-9]+ passed, [0-9]+ failed' "${LOG}.test" | tail -1)"
 rm -f "${LOG}.test"
 [[ ${TEST_RC} -eq 0 && -n "${SUMMARY}" && "${SUMMARY}" == *", 0 failed" ]] || fail "terraform test: ${SUMMARY:-no summary line}"
-echo "DEPLOY_CHECKS: PASS (init ok, fmt ok, validate ok, test ${SUMMARY})"
+TP="$("$(dirname "${BASH_SOURCE[0]}")/check_tool_policy.sh" 2>&1)" || fail "tool policy: ${TP#TOOL_POLICY: }"
+echo "DEPLOY_CHECKS: PASS (init ok, fmt ok, validate ok, test ${SUMMARY}, tool policy ok)"
 rm -f "${LOG}"
