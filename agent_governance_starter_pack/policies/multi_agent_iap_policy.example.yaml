@@ -1,0 +1,22 @@
+# Example IAP access policy for a multi-agent architecture (Backlog 22).
+# It enforces least-privilege by dividing tools between two agents.
+#
+# The "reader" agent principal can only read status. It cannot change data.
+# The "approver" agent principal can update status.
+
+rules:
+  # Rule 1: The reader agent can call get_status (read-only).
+  - description: "Reader agent can read status."
+    principals:
+      - principal://agents.global.org-ORG_ID.system.id.goog/resources/aiplatform/projects/NUMBER/locations/REGION/reasoningEngines/READER_ID
+    condition:
+      title: "Reader Access"
+      expression: "request.path == '/mcp' && request.method == 'POST' && tool.name in ['get_status']"
+
+  # Rule 2: The approver agent can call update_status.
+  - description: "Approver agent can update status."
+    principals:
+      - principal://agents.global.org-ORG_ID.system.id.goog/resources/aiplatform/projects/NUMBER/locations/REGION/reasoningEngines/APPROVER_ID
+    condition:
+      title: "Approver Access"
+      expression: "request.path == '/mcp' && request.method == 'POST' && tool.name in ['update_status']"

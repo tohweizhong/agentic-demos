@@ -17,3 +17,4 @@ __pycache__/
 # Go
 mcp-server/coverage.out
 mcp-server/mcp-server
+terraform/.configure_dry_run

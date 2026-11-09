@@ -124,7 +124,9 @@ A customer team can also stop at any tier and stay there. The Terraform checks s
 | `scripts/check_tool_policy.sh` | Yes | Fails when an MCP tool that can change data has no rule in the IAP access policy |
 | `scripts/check_promotion.sh` | Yes | Promotion readiness before `ENFORCE` |
 | `scripts/discover.sh` | Yes | Inventory of an existing project and the lateral steps |
-| `scripts/doctor.sh` | Yes | Stale grants of deleted agents |
+| `scripts/doctor.sh` | Yes | Stale grants of deleted agents and missing gateway bindings |
+| `scripts/onboard_agent.sh` | Yes | Generates Terraform and IAM grants for onboarding a new agent |
+| `scripts/install_harness.sh` | Yes | Installs or checks the starter pack skills and hooks |
 | `scripts/teardown_plan.sh` | Yes | Recommends the log bucket flag for `cleanup.sh` |
 | `scripts/cleanup.sh` | No | Teardown. Needs `--confirm PROJECT_ID`, refuses piped input |
 | `scripts/quarantine_agent.sh` | Plan by default | Removes the grants of one agent with `--apply` |

@@ -52,10 +52,13 @@ fi
 if grep -Eq 'scripts/configure\.sh' <<<"${CMD}" && ! grep -Eq -- '--dry-run|--show' <<<"${CMD}"; then
   out "ask" "configure.sh writes terraform.tfvars. Approve after you check the CONFIGURE line from the --dry-run run."
 fi
+if grep -Eq 'scripts/onboard_agent\.sh' <<<"${CMD}" && ! grep -Eq -- '--dry-run' <<<"${CMD}"; then
+  out "ask" "onboard_agent.sh outputs Terraform code. Approve after you check the --dry-run output."
+fi
 
 # 3. Read-only commands of the starter pack. A compound command is allowed only
 #    if every part is on this list.
-SAFE='^(scripts/(preflight|deploy_checks|teardown_plan|package_agent|ask_agent|read_audit_log|discover|check_tool_policy|check_promotion|doctor)\.sh([[:space:]].*)?|scripts/(quarantine_agent|init_remote_state)\.sh([[:space:]].*)?|scripts/configure\.sh[[:space:]].*(--dry-run|--show).*|terraform(-chdir=[^[:space:]]+)?([[:space:]]+-chdir=[^[:space:]]+)?[[:space:]]+(plan|output|validate|fmt|test|state[[:space:]]+list|show)([[:space:]].*)?|gcloud[[:space:]].*[[:space:]](describe|list|get-iam-policy|get-ancestors|get-value)([[:space:]].*)?|git[[:space:]]+(status|log|diff|pull)([[:space:]].*)?|cat[[:space:]].*|grep[[:space:]].*|ls([[:space:]].*)?)$'
+SAFE='^(scripts/(preflight|deploy_checks|teardown_plan|package_agent|ask_agent|read_audit_log|discover|check_tool_policy|check_promotion|doctor)\.sh([[:space:]].*)?|scripts/(quarantine_agent|init_remote_state)\.sh([[:space:]].*)?|scripts/onboard_agent\.sh[[:space:]].*--dry-run.*|scripts/configure\.sh[[:space:]].*(--dry-run|--show).*|terraform(-chdir=[^[:space:]]+)?([[:space:]]+-chdir=[^[:space:]]+)?[[:space:]]+(plan|output|validate|fmt|test|state[[:space:]]+list|show)([[:space:]].*)?|gcloud[[:space:]].*[[:space:]](describe|list|get-iam-policy|get-ancestors|get-value)([[:space:]].*)?|git[[:space:]]+(status|log|diff|pull)([[:space:]].*)?|cat[[:space:]].*|grep[[:space:]].*|ls([[:space:]].*)?)$'
 ALL_SAFE="true"
 while IFS= read -r part; do
   part="$(sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s#^\./##' <<<"${part}")"

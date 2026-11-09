@@ -1,0 +1,33 @@
+steps:
+  # 1. Package the agent archive
+  - name: 'bash'
+    entrypoint: 'bash'
+    args: ['scripts/package_agent.sh']
+
+  # 2. Run Python unit tests
+  - name: 'python:3.11'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        cd agent-template
+        pip install -r requirements.txt -r requirements-dev.txt
+        pytest
+
+  # 3. Run Go tests
+  - name: 'golang:1.21'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        cd mcp-server
+        go test ./...
+
+  # 4. Run deployment checks
+  - name: 'hashicorp/terraform:1.5'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        apk add jq bash
+        ./scripts/deploy_checks.sh

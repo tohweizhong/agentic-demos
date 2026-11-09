@@ -21,7 +21,7 @@ region_model_id()       { case "$1" in us-central1) echo "gemini-3.8-flash";; as
 region_model_location() { case "$1" in us-central1) echo "global";; asia-southeast1) echo "asia-southeast1";; *) echo "";; esac; }
 region_malicious_uri()  { case "$1" in us-central1) echo "ENABLED";; asia-southeast1) echo "DISABLED";; *) echo "";; esac; }
 
-PROJECT=""; REGION=""; PREFIX=""; TIER=""; GMM=""; MODE=""; MOVE_UP="false"; SHOW="false"; DRY="false"
+PROJECT=""; REGION=""; PREFIX=""; TIER=""; GMM=""; MODE=""; MOVE_UP="false"; SHOW="false"; DRY="false"; FORCE="false"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2 ;;
@@ -33,6 +33,7 @@ while [[ $# -gt 0 ]]; do
     --move-up) MOVE_UP="true"; shift ;;
     --show) SHOW="true"; shift ;;
     --dry-run) DRY="true"; shift ;;
+    --force) FORCE="true"; shift ;;
     *) echo "ERROR: unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -100,9 +101,28 @@ model_id       = \"${MODEL_ID}\"
 model_location = \"${MODEL_LOC}\"
 "
 
-echo "CONFIGURE: project=${PROJECT} number=${PROJECT_NUMBER} org=${ORG_ID} region=${REGION} prefix=${PREFIX} tier=${TIER} registry=${REG} egress=${EGR} model_armor=${MAR} ingress=${ING} mode=${MODE} allow_google_managed_members=${GMM} model_id=${MODEL_ID} model_location=${MODEL_LOC} malicious_uri=${MURI}"
+COMPUTED_CONFIG="CONFIGURE: project=${PROJECT} number=${PROJECT_NUMBER} org=${ORG_ID} region=${REGION} prefix=${PREFIX} tier=${TIER} registry=${REG} egress=${EGR} model_armor=${MAR} ingress=${ING} mode=${MODE} allow_google_managed_members=${GMM} model_id=${MODEL_ID} model_location=${MODEL_LOC} malicious_uri=${MURI}"
+echo "${COMPUTED_CONFIG}"
 if [[ "${SHOW}" == "true" ]]; then exit 0; fi
-if [[ "${DRY}" == "true" ]]; then echo "Dry run: no file written."; printf '%s' "${CONTENT}"; exit 0; fi
+
+DRY_RUN_FILE="${TF_DIR}/.configure_dry_run"
+if [[ "${DRY}" == "true" ]]; then
+  echo "${COMPUTED_CONFIG}" > "${DRY_RUN_FILE}"
+  echo "Dry run: no file written."
+  printf '%s' "${CONTENT}"
+  exit 0
+fi
+
+if [[ "${FORCE}" != "true" ]]; then
+  if [[ ! -f "${DRY_RUN_FILE}" ]]; then
+    echo "ERROR: Run scripts/configure.sh ... --dry-run first." >&2
+    exit 2
+  fi
+  if [[ "$(cat "${DRY_RUN_FILE}")" != "${COMPUTED_CONFIG}" ]]; then
+    echo "ERROR: The parameters changed since the last --dry-run. Run scripts/configure.sh ... --dry-run first." >&2
+    exit 2
+  fi
+fi
 
 printf '%s' "${CONTENT}" > "${TFVARS}"
 sed -i "/^malicious_uri:/,/enforcement:/ s/enforcement: .*/enforcement: ${MURI}/" "${MA_YAML}"
