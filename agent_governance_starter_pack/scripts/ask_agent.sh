@@ -76,7 +76,8 @@ while [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; do
   fi
   rm -f "${TMP_OUT}.err"
   
-  if grep -q -E "\[error\] MALFORMED_FUNCTION_CALL|RefreshError|401|403|The caller does not have permission" "${TMP_OUT}"; then
+  if ! grep -q -E "Model Armor:|Denied by IAP" "${TMP_OUT}" && \
+     grep -q -E "\[error\] MALFORMED_FUNCTION_CALL|RefreshError|401|403|The caller does not have permission" "${TMP_OUT}"; then
     if [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; then
       echo "[retry] Waiting 10s for IAM propagation..." >&2
       sleep 10
