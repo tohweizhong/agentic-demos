@@ -14,7 +14,12 @@ resources from another clone, because the apply fails when the resources already
 | Option | What to do | What it tests |
 |---|---|---|
 | A (recommended) | Create a new project and link billing | GUIDE Section 2, from zero |
-| B | Run `scripts/cleanup.sh` from the clone that deployed the project, then reuse the project | An existing project |
+| B | Run `scripts/cleanup.sh` from the clone that deployed the project, then reuse the project with a different `name_prefix` in `terraform.tfvars` | An existing project |
+
+With option B, keep the old `name_prefix` only if you accept a 7-day wait. The audit log bucket
+`<name_prefix>-agent-audit` blocks a fresh clone in both clean-up modes:
+`--keep-log-bucket` keeps the bucket in the cloud but only in the state of the old clone, and
+`--purge-all` soft-deletes it for 7 days. Run `scripts/preflight.sh` first. It checks the state of the log bucket.
 
 ## Step 1: Prepare the machine
 
