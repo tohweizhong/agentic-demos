@@ -172,6 +172,24 @@ These are links only. The starter pack does not use code from them.
 - [`curated_codelabs/agent-gateway-governance`](../curated_codelabs/agent-gateway-governance/): the
   egress gateway codelab with IAP policy V1.
 
+## agents-cli and the starter pack
+
+The starter pack does not use agents-cli. Terraform deploys the reference agent with
+`google_vertex_ai_reasoning_engine`: a source archive from `scripts/package_agent.sh`, a
+container built from `agent-template/Dockerfile` (`adk api_server`), `AGENT_IDENTITY`, and the
+class methods in `terraform/adk_class_methods.json`.
+
+| Job | Tool | Reason |
+|---|---|---|
+| Gateways, IAP access policy, Model Armor, Agent Registry, IAM | Terraform | agents-cli cannot create or manage gateways. The security owner owns these resources |
+| Bind an agent to a gateway | Terraform | The security owner controls which gateway each agent uses |
+| Deploy the reference agent | Terraform | `agents-cli deploy` builds a container with no class methods, so `:query` and `:streamQuery` do not work |
+| Agent developer work: scaffold, local run, evaluation | agents-cli is an option | This is agent code, not platform. It belongs to component 5 (pipeline), which is not built |
+
+An agent that agents-cli deploys can use the starter pack gateways with
+`--agent-gateway-egress` or `--agent-gateway-ingress`. This is not tested. See backlog item 25 in
+[`conductor/product.md`](conductor/product.md#backlog).
+
 ## Deploy the mini build
 
 Prerequisites: a new or existing Google Cloud project with billing, `gcloud`, Terraform 1.9 or
