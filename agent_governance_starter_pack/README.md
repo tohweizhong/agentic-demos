@@ -106,6 +106,8 @@ variable values for each tier.
 
 ![Agent governance starter pack tiers](images/governance_tiers.svg)
 
+The pyramid shows two paths. The vertical path adds one control for each tier. The lateral path (left, planned, not built) brings the agents, MCP servers, and clients that already exist in the project under the same control. See the [lateral paths track](conductor/tracks/existing_project_adoption_20261109/index.md).
+
 
 | Tier | Name | GEAP Services | Terraform Variable | Key Behavior |
 |---|---|---|---|---|
