@@ -40,7 +40,7 @@ Use Cloud Shell or a Cloud Workstation in the target organization.
 | 2.2 | `cp terraform/terraform.tfvars.example terraform/terraform.tfvars`. Set the project values and the Tier 3 row from "Choose Your Tier" | The file has the four tier values | |
 | 2.3 | `scripts/preflight.sh` | `"status": "GO"` | |
 | 2.4 | `scripts/package_agent.sh` | The archive is in `terraform/build/` | |
-| 2.5 | `scripts/deploy_checks.sh` | `DEPLOY_CHECKS: PASS (init ok, fmt ok, validate ok, test 14 passed, 0 failed, tool policy ok)` | |
+| 2.5 | `scripts/deploy_checks.sh` | `DEPLOY_CHECKS: PASS (init ok, fmt ok, validate ok, test 16 passed, 0 failed, tool policy ok)` | |
 | 2.6 | `terraform plan -out=tfplan && terraform apply tfplan` | The apply completes. If you see a Vertex AI Service Agent permission error, wait 5 minutes and apply again (GUIDE Section 5) | |
 | 2.7 | `terraform output` | `iap_enforcement_mode = "DRY_RUN"` and an `agent_resource_name` | |
 
