@@ -134,7 +134,7 @@ def new_page(browser, base_url):
     with contextlib.suppress(Exception):
       result = cdp.send("Profiler.takePreciseCoverage")
       for script in result["result"]:
-        if script["url"].endswith(SCRIPT_URL_SUFFIX):
+        if script["url"].split("?", 1)[0].endswith(SCRIPT_URL_SUFFIX):
           source = urllib.request.urlopen(script["url"]).read().decode()
           _merge_coverage(script, source)
     ctx.close()

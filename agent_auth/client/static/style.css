@@ -151,7 +151,9 @@ body {
 
 .agent-message {
   align-self: flex-start;
-  max-width: 92%;
+  max-width: 96%;
+  width: fit-content;
+  box-sizing: border-box;
   overflow-x: auto;
   background-color: var(--message-agent-bg);
   color: var(--message-agent-text);
@@ -587,6 +589,17 @@ body {
   visibility: hidden;
 }
 
+.flow-svg .flow-step.done .step-line,
+.compact-svg .flow-step.done .step-line {
+  stroke: #8ab4f8;
+  stroke-width: 2;
+}
+
+.flow-svg .flow-step.done .step-label,
+.compact-svg .flow-step.done .step-label {
+  fill: #1a73e8;
+}
+
 .flow-svg .flow-step.active .step-line,
 .compact-svg .flow-step.active .step-line {
   stroke: #174ea6;
@@ -721,14 +734,17 @@ body {
 
 .answer-text.markdown table {
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .answer-text.markdown th,
 .answer-text.markdown td {
   border: 1px solid var(--border-color);
-  padding: 4px 8px;
+  padding: 4px 6px;
   text-align: left;
+  word-break: break-word;
 }
 
 .answer-text.markdown a {
@@ -1526,6 +1542,13 @@ md-outlined-button {
 
 .gateway-meta {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.gateway-meta-top {
+  display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
@@ -1542,22 +1565,22 @@ md-outlined-button {
 }
 
 .gateway-usecase {
-  margin: 0;
-  padding: 6px 24px;
+  margin: 2px 0 0 0;
   font-size: 0.82rem;
-  color: var(--text-muted);
-  background-color: var(--sidebar-bg);
-  border-bottom: 1px solid var(--border-color);
+  color: var(--color-text-muted);
+  width: 100%;
 }
 
 .sample-prompts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
   flex-shrink: 0;
   background-color: var(--chat-bg);
   z-index: 2;
-  padding: 10px 24px 8px;
+  padding: 10px 24px;
   border-bottom: 1px solid var(--border-color);
 }
 

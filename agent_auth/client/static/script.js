@@ -187,14 +187,29 @@ $(function() {
   };
 
   const STEP_NAMES = {
+    '1': 'You send the prompt',
+    '2': 'The client calls the agent',
+    '3': 'The agent asks Auth Manager for a token',
+    '4': 'Auth Manager returns a consent request',
+    '5': 'The client opens GitHub in a new window',
+    '6': 'You approve the app on GitHub',
+    '7': 'GitHub redirects to Auth Manager with the code',
+    '8': 'Auth Manager exchanges the code and stores the token',
+    '9': 'Auth Manager redirects the window back to the client',
+    '10': 'The client calls finalize_credentials with the nonce',
+    '11': 'The agent resumes, gets the token, and calls GitHub',
+    '12': 'The agent streams the answer to you',
     '1,2': 'Prompt sent',
     '4,5': 'Consent request received',
-    '6': 'Waiting for approval on GitHub',
     '7,8,9,10': 'GitHub redirect, token stored, finalize',
-    '11': 'Agent calls GitHub with the token',
-    '12': 'Answer received',
   };
   let currentSteps = [];
+  let liveStepQueue = [];
+  let liveStepTimer = null;
+  let liveQueuedSet = new Set();
+
+  const liveStepPaceMs = () => (
+      window.LIVE_STEP_PACE_MS !== undefined ? window.LIVE_STEP_PACE_MS : 250);
 
   // Highlights the given step numbers in the diagram and the list.
   const setStep = (steps, label) => {
@@ -202,13 +217,58 @@ $(function() {
     $('.flow-step').removeClass('active');
     $('#flow-steps li, #compact-strip li').removeAttr('aria-current').removeClass('active');
     steps.forEach((n) => {
-      $(`.flow-step[data-flow-step="${n}"]`).addClass('active');
+      $(`.flow-step[data-flow-step="${n}"]`).removeClass('done').addClass('active');
       $(`#flow-item-${n}, #compact-strip li[data-flow-step="${n}"]`)
-          .attr('aria-current', 'step').addClass('active');
+          .attr('aria-current', 'step').removeClass('done').addClass('active');
     });
     const name = label || STEP_NAMES[steps.join(',')] || '';
     $('#step-chip').text(steps.length ?
         `3LO step ${steps.join('-')}: ${name}` : `3LO step: ${label || 'none'}`);
+  };
+
+  const resetLiveSteps = () => {
+    if (liveStepTimer) {
+      clearInterval(liveStepTimer);
+      liveStepTimer = null;
+    }
+    liveStepQueue = [];
+    liveQueuedSet = new Set();
+    $('.flow-step, #flow-steps li, #compact-strip li').removeClass('done');
+  };
+
+  const advanceLiveStep = () => {
+    if (!liveStepQueue.length) {
+      if (liveStepTimer) {
+        clearInterval(liveStepTimer);
+        liveStepTimer = null;
+      }
+      return;
+    }
+    currentSteps.forEach((prev) => {
+      $(`.flow-step[data-flow-step="${prev}"]`).addClass('done');
+      $(`#flow-item-${prev}, #compact-strip li[data-flow-step="${prev}"]`).addClass('done');
+    });
+    const next = liveStepQueue.shift();
+    setStep([next]);
+    if (!liveStepQueue.length && liveStepTimer) {
+      clearInterval(liveStepTimer);
+      liveStepTimer = null;
+    }
+  };
+
+  const queueLiveSteps = (stepsArray) => {
+    stepsArray.forEach((n) => {
+      if (!liveQueuedSet.has(n)) {
+        liveQueuedSet.add(n);
+        liveStepQueue.push(n);
+      }
+    });
+    if (!liveStepTimer && liveStepQueue.length) {
+      advanceLiveStep();
+      if (liveStepQueue.length) {
+        liveStepTimer = setInterval(advanceLiveStep, liveStepPaceMs());
+      }
+    }
   };
 
   // ---- Timings of the last run. Browser memory only. ----
@@ -981,6 +1041,7 @@ $(function() {
     appendMessage('New conversation started.', 'system-message');
     timings = {};
     renderTimings();
+    resetLiveSteps();
     setStep([]);
     updateAgentInfoPane();
   });
@@ -1661,7 +1722,12 @@ $(function() {
     // In Step mode, the step cards control the step chip and the waits.
     const liveStep = (steps, label) => {
       if (!stepRun) {
-        setStep(steps, label);
+        if (!steps.length) {
+          resetLiveSteps();
+          setStep([], label);
+        } else {
+          queueLiveSteps(steps);
+        }
       }
     };
     const liveWait = (kind, waitText) => {
@@ -1677,7 +1743,8 @@ $(function() {
       pendingAuth = null;
       timings = {};
       markTiming('send');
-      liveStep([1, 2]);
+      if (!stepRun) resetLiveSteps();
+      liveStep([1, 2, 3]);
       liveWait('dots', 'The agent is working...');
     }
 
@@ -1741,10 +1808,6 @@ $(function() {
 
       if (isAuthResume) {
         markTiming('resume');
-        // Show steps 7-10 for a short time before step 11.
-        setTimeout(() => {
-          if (currentSteps.join(',') === '7,8,9,10') liveStep([11]);
-        }, 1200);
       }
 
       const reader = response.body.getReader();
@@ -1796,7 +1859,7 @@ $(function() {
                 // closes.
                 clearWaits();
                 markTiming('credential');
-                liveStep([4, 5]);
+                liveStep([4, 5, 6]);
                 pendingAuth = {
                   done: false,
                   timer: null,
@@ -1810,7 +1873,7 @@ $(function() {
                       stepRun.times.consent = Date.now();
                       stepRun.notify();
                     } else {
-                      setStep([7, 8, 9, 10]);
+                      liveStep([7, 8, 9, 10, 11]);
                       $contentDiv.append(
                           '<br><em>Authentication complete. Resuming session...</em><br>');
                       showWait($contentDiv, 'spinner', 'Getting your data from GitHub...');
@@ -1829,9 +1892,6 @@ $(function() {
                 const popup = window.open(data.popup_auth_uri, '_blank');
                 if (popup) {
                   markTiming('popup');
-                  setTimeout(() => {
-                    if (pendingAuth === thisAuth) setStep([6]);
-                  }, 1500);
                   thisAuth.timer = setInterval(() => {
                     if (popup.closed && pendingAuth === thisAuth) {
                       completeAuth('popup closed');
@@ -1869,17 +1929,21 @@ $(function() {
               } else if (data.content && data.content.parts) {
                 data.content.parts.forEach(part => {
                   const fc = part.function_call || part.functionCall;
+                  const fr = part.function_response || part.functionResponse;
                   if (fc && fc.name && fc.name !== 'adk_request_credential' &&
                       !data.popup_auth_uri) {
                     if (!stepRun) {
                       setWaitText($contentDiv, `The agent is calling a tool: ${fc.name}...`);
                     }
                   }
+                  if (fr) {
+                    liveStep([11]);
+                  }
                   if (part.text) {
                     clearWaits();
                     markTiming('firstText');
                     markTiming('lastText', true);
-                    liveStep([12]);
+                    liveStep([11, 12]);
                     appendAnswer($contentDiv, part.text);
                   }
                 });

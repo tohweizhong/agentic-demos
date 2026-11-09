@@ -51,6 +51,15 @@ if AGENT_PROJECT_DIR not in sys.path:
 
 app = FastAPI()
 
+
+@app.middleware("http")
+async def no_cache_static_assets(request: Request, call_next):
+  resp = await call_next(request)
+  path = request.url.path
+  if path == "/" or path.startswith("/static/"):
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+  return resp
+
 # Global cache for local runners to persist session history
 local_runners = {}
 

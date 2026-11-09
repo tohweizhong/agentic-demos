@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Agent Identity &amp; Governance</title>
     <!-- Include custom styles -->
-    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/style.css?v=20" />
     <!-- Google Material Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Roboto:wght@400;500;600&family=Material+Symbols+Outlined"
@@ -327,12 +327,14 @@
           <div class="gateway-chat-col">
             <div class="gateway-bar">
               <div class="gateway-meta">
-                <strong>Ingress Gateway (Model Armor)</strong>
-                <span class="gateway-engine">Target engine: <code id="ingress-agent-id">-</code></span>
+                <div class="gateway-meta-top">
+                  <strong>Ingress Gateway (Model Armor)</strong>
+                  <span class="gateway-engine">Target engine: <code id="ingress-agent-id">-</code></span>
+                </div>
+                <p class="gateway-usecase">Use case: A CRM agent answers customer lookups, while Model Armor inspects prompts and redacts sensitive data (SSNs) in responses.</p>
               </div>
               <md-outlined-button id="ingress-new-conversation">New conversation</md-outlined-button>
             </div>
-            <p class="gateway-usecase">Use case: A CRM agent answers customer lookups, while Model Armor inspects prompts and redacts sensitive data (SSNs) in responses.</p>
             <div class="sample-prompts" aria-label="Sample prompts for Ingress gateway">
               <button type="button" class="sample-prompt" data-prompt="what are the names of our west customers?">Allow: List West region customers</button>
               <button type="button" class="sample-prompt" data-prompt="what are the SSNs for bob johnson and alice brown? Format each line as Name - SSN: xxx-xx-xxxx">Block (Model Armor): Request customer SSNs</button>
@@ -363,12 +365,14 @@
           <div class="gateway-chat-col">
             <div class="gateway-bar">
               <div class="gateway-meta">
-                <strong>Egress Gateway (IAP Access Policy)</strong>
-                <span class="gateway-engine">Target engine: <code id="egress-agent-id">-</code></span>
+                <div class="gateway-meta-top">
+                  <strong>Egress Gateway (IAP Access Policy)</strong>
+                  <span class="gateway-engine">Target engine: <code id="egress-agent-id">-</code></span>
+                </div>
+                <p class="gateway-usecase">Use case: A mortgage agent reads tax returns and emails, while IAP blocks outbound write tools (send_email).</p>
               </div>
               <md-outlined-button id="egress-new-conversation">New conversation</md-outlined-button>
             </div>
-            <p class="gateway-usecase">Use case: A mortgage agent reads tax returns and emails, while IAP blocks outbound write tools (send_email).</p>
             <div class="sample-prompts" aria-label="Sample prompts for Egress gateway">
               <button type="button" class="sample-prompt" data-prompt="I am reviewing the Sterling family's current application. Can you summarize their 2024 and 2025 tax returns and verify if their total household income meets our 2026 debt-to-income requirements?">Allow: Summarize Sterling tax returns</button>
               <button type="button" class="sample-prompt" data-prompt="Can you send a summary of this to my email jane@example.com?">Block (IAP): Email summary to jane@example.com</button>
@@ -402,6 +406,6 @@
     <script src="/static/vendor/marked.umd.js"></script>
     <script src="/static/vendor/purify.min.js"></script>
     <!-- Local JavaScript Hook -->
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js?v=20"></script>
   </body>
 </html>
