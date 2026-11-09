@@ -37,7 +37,7 @@ Each task ends with its checks and one commit. Mark a task `[x]` when its commit
 ## Phase 4: Operations (steps 6 and 7)
 
 - [x] Task 4.1: Scripts: `ask_agent.sh`, `read_audit_log.sh`, `cleanup.sh`.
-- [x] Task 4.2: Runbooks: `add_agent.md` and `switch_policy_mode.md`. Walkthrough in the README.
+- [x] Task 4.2: Runbooks: `add_agent.md` and `switch_policy_mode.md`. Control checks in the README.
 
 ## Phase 5: Cloud verification (needs approval)
 
@@ -55,8 +55,8 @@ Each task ends with its checks and one commit. Mark a task `[x]` when its commit
 | `DRY_RUN`: a call that the policy does not allow passes, and the IAP audit log records it | Pass: met. Log: not met | `update_status` passed. The IAP log had entries only for MCP base methods, with `request.dryRun=true` |
 | After the change to enforce, the same call is denied | Met | `update_status` returned "MCP tool execution failed". It did not get to Cloud Run. The gateway used the new mode 1 to 3 minutes after the apply |
 | The IAP Data Access audit log records the denied call | Not met | No IAP entry and no gateway entry for the denied call, 30 minutes later |
-| The 10-minute demo runs. The reset runbook returns it to the start state | Not tested | |
-| The clean-up script removes all mini build resources and nothing else | Not tested | The resources stay for demos |
+| The checks run. The switch policy mode runbook returns the environment to the start state | Met | Live test on 08 Nov 2026 |
+| The clean-up script removes all mini build resources and nothing else | Met | Live test on 08 Nov 2026: 55 resources destroyed, then a fresh deploy succeeded |
 
 Model Armor (added test): a prompt injection message returned `403 Security Policy Violation` from
 the gateway. A normal question passed.

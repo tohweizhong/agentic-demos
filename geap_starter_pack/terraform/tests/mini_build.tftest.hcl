@@ -236,6 +236,32 @@ run "tier_3_egress_gateway_without_model_armor" {
   }
 }
 
+run "tier_3_without_tier_2_is_rejected" {
+  command = plan
+
+  variables {
+    enable_agent_registry  = false
+    enable_egress_gateway  = true
+    enable_model_armor     = false
+    enable_ingress_gateway = false
+  }
+
+  expect_failures = [var.enable_egress_gateway]
+}
+
+run "tier_4_without_tier_3_is_rejected" {
+  command = plan
+
+  variables {
+    enable_agent_registry  = true
+    enable_egress_gateway  = false
+    enable_model_armor     = true
+    enable_ingress_gateway = true
+  }
+
+  expect_failures = [var.enable_model_armor]
+}
+
 run "agent_image_trusts_the_gateway_ca" {
   command = apply
 

@@ -58,10 +58,10 @@ environment.
    PROJECT=$(terraform -chdir=terraform output -raw project_id)
    REGION=$(terraform -chdir=terraform output -raw region)
    gcloud run services update geap-work-items --project="${PROJECT}" --region="${REGION}" \
-     --update-labels="demo-reset=$(date -u +%Y%m%d%H%M%S)"
+     --update-labels="state-reset=$(date -u +%Y%m%d%H%M%S)"
    ```
 
-   `terraform/registry.tf` ignores the `demo-reset` label (`ignore_changes`), so the next
+   `terraform/registry.tf` ignores the `state-reset` label (`ignore_changes`), so the next
    `terraform plan` shows no drift. If you changed `name_prefix`, use `<name_prefix>-work-items` as
    the service name.
 
