@@ -281,6 +281,7 @@ REPORT="$(jq -n \
   --arg log_bucket_state "${LOG_BUCKET_STATE}" \
   --arg tf_adc_source "${TF_ADC_SOURCE}" \
   --arg tf_adc_fix "${TF_ADC_FIX}" \
+  --argjson disk_free_mb "${DISK_FREE_MB}" \
   '
   def blockers:
     [
@@ -289,6 +290,9 @@ REPORT="$(jq -n \
       (if ($has_admin | not) then "Caller does not have roles/owner or roles/editor on the project." else empty end),
       (if $log_bucket_state == "DELETE_REQUESTED" then
         "Log bucket " + $log_bucket_id + " is in DELETE_REQUESTED state (7-day soft-delete lock). Undelete it before apply: gcloud logging buckets undelete " + $log_bucket_id + " --location=" + $region + " --project=" + $project
+       else empty end),
+      (if $disk_free_mb < 250 then
+        "Free disk space in terraform/ is " + ($disk_free_mb | tostring) + " MB (< 250 MB). Free disk space before running Terraform so terraform.tfstate is not truncated."
        else empty end),
       (if $tf_adc_source == "none" then
         "Terraform has no credentials: no GOOGLE_APPLICATION_CREDENTIALS file, no ~/.config/gcloud ADC file, and no metadata server account. Run: gcloud auth application-default login"
@@ -303,6 +307,9 @@ REPORT="$(jq -n \
     ];
   def warnings:
     [
+      (if ($disk_free_mb >= 250 and $disk_free_mb < 1024) then
+        "Free disk space in terraform/ is " + ($disk_free_mb | tostring) + " MB (< 1024 MB). Free up space soon."
+       else empty end),
       (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3) and $allow_gmm) then
         "allow_google_managed_members = true: Terraform sets a temporary project exception to iam.allowedPolicyMemberDomains for the 3 Model Armor roles (Approach 2). Set it back to false and apply again after the roles exist."
        else empty end),
@@ -329,6 +336,7 @@ REPORT="$(jq -n \
       region: $region,
       name_prefix: $prefix
     },
+    disk_free_mb: $disk_free_mb,
     terraform_credentials: {source: $tf_adc_source},
     caller: {
       account: $caller,

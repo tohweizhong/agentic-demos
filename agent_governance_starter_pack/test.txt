@@ -1,0 +1,21 @@
+Adoption Plan for Project: weizhong-project04
+Running discover.sh...
+--- terraform.tfvars Snippets ---
+
+existing_mcp_servers = {
+  agent-auth-client = {
+    url            = "https://agent-auth-client-uwvnlvwlla-uc.a.run.app"
+    tool_spec_file = "../mcp-server/tool_spec.json"
+  }
+}
+
+existing_agent_principals = [
+  "principal://agents.global.org-682483869920.system.id.goog/resources/aiplatform/projects/417077131228/locations/us-central1/reasoningEngines/4407016601841303552",
+  "principal://agents.global.org-682483869920.system.id.goog/resources/aiplatform/projects/417077131228/locations/us-central1/reasoningEngines/3442120381677174784",
+  "principal://agents.global.org-682483869920.system.id.goog/resources/aiplatform/projects/417077131228/locations/us-central1/reasoningEngines/3883613882647838720",
+  "principal://agents.global.org-682483869920.system.id.goog/resources/aiplatform/projects/417077131228/locations/us-central1/reasoningEngines/209501220434345984",
+]
+
+--- Per-Agent Gateway Binding Instructions ---
+To bind an agent to a gateway, run:
+scripts/bind_existing_agent.sh --project weizhong-project04 --region us-central1 --agent-id <AGENT_ID> [--egress-gateway GW_NAME] [--ingress-gateway GW_NAME]

@@ -46,10 +46,13 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scri
 | Skill | Path | What It Does |
 |---|---|---|
 | `geap-discover` | `.agents/skills/geap-discover/SKILL.md` | Read-only scan of an existing project: agents, MCP servers, gateways, access policies, and the lateral steps for each tier |
+| `geap-adopt` | `.agents/skills/geap-adopt/SKILL.md` | Interactive lateral adoption of an existing project |
 | `geap-configure` | `.agents/skills/geap-configure/SKILL.md` | Asks for the project, region, name prefix, governance tier, domain restricted sharing approach, and IAP mode, then writes `terraform/terraform.tfvars` |
 | `geap-preflight` | `.agents/skills/geap-preflight/SKILL.md` | Runs `scripts/preflight.sh` and checks the JSON readiness report (`GO` or `NO_GO`) |
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Packages the agent source, runs offline unit tests, runs `terraform plan`, and pauses for human approval before `terraform apply` |
 | `geap-verify` | `.agents/skills/geap-verify/SKILL.md` | Verifies the deployed agent, Model Armor content screening, IAP tool authorization, and Cloud Logging entries |
+| `geap-doctor` | `.agents/skills/geap-doctor/SKILL.md` | Runs the posture check to find stale IAM grants and missing gateway bindings |
+| `geap-onboard-agent` | `.agents/skills/geap-onboard-agent/SKILL.md` | Generates terraform code and IAM grants for onboarding a new agent |
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Returns `iap_enforcement_mode` to `DRY_RUN` and resets the sample MCP server state |
 | `geap-teardown` | `.agents/skills/geap-teardown/SKILL.md` | Destroys all Terraform resources and sweeps any out-of-state GEAP resources in the project (requires human confirmation) |
 
@@ -73,7 +76,7 @@ Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format 
   "permissions": {
     "deny": ["command(terraform destroy)"],
     "ask": ["command(terraform apply)", "command(scripts/cleanup.sh)"],
-    "allow": ["command(scripts/preflight.sh)", "command(scripts/deploy_checks.sh)"]
+    "allow": ["command(scripts/preflight.sh)", "command(scripts/deploy_checks.sh)", "command(scripts/discover.sh)", "command(scripts/doctor.sh)", "command(scripts/adoption_plan.sh)", "command(scripts/bind_existing_agent.sh)", "command(scripts/teardown_plan.sh)", "command(scripts/package_agent.sh)", "command(scripts/ask_agent.sh)", "command(scripts/read_audit_log.sh)", "command(scripts/check_promotion.sh)", "command(scripts/check_tool_policy.sh)"]
   }
 }
 ```
@@ -85,7 +88,7 @@ Start `agy` from this folder in a fresh session. If `agy` asks to read a file ou
 #### Load and Run the Skills
 
 1. **Workspace-local loading (no copy needed):** Open the `agent_governance_starter_pack/` folder directly as your workspace root in the Antigravity IDE, or run `cd agent_governance_starter_pack` before you start `agy`. Antigravity loads `AGENTS.md`, `.agents/hooks.json`, and `.agents/skills/geap-*`.
-2. **Global user skills (when opening the parent repository root):** If you open the parent `agentic-demos/` folder or want the five skills available in any workspace, copy them into your user skills directory:
+2. **Global user skills (when opening the parent repository root):** If you open the parent `agentic-demos/` folder or want the ten skills available in any workspace, copy them into your user skills directory:
    ```bash
    mkdir -p ~/.gemini/config/skills
    cp -r agent_governance_starter_pack/.agents/skills/geap-* ~/.gemini/config/skills/
@@ -146,9 +149,9 @@ This folder also includes a Claude Code harness. It uses the same rules and the 
 |---|---|
 | `CLAUDE.md` | Imports `AGENTS.md` with `@AGENTS.md` and adds Claude Code notes |
 | `.claude/settings.json` | Allow, ask, and deny lists in Claude Code settings format (Claude Code reads workspace settings, unlike `agy`) |
-| `.claude/skills` | A relative symlink to `../.agents/skills`. There is one copy of each `geap-*` skill. Claude Code loads the five skills through the symlink, and each skill is also a slash command (for example `/geap-preflight`) |
+| `.claude/skills` | A relative symlink to `../.agents/skills`. There is one copy of each `geap-*` skill. Claude Code loads the ten skills through the symlink, and each skill is also a slash command (for example `/geap-preflight`) |
 
-1. **Start Claude Code from this folder:** run `cd agent_governance_starter_pack` and then `claude`. Claude Code reads `CLAUDE.md`, the imported `AGENTS.md`, `.claude/settings.json`, and the five `geap-*` skills.
+1. **Start Claude Code from this folder:** run `cd agent_governance_starter_pack` and then `claude`. Claude Code reads `CLAUDE.md`, the imported `AGENTS.md`, `.claude/settings.json`, and the ten `geap-*` skills.
 2. **Accept the workspace trust dialog once:** start `claude` in an interactive session and accept the trust dialog for the repository. Until you accept it, Claude Code ignores the `allow` list in `.claude/settings.json`, and every command needs approval. Headless runs use the `allow` list only after you accept the dialog.
 3. **Use Claude on Vertex AI:** set these variables before you start `claude`:
    ```bash
