@@ -6,6 +6,7 @@
 | New | [manual_test_20261109](./tracks/manual_test_20261109/index.md) | Manual test by the repository owner, from a fresh clone. Not started |
 | Completed | [region_test_20261109](./tracks/region_test_20261109/index.md) | Live test of all five tiers in `asia-southeast1`, by an agent, on 09 Nov 2026 |
 | Plan | [day2_plan_20261109](./tracks/day2_plan_20261109/index.md) | First plan for the Day-2 pack in `day2/`. Documents only. No tool is built. See [day2/README.md](../day2/README.md) |
+| Plan | [existing_project_adoption_20261109](./tracks/existing_project_adoption_20261109/index.md) | Lateral paths: bring existing agents, MCP servers, and gateways to each tier. Documents only. No tool is built |
 
 ## Open work
 
@@ -25,3 +26,6 @@ each item (including items 11 to 24 for Day-2 operations and enterprise handover
 
 - [ ] **Track: First plan for the Day-2 pack**
   *Link: [./tracks/day2_plan_20261109/index.md](./tracks/day2_plan_20261109/index.md)*
+
+- [ ] **Track: Lateral paths for existing projects**
+  *Link: [./tracks/existing_project_adoption_20261109/index.md](./tracks/existing_project_adoption_20261109/index.md)*
