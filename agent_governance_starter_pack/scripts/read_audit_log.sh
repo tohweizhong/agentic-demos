@@ -18,11 +18,11 @@ echo "== IAP decisions (cloudaudit.googleapis.com/data_access, iap.googleapis.co
 gcloud logging read \
   "logName=\"projects/${PROJECT}/logs/cloudaudit.googleapis.com%2Fdata_access\" AND protoPayload.serviceName=\"iap.googleapis.com\" AND protoPayload.authorizationInfo.permission:\"egressViaIAP\"" \
   --project="${PROJECT}" --freshness="${FRESHNESS}" --limit=20 \
-  --format="table(timestamp, protoPayload.authorizationInfo[0].granted:label=GRANTED, protoPayload.request.dryRun:label=DRY_RUN, protoPayload.request.mcp_method:label=MCP_METHOD, protoPayload.authorizationInfo[0].permission:label=PERMISSION, protoPayload.resourceName:label=RESOURCE)"
+  --format='table(timestamp.date("%Y-%m-%d %H:%M:%S SGT", tz="Asia/Singapore"):label=TIME_SGT, protoPayload.authorizationInfo[0].granted:label=GRANTED, protoPayload.request.dryRun:label=DRY_RUN, protoPayload.request.mcp_method:label=MCP_METHOD, protoPayload.authorizationInfo[0].permission:label=PERMISSION, protoPayload.resourceName:label=RESOURCE)'
 
 echo
 echo "== Gateway requests (networkservices.googleapis.com/gateway_requests) =="
 gcloud logging read \
   "logName=\"projects/${PROJECT}/logs/networkservices.googleapis.com%2Fgateway_requests\"" \
   --project="${PROJECT}" --freshness="${FRESHNESS}" --limit=20 \
-  --format="table(timestamp, httpRequest.status:label=STATUS, jsonPayload.agentGatewayInfo.mcpInfo.parameter:label=MCP, jsonPayload.authzPolicyInfo.result:label=AUTHZ)"
+  --format='table(timestamp.date("%Y-%m-%d %H:%M:%S SGT", tz="Asia/Singapore"):label=TIME_SGT, httpRequest.status:label=STATUS, jsonPayload.agentGatewayInfo.mcpInfo.parameter:label=MCP, jsonPayload.authzPolicyInfo.result:label=AUTHZ)'

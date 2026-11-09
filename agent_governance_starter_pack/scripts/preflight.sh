@@ -83,7 +83,7 @@ if [[ -z "${PROJECT}" ]]; then
   exit 2
 fi
 
-TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+TIMESTAMP="$(TZ=Asia/Singapore date +"%Y-%m-%dT%H:%M:%S+08:00")"
 CALLER="$(gcloud config get-value account 2>/dev/null || true)"
 TOKEN="$(gcloud auth print-access-token 2>/dev/null || true)"
 

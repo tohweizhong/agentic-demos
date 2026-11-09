@@ -2,8 +2,14 @@
 # Shared settings for the scripts. The values come from the Terraform outputs.
 set -euo pipefail
 
+export TZ="${TZ:-Asia/Singapore}"
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TF_DIR="${ROOT}/terraform"
+
+now_sgt() {
+  TZ="Asia/Singapore" date +"%Y-%m-%d %H:%M:%S SGT"
+}
 
 tf_output() {
   terraform -chdir="${TF_DIR}" output -raw "$1"

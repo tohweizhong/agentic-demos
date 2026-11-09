@@ -14,6 +14,7 @@ These rules apply to any automated agent or CLI harness that runs in `agent_gove
 4. Never run `terraform apply` or `terraform destroy` without human approval of the plan summary (resource counts and resource types).
 5. On any permission error, credential error, or organization policy violation, stop immediately and report the exact command or prerequisite needed. Do not retry blindly.
 6. Never commit real project IDs, project numbers, organization IDs, customer names, or internal URLs to git.
+7. Report all dates and times in Singapore time (`GMT+8`, `SGT`, for example `09 Nov 22:10 SGT`). Keep UTC only inside a raw log line or command output that you quote word for word.
 
 ## Headless Mode
 
