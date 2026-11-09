@@ -23,6 +23,19 @@ This guide takes an operator from a new or existing Google Cloud project to a wo
 | Project | A new or existing project with billing enabled. All resources use `var.name_prefix` (default `geap`), all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` sweeps only `<name_prefix>-*` resources by default. Its three project-wide steps run only with `--include-project-wide` (see [runbooks/teardown.md](runbooks/teardown.md)) |
 | Region | One region for the agent, the gateways, Agent Registry, and Model Armor. Tested in `us-central1` (08 Nov 2026) and `asia-southeast1` (09 Nov 2026). For a region other than `us-central1`, read "Regions other than us-central1" in Section 4 |
 
+### Get the Code
+
+Run all commands in this guide from the `agent_governance_starter_pack/` folder of a fresh clone. Use Cloud Shell, a Cloud Workstation, or a workstation that has the tools in the table above.
+
+```bash
+git clone https://github.com/tohweizhong/agentic-demos.git
+cd agentic-demos/agent_governance_starter_pack
+gcloud auth login
+gcloud auth application-default login
+```
+
+A fresh clone has no Terraform state. Do not deploy a second copy into a project that already has a starter pack deployment from another clone. A different `name_prefix` is not enough: the access policy ID `geap-agent-egress` comes from `policies/iap_access_policy.yaml` and does not use the prefix, so the second apply fails on that policy (backlog item 26). Use a new project, or tear down the first copy with `scripts/cleanup.sh` from its own clone.
+
 ### Antigravity CLI (`agy`) Harness
 
 This folder includes a CLI harness (`AGENTS.md`, `settings.json`, and `.agents/skills/`) so an operator can run each workflow step through the Antigravity CLI (`agy`) instead of running the shell commands manually:
