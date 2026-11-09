@@ -99,7 +99,9 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
   depends_on = [
     google_project_service.this,
     google_network_security_authz_policy.iap,
+    google_network_security_authz_policy.model_armor,
     google_network_security_authz_policy.ingress_model_armor,
+    google_project_iam_member.gateway_model_armor,
     # The container needs the base roles when it starts.
     google_project_iam_member.agent_base,
   ]
