@@ -386,7 +386,7 @@ for bkt in "${PREFIX}-agent-audit" "${PREFIX}-audit"; do
 done
 
 # 13. Local build artifacts
-rm -f "${TF_DIR}/build/agent_source.tar.gz" "${TF_DIR}/build/agent-src.tar.gz" "${TF_DIR}/tfplan"
+rm -f "${TF_DIR}/build/agent-src.tar.gz" "${TF_DIR}/tfplan"
 
 echo "Remaining resources in Terraform state:"
 terraform -chdir="${TF_DIR}" state list 2>/dev/null || true

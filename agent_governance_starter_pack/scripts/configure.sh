@@ -124,6 +124,10 @@ if [[ "${FORCE}" != "true" ]]; then
   fi
 fi
 
+if [[ ! -f "${TF_DIR}/build/agent_source.tar.gz" ]]; then
+  "${ROOT}/scripts/package_agent.sh" >/dev/null
+fi
+
 printf '%s' "${CONTENT}" > "${TFVARS}"
 sed -i "/^malicious_uri:/,/enforcement:/ s/enforcement: .*/enforcement: ${MURI}/" "${MA_YAML}"
 echo "Wrote ${TFVARS} and set malicious_uri.enforcement: ${MURI} in policies/model_armor.yaml."

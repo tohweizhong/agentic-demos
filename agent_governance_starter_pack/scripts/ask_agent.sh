@@ -11,11 +11,12 @@ need terraform gcloud curl jq
 AGENT=""
 USER_ID="operator"
 SESSION_ID=""
+PASSED_SESSION_ID=""
 while getopts "a:u:s:" opt; do
   case "${opt}" in
     a) AGENT="${OPTARG}" ;;
     u) USER_ID="${OPTARG}" ;;
-    s) SESSION_ID="${OPTARG}" ;;
+    s) SESSION_ID="${OPTARG}"; PASSED_SESSION_ID="${OPTARG}" ;;
     *) echo "Usage: $0 [-a AGENT_RESOURCE_NAME] [-u USER_ID] [-s SESSION_ID] \"MESSAGE\"" >&2; exit 2 ;;
   esac
 done
@@ -58,7 +59,7 @@ while [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; do
   
   # Stream output into a temporary file
   TMP_OUT="$(mktemp)"
-  call "${API}:streamQuery?alt=sse" "${body}" | while IFS= read -r line; do
+  if ! call "${API}:streamQuery?alt=sse" "${body}" 2> "${TMP_OUT}.err" | while IFS= read -r line; do
     line="${line#data: }"
     [[ -z "${line}" ]] && continue
     echo "${line}" | jq -r '
@@ -70,13 +71,18 @@ while [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; do
       (if .error_code then "[error] \(.error_code): \(.error_message)"
        elif .error then "[error] \(.error | tostring)"
        else empty end)' 2>/dev/null || echo "${line}"
-  done > "${TMP_OUT}"
+  done > "${TMP_OUT}"; then
+    cat "${TMP_OUT}.err" >> "${TMP_OUT}"
+  fi
+  rm -f "${TMP_OUT}.err"
   
-  if grep -q "\[error\] MALFORMED_FUNCTION_CALL" "${TMP_OUT}"; then
+  if grep -q -E "\[error\] MALFORMED_FUNCTION_CALL|RefreshError|401|403|The caller does not have permission" "${TMP_OUT}"; then
     if [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; then
-      echo "[retry] Waiting 15s for IAM propagation after MALFORMED_FUNCTION_CALL..." >&2
-      sleep 15
-      if [[ -z "${ORIGINAL_SESSION_ID}" ]]; then
+      echo "[retry] Waiting 10s for IAM propagation..." >&2
+      sleep 10
+      TOKEN="$(gcloud auth print-access-token)"
+
+      if [[ -z "${PASSED_SESSION_ID}" ]]; then
         body_session="$(jq -n --arg u "${USER_ID}" '{class_method: "async_create_session", input: {user_id: $u}}')"
         SESSION_ID="$(call "${API}:query" "${body_session}" | jq -r '.output.id')"
         body="$(jq -n --arg u "${USER_ID}" --arg s "${SESSION_ID}" --arg m "${MESSAGE}"           '{class_method: "async_stream_query", input: {user_id: $u, session_id: $s, message: $m}}')"
