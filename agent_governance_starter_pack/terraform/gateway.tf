@@ -183,8 +183,13 @@ resource "google_model_armor_template" "this" {
       confidence_level   = local.model_armor.prompt_injection_and_jailbreak.confidence_level
     }
 
-    malicious_uri_filter_settings {
-      filter_enforcement = local.model_armor.malicious_uri.enforcement
+    # Some regions (for example asia-southeast1) reject this field, also with
+    # DISABLED (Error 400 CAPABILITY_NOT_SUPPORTED). Send it only when enabled.
+    dynamic "malicious_uri_filter_settings" {
+      for_each = try(local.model_armor.malicious_uri.enforcement, "DISABLED") == "ENABLED" ? [1] : []
+      content {
+        filter_enforcement = "ENABLED"
+      }
     }
 
     sdp_settings {

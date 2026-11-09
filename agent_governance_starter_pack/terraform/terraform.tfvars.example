@@ -4,7 +4,7 @@
 project_id      = "PROJECT_ID"
 project_number  = "PROJECT_NUMBER"
 organization_id = "ORG_ID"
-region          = "us-central1"
+region          = "us-central1" # For asia-southeast1, see "Regions other than us-central1" in GUIDE.md
 
 # Governance tiers (Tier 1 is always on):
 # Tier 2: Agent Registry catalog entries

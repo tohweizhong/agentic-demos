@@ -39,12 +39,13 @@ environment.
 
    ```bash
    cd terraform
-   terraform plan -out=tfplan    # expect: 1 to change (google_iam_projects_policy_binding.agent_egress)
+   terraform plan -out=tfplan    # expect: 1 to change (google_network_services_authz_extension.iap[0])
    terraform apply tfplan
    cd ..
    ```
 
-   Wait 3 minutes after `terraform apply` finishes so the gateway data plane loads the new mode.
+   The apply takes 2 to 4 minutes. Wait 3 more minutes after `terraform apply` finishes so the
+   gateway data plane loads the new mode.
 
    Known problem: an update to the gateway authz policy can fail with `ABORTED` ("There is another
    ongoing operation for the same AgentGateway"). If this occurs, detach the target policy, apply the

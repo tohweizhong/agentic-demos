@@ -165,7 +165,7 @@ This table is the single list of open starter pack work. [tracks.md](tracks.md) 
 
 ### Test status
 
-An agent tested the starter pack live on 08 Nov 2026 in 4 stages: a harness check, a full project reset, the five tiers from zero, and the onboarding of a second agent. The repository owner did not do a manual test yet. The steps are in the [manual test track](tracks/manual_test_20261109/plan.md).
+An agent tested the starter pack live on 08 Nov 2026 in 4 stages: a harness check, a full project reset, the five tiers from zero, and the onboarding of a second agent. An agent also tested all five tiers in `asia-southeast1` on 09 Nov 2026 ([region test track](tracks/region_test_20261109/plan.md)). The repository owner did not do a manual test yet. The steps are in the [manual test track](tracks/manual_test_20261109/plan.md).
 
 | # | Item | Status |
 |---|---|---|

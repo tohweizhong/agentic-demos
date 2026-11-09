@@ -10,7 +10,7 @@ This guide takes an operator from a new or existing Google Cloud project to a wo
 | `PROJECT_NUMBER` | The numeric project number |
 | `ORG_ID` | The numeric organization ID |
 | `BILLING_ACCOUNT_ID` | The billing account ID, in the form `XXXXXX-XXXXXX-XXXXXX` |
-| `REGION` | `us-central1` for the starter pack foundation |
+| `REGION` | The region of the starter pack, for example `us-central1` or `asia-southeast1` |
 | `AGENT_ID` | The numeric ID of the deployed agent (from `terraform output`) |
 | `TENANT_PROJECT_NUMBER` | The numeric tenant project number inside the gateway Service Extensions service account |
 
@@ -21,7 +21,7 @@ This guide takes an operator from a new or existing Google Cloud project to a wo
 | Tools | `gcloud`, Terraform 1.9 or later, `jq`, `curl`, Go 1.26 (for the MCP server tests), Python 3.12 or later (for the agent tests) |
 | Roles | Owner (`roles/owner`) on the project. Organization Policy Administrator (`roles/orgpolicy.policyAdmin`) only when Tier 4 (Model Armor) is enabled and the organization restricts policy members |
 | Project | A new or existing project with billing enabled. All resources use `var.name_prefix` (default `geap`), all APIs set `disable_on_destroy = false`, and `scripts/cleanup.sh` sweeps only `<name_prefix>-*` resources by default. Its three project-wide steps run only with `--include-project-wide` (see [runbooks/teardown.md](runbooks/teardown.md)) |
-| Region | `us-central1`. The agent, the gateways, and Agent Registry must be in the same region |
+| Region | One region for the agent, the gateways, Agent Registry, and Model Armor. Tested in `us-central1` (08 Nov 2026) and `asia-southeast1` (09 Nov 2026). For a region other than `us-central1`, read "Regions other than us-central1" in Section 4 |
 
 ### Antigravity CLI (`agy`) Harness
 
@@ -186,6 +186,19 @@ iap_enforcement_mode         = "DRY_RUN"
 allow_google_managed_members = false
 ```
 
+### Regions other than us-central1
+
+Set three values together in `terraform/terraform.tfvars`, and check one policy setting:
+
+| Setting | `us-central1` (default) | `asia-southeast1` (tested 09 Nov 2026) | Why |
+|---|---|---|---|
+| `region` | `us-central1` | `asia-southeast1` | All starter pack resources use this region |
+| `model_id` | `gemini-3.8-flash` | `gemini-3.5-flash` | `gemini-3.8-flash` returns `404` on the `asia-southeast1` endpoint |
+| `model_location` | `global` | `asia-southeast1` | A regional endpoint keeps model processing in the region. `global` can process a request in any region |
+| `malicious_uri.enforcement` in `policies/model_armor.yaml` | `ENABLED` | `DISABLED` | Model Armor in `asia-southeast1` rejects the malicious URI filter with `Error 400 ... CAPABILITY_NOT_SUPPORTED`, also when it is disabled. With `DISABLED`, Terraform omits the field. The other filters stay on |
+
+For any other region, check that Agent Runtime, Agent Gateway, Agent Registry, Model Armor, and the Gemini model are available there before you apply.
+
 ### How `DRY_RUN` vs `ENFORCE` Works Across Control Layers
 
 | Control Layer | Policy Profile | Controlled By | In `DRY_RUN` | In `ENFORCE` |
@@ -286,5 +299,6 @@ In `ENFORCE` mode, `scripts/ask_agent.sh "Set ITEM-001 to in_progress."` returns
 | `ModuleNotFoundError: No module named 'google.cloud.aiplatform'` | Only `google-cloud-agentplatform` is installed | Keep `google-cloud-aiplatform[adk,agent_engines]>=2.2,<3` in `agent-template/requirements.txt` |
 | Query returns `{"detail":"Not Found"}` | `adk api_server` started without `--gemini_enterprise_app_name` | Keep `--gemini_enterprise_app_name=work_items` in the Dockerfile `CMD` |
 | `not in permitted organization` for `gcp-sa-dep` role grants | `iam.allowedPolicyMemberDomains` blocks the gateway Service Extensions service account | Follow one of the approaches in Section 3 |
+| The first queries after an apply return `MALFORMED_FUNCTION_CALL`, and the agent log shows `403 Permission 'iam.serviceAccounts.getOpenIdToken' denied` | The new token creator grant to the agent principal is still propagating. ADK then runs the agent without the MCP tools | Wait 3 to 5 minutes and ask again. In the 09 Nov 2026 test, the query worked 4 minutes after the grant |
 | A denied tool still succeeds right after switching to `ENFORCE` | The gateway policy change is still propagating | Wait 3 minutes and test again |
 | No audit log entry appears for a denied `tools/call` under IAP V2 | Known platform logging limitation for MCP `tools/call` under V2 | Use the agent tool error and the Cloud Run request log as verification evidence |
