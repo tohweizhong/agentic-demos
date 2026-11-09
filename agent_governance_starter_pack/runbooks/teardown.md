@@ -24,6 +24,16 @@ scripts/cleanup.sh [--keep-log-bucket | --purge-all] [--include-project-wide]
 | `--purge-all` | You do not plan to deploy again soon. The audit log bucket is deleted and stays soft-deleted for 7 days. During those 7 days, a deploy with the same `name_prefix` fails |
 | `--include-project-wide` | The project holds the starter pack and nothing else. Without this flag, the project-wide steps only report what they find |
 
+### Which log bucket option to choose
+
+| Case | Option | Reason |
+|---|---|---|
+| Sandbox or rehearsal, and you will delete this clone | `--purge-all` | The kept bucket would be in the Terraform state of this clone only. When you delete the clone, the bucket becomes a resource that no Terraform state manages. The next deploy uses a new `name_prefix`, so the 7-day soft delete does not block it |
+| Sandbox, and you will deploy again from the same clone | `--keep-log-bucket` | The script imports the bucket into the state again, so the next apply uses it |
+| Customer production | `--keep-log-bucket`, or do not delete the bucket | Audit logs are evidence after the agent is gone. Delete them only under the retention rules of the customer |
+
+The sink only copies logs into `<name_prefix>-agent-audit`. After a purge, Admin Activity audit logs stay in the `_Required` bucket of the project, and other logs stay in the `_Default` bucket until its retention period ends.
+
 ## What the script deletes and what it keeps
 
 "Name-scoped" means that the step acts only on resources named `<name_prefix>-*`.
