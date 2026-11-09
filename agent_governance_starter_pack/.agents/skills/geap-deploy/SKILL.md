@@ -25,3 +25,4 @@ Deploy or update the agent governance starter pack mini build with a mandatory a
    ```
 5. Report the plan summary (how many resources to add, change, and destroy, plus their types) to the user and **stop**.
 6. Run `terraform apply tfplan` only after the user approves the plan summary.
+7. Run the apply as a background task. Every 5 minutes, report the elapsed time, the number of resources created so far from the output, and the resource that is being created now. An apply with both gateways takes about 8 to 16 minutes.
