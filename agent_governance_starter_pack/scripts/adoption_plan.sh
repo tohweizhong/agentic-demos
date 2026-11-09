@@ -36,7 +36,7 @@ echo "}"
 
 echo ""
 echo "existing_agent_principals = ["
-echo "${DISCOVER_OUT}" | awk '/## Agents/,/## Gateways/ { if ($1 == "|") { print "  \"principal://agents.global.org-ORGANIZATION_ID.system.id.goog/resources/aiplatform/projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/" $4 "\"," } }'
+echo "${DISCOVER_OUT}" | awk '/## Agents/,/## Gateways/ { if ($0 ~ /^\| / && $0 !~ /Starter pack/) { match($0, /`([^`]+)`/, arr); if (arr[1] != "") { print "  \"principal://agents.global.org-ORGANIZATION_ID.system.id.goog/resources/aiplatform/projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/" arr[1] "\"," } } }'
 echo "]"
 
 echo ""
