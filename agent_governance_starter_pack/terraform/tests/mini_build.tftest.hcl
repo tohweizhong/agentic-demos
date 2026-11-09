@@ -93,6 +93,11 @@ run "access_policy_comes_from_the_policy_file" {
   command = apply
 
   assert {
+    condition     = google_iam_project_access_policy.agent_egress[0].access_policy_id == "${var.name_prefix}-agent-egress"
+    error_message = "The access policy ID must use the name prefix, so that two copies can run in one project."
+  }
+
+  assert {
     condition     = length(google_iam_project_access_policy.agent_egress[0].details[0].rules) == 2
     error_message = "The access policy must have the two rules from policies/iap_access_policy.yaml."
   }

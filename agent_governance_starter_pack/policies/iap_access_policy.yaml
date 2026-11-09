@@ -8,10 +8,11 @@
 # Mode:   set by iap_enforcement_mode in terraform.tfvars. DRY_RUN logs the
 #         decision in the IAP Data Access audit log and does not block. ENFORCE blocks.
 #
-# Terraform replaces ${region} and sets the principal to the reference agent.
+# Terraform replaces ${region} and ${name_prefix}, and sets the principal to the reference agent.
+# The access policy ID uses the name prefix, so two copies can run in one project.
 # The permission for every rule is iap.googleapis.com/resources.egressViaIAP.
 
-access_policy_id: geap-agent-egress
+access_policy_id: ${name_prefix}-agent-egress
 display_name: GEAP mini build agent egress
 
 rules:

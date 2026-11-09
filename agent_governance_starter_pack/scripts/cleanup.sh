@@ -233,10 +233,10 @@ for pb in "${PREFIX}-agent-egress" "${PREFIX}-egress-access"; do
     api_delete "IAM policyBinding ${pb}" "${URL}" "${IAM3}"
   fi
 done
-# The access policy ID comes from policies/iap_access_policy.yaml and does not
-# use the prefix (backlog item 26). Delete it only when no policy binding in the
+# The access policy ID is <prefix>-agent-egress (policies/iap_access_policy.yaml).
+# Older copies used the fixed ID geap-agent-egress. Delete a policy only when no policy binding in the
 # project still refers to it, so that another copy in the project keeps working.
-YAML_AP_ID="$(sed -n 's/^access_policy_id:[[:space:]]*//p' "${ROOT}/policies/iap_access_policy.yaml" 2>/dev/null | tr -d '"' | head -1)"
+YAML_AP_ID="geap-agent-egress"  # fixed ID of copies built before 09 Nov 2026
 BINDINGS_JSON="$(curl -s -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT}" "${IAM3LOC}/policyBindings" || echo "{}")"
 for ap in ${YAML_AP_ID} "${PREFIX}-agent-egress" "${PREFIX}-egress-access"; do
   [[ -z "${ap}" ]] && continue
