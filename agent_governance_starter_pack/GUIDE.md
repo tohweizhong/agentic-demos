@@ -247,6 +247,25 @@ iap_enforcement_mode         = "DRY_RUN"
 allow_google_managed_members = false
 ```
 
+### Existing MCP servers (lateral path, Tier 2)
+
+To register MCP servers that already exist in the project, add them to `terraform/terraform.tfvars`.
+Run `scripts/discover.sh` first to find them. Each server needs its URL and a tool spec file in the
+same format as `mcp-server/tool_spec.json`:
+
+```hcl
+existing_mcp_servers = {
+  crm = {
+    url            = "https://crm-mcp-xxxx.a.run.app/mcp"
+    tool_spec_file = "../policies/tool_specs/crm.json"
+  }
+}
+```
+
+Terraform registers each one as `<name_prefix>-ext-<key>`. At Tier 3, the IAP access policy allows
+registered destinations in the region, so add a DENY rule for each write tool of these servers in
+`policies/iap_access_policy.yaml`. `scripts/configure.sh` does not write this variable.
+
 ### Regions other than us-central1
 
 Set three values together in `terraform/terraform.tfvars`, and check one policy setting:

@@ -302,3 +302,26 @@ run "drs_exception_is_narrow" {
     error_message = "The project exception must add only the Google customer ID, not allow all members."
   }
 }
+
+run "existing_mcp_servers_are_registered" {
+  command = apply
+
+  variables {
+    existing_mcp_servers = {
+      crm = {
+        url            = "https://crm-mcp.example.com/mcp"
+        tool_spec_file = "../mcp-server/tool_spec.json"
+      }
+    }
+  }
+
+  assert {
+    condition     = google_agent_registry_service.existing_mcp["crm"].service_id == "${var.name_prefix}-ext-crm"
+    error_message = "An existing MCP server must be registered with the ext- name."
+  }
+
+  assert {
+    condition     = google_agent_registry_service.existing_mcp["crm"].interfaces[0].url == "https://crm-mcp.example.com/mcp"
+    error_message = "The registry entry must use the URL of the existing server."
+  }
+}
