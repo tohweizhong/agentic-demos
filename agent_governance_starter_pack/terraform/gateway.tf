@@ -126,7 +126,7 @@ resource "google_iam_project_access_policy" "agent_egress" {
       content {
         description = rules.value.description
         effect      = rules.value.effect
-        principals  = [local.agent_principal]
+        principals  = concat([local.agent_principal], var.existing_agent_principals)
 
         operation {
           permissions = ["iap.googleapis.com/resources.egressViaIAP"]

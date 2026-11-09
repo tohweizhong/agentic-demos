@@ -149,6 +149,17 @@ variable "existing_mcp_servers" {
   }
 }
 
+variable "existing_agent_principals" {
+  description = "Lateral path, Tier 3: Agent Identity principals of existing agents that also use the egress gateway. The IAP access policy rules apply to them as to the reference agent. Format: principal://agents.global.org-ORG_ID.system.id.goog/resources/aiplatform/projects/NUMBER/locations/REGION/reasoningEngines/ID. Bind each agent to the egress gateway separately."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for p in var.existing_agent_principals : can(regex("^principal://agents\\.global\\.org-[0-9]+\\.system\\.id\\.goog/resources/aiplatform/projects/[0-9]+/locations/[a-z0-9-]+/reasoningEngines/[0-9]+$", p))])
+    error_message = "Each entry must be an Agent Identity principal of an Agent Runtime agent."
+  }
+}
+
 variable "agent_source_archive" {
   description = "The path of the agent source archive, relative to this folder. scripts/package_agent.sh writes it."
   type        = string

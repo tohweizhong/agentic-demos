@@ -325,3 +325,21 @@ run "existing_mcp_servers_are_registered" {
     error_message = "The registry entry must use the URL of the existing server."
   }
 }
+
+run "existing_agents_share_the_access_policy" {
+  command = apply
+
+  variables {
+    existing_agent_principals = [
+      "principal://agents.global.org-111111111111.system.id.goog/resources/aiplatform/projects/123456789012/locations/us-central1/reasoningEngines/2222222222222222222"
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      for r in google_iam_project_access_policy.agent_egress[0].details[0].rules :
+      length(r.principals) == 2 && contains(r.principals, "principal://agents.global.org-111111111111.system.id.goog/resources/aiplatform/projects/123456789012/locations/us-central1/reasoningEngines/2222222222222222222")
+    ])
+    error_message = "Each access policy rule must apply to the reference agent and to each existing agent principal."
+  }
+}

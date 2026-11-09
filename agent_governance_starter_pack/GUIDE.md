@@ -266,6 +266,21 @@ Terraform registers each one as `<name_prefix>-ext-<key>`. At Tier 3, the IAP ac
 registered destinations in the region, so add a DENY rule for each write tool of these servers in
 `policies/iap_access_policy.yaml`. `scripts/configure.sh` does not write this variable.
 
+### Existing agents on the egress gateway (lateral path, Tier 3)
+
+To put existing agents under the same IAP access policy as the reference agent, add their Agent
+Identity principals (from `scripts/discover.sh` or the agent's Identity tab):
+
+```hcl
+existing_agent_principals = [
+  "principal://agents.global.org-ORG_ID.system.id.goog/resources/aiplatform/projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/AGENT_ID",
+]
+```
+
+Each rule of the access policy then applies to these agents too. This does not bind the agents to the
+gateway. Bind each one with `agentGatewayConfig` on the agent (its own deploy pipeline or Terraform).
+Start in `DRY_RUN` and run `scripts/check_promotion.sh` before `ENFORCE`.
+
 ### Regions other than us-central1
 
 Set three values together in `terraform/terraform.tfvars`, and check one policy setting:

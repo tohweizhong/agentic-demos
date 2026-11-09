@@ -25,7 +25,9 @@ Status: in progress. Phase 1 built on 09 Nov 2026.
 - [ ] Task: move an agent to `AGENT_IDENTITY` (deploy again or update in place), and grant its roles to
       the new principal. Record the old principal for clean-up.
 - [ ] Task: bind an agent to the egress or ingress gateway (`agentGatewayConfig` in Terraform).
-- [ ] Task: add IAP access policy rules for an agent principal and its tools, in `DRY_RUN`.
+- [x] Task: add IAP access policy rules for an agent principal and its tools, in `DRY_RUN`. Done on
+      09 Nov 2026: variable `existing_agent_principals` adds principals to every rule; test
+      `existing_agents_share_the_access_policy`. Not applied live.
 - [ ] Task: skill `geap-adopt` with an approval gate before each change.
 
 ## Phase 4: Rehearsal
