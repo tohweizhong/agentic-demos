@@ -62,7 +62,7 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scri
 | `auto_approve` | The read-only scripts (`preflight.sh`, `deploy_checks.sh`, `teardown_plan.sh`, `package_agent.sh`, `ask_agent.sh`, `read_audit_log.sh`, `configure.sh --dry-run/--show`), `terraform plan/output/validate/fmt/test/state list`, `gcloud ... describe/list` |
 | `ask` | Everything else |
 
-Sources (checked 09 Nov 2026 in the Jetski source): rule files in `cli/store/permissions.go`, hook format in `cortex/customization/hooks/jsonhook/SPEC.md`. The guard was tested with sample tool calls. It is not yet tested inside an `agy` session.
+Sources (checked 09 Nov 2026 in the Jetski source): rule files in `cli/store/permissions.go`, hook format in `cortex/customization/hooks/jsonhook/SPEC.md`. Live test in `agy` 1.4.12 (09 Nov 2026): `/hooks` lists `starter-pack-guard`; a `bash -c "gcloud ..."` command was denied with the guard reason; the reason also shows on permission prompts. `auto_approve` does not remove the prompt in the default review mode, so read-only scripts still ask unless you add the user-level allow rules below.
 
 Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format `command(prefix)`; agy splits compound commands at `&&`, `||`, `;`, and `|`, and checks each part):
 
