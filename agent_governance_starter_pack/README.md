@@ -18,12 +18,13 @@ project. The product definition is in [conductor/product.md](conductor/product.m
 | Terraform (`terraform/`) | Deploys everything. Four boolean variables turn the governance tiers on or off: `enable_agent_registry` (Agent Registry), `enable_egress_gateway` (egress Agent Gateway with IAP policy V2), `enable_model_armor` (Model Armor on the gateways), and `enable_ingress_gateway` (ingress Agent Gateway). `iap_enforcement_mode` sets the IAP policy to `DRY_RUN` or `ENFORCE` |
 | 1 reference agent (`agent-template/`) | An ADK agent that runs on Agent Runtime with its own Agent Identity principal. It is deployed as a container so it trusts the egress gateway certificate |
 | 1 MCP server (`mcp-server/`) | A sample Go MCP server on Cloud Run with one read-only tool (`get_status`) and one write tool (`update_status`). The IAP policy allows the read tool and denies the write tool |
-| Policies (`policies/`) | The IAP access policy and the Model Armor settings |
-| 5 scripts (`scripts/`) | `preflight.sh` (read-only readiness check), `package_agent.sh` (build the agent archive), `ask_agent.sh` (send a prompt to an agent), `read_audit_log.sh` (read gateway and IAP logs), and `cleanup.sh` (remove all starter pack resources from the project) |
-| 3 runbooks (`runbooks/`) | `add_agent.md` (onboard a second agent with its own identity and tool access), `switch_policy_mode.md` (move the IAP policy between `DRY_RUN` and `ENFORCE`, and reset the sample data), and `teardown.md` (what `cleanup.sh` deletes and keeps) |
-| Agent harness (`AGENTS.md`, `.agents/hooks.json`, `.agents/skills/`) | Safety rules, permission gates, and 5 skills (`geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`) so a coding agent can run the steps above. A person must approve every `terraform apply` and every clean-up |
-| Claude Code harness (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills`) | `CLAUDE.md` imports `AGENTS.md`. `.claude/settings.json` holds the same allow, ask, and deny lists as `settings.json`. `.claude/skills` is a symlink to `.agents/skills`, so both harnesses use one copy of the 5 skills. Draft, see [GUIDE.md](GUIDE.md) Section 1 |
-| Day-2 pack (`day2/`) | Plan only. No tool is built yet. Planned tools for a platform team that runs the starter pack every week: posture check, promotion readiness, agent onboarding, tool policy check, emergency quarantine, a principal access boundary for agents, a governance dashboard, CI checks, and remote Terraform state. See [day2/README.md](day2/README.md) |
+| Policies (`policies/`) | The IAP access policy (`iap_access_policy.yaml`), multi-agent IAP policy example (`multi_agent_iap_policy.example.yaml`), Model Armor settings (`model_armor.yaml`), Principal Access Boundary example (`principal_access_boundary.example.yaml`), and Cloud Monitoring dashboard (`geap_dashboard.json`) |
+| 19 scripts (`scripts/`) | `configure.sh`, `preflight.sh`, `package_agent.sh`, `deploy_checks.sh`, `check_tool_policy.sh`, `check_promotion.sh`, `ask_agent.sh`, `read_audit_log.sh`, `discover.sh`, `adoption_plan.sh`, `bind_existing_agent.sh`, `doctor.sh`, `onboard_agent.sh`, `install_harness.sh`, `teardown_plan.sh`, `cleanup.sh`, `quarantine_agent.sh`, `init_remote_state.sh`, and `agy_guard.sh` |
+| 6 runbooks (`runbooks/`) | `add_agent.md`, `add_agents_cli_agent.md`, `switch_policy_mode.md`, `teardown.md`, `handover_checklist.md`, and `principal_access_boundary.md` |
+| 2 CI templates (`pipelines/`) | `github-actions-pr-check.yaml` and `cloudbuild-pr-check.yaml` |
+| Agent harness (`AGENTS.md`, `.agents/hooks.json`, `.agents/skills/`) | Safety rules, permission gates (`scripts/agy_guard.sh`), and 10 skills (`geap-discover`, `geap-adopt`, `geap-configure`, `geap-preflight`, `geap-deploy`, `geap-verify`, `geap-doctor`, `geap-onboard-agent`, `geap-reset`, `geap-teardown`) so a coding agent can run the steps above. A person must approve every `terraform apply` and every clean-up |
+| Claude Code harness (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills`) | `CLAUDE.md` imports `AGENTS.md`. `.claude/settings.json` holds the allow, ask, and deny lists. `.claude/skills` is a symlink to `.agents/skills`, so both harnesses use one copy of the 10 skills. See [GUIDE.md](GUIDE.md) Section 1 |
+| Day-2 pack (`day2/`) | Built in `scripts/`, `policies/`, `pipelines/`, and `runbooks/`: posture check (`doctor.sh`), promotion readiness (`check_promotion.sh`), agent onboarding (`onboard_agent.sh`), tool policy check (`check_tool_policy.sh`), emergency quarantine (`quarantine_agent.sh`), Principal Access Boundary (`principal_access_boundary.example.yaml`), governance dashboard (`geap_dashboard.json`), CI checks (`pipelines/`), and remote Terraform state (`init_remote_state.sh`). See [day2/README.md](day2/README.md) |
 
 The skill names (`geap-*`) and the default resource prefix (`name_prefix = "geap"`) keep the short
 platform name, so existing deployments keep their resource names.
@@ -106,7 +107,7 @@ variable values for each tier.
 
 ![Agent governance starter pack tiers](images/governance_tiers.svg)
 
-The pyramid shows two paths. The vertical path adds one control for each tier. The lateral path (left, planned, not built) brings the agents, MCP servers, and clients that already exist in the project under the same control. See the [lateral paths track](conductor/tracks/existing_project_adoption_20261109/index.md).
+The pyramid shows two paths. The vertical path adds one control for each tier. The lateral path (left, built with `geap-discover`, `geap-adopt`, `existing_mcp_servers`, `existing_agent_principals`, and `scripts/bind_existing_agent.sh`) brings the agents, MCP servers, and clients that already exist in the project under the same control. See the [lateral paths track](conductor/tracks/existing_project_adoption_20261109/index.md).
 
 
 | Tier | Name | GEAP Services | Terraform Variable | Key Behavior |
@@ -159,12 +160,12 @@ sequenceDiagram
 | [`terraform/`](terraform/) | APIs, audit logs, IAM, Cloud Run, Agent Registry, Agent Gateway, Model Armor, the agent | 1, 2, 3, 4 |
 | [`agent-template/`](agent-template/) | The ADK reference agent | 4 |
 | [`mcp-server/`](mcp-server/) | A sample MCP server in Go, with one read-only tool and one write tool | 3 |
-| [`policies/`](policies/) | The IAP access policy and the Model Armor settings | 3 |
-| [`pipelines/`](pipelines/) | Not built (component 5) | 5 |
-| [`runbooks/`](runbooks/) | Add a new agent. Switch policy mode and reset state. Tear down the starter pack. Handover checklist | 6 |
-| [`scripts/`](scripts/) | Preflight scan, configure, offline deploy checks, tool policy check, discovery of an existing project, package the agent, ask the agent, read the audit log, teardown plan, clean up, and the `agy` guard hook | 6 |
-| [`.agents/skills/`](.agents/skills/) | CLI skills (`geap-configure`, `geap-preflight`, `geap-deploy`, `geap-verify`, `geap-reset`, `geap-teardown`), [`AGENTS.md`](AGENTS.md), and [`.agents/hooks.json`](.agents/hooks.json) with `scripts/agy_guard.sh` | 6 |
-| [`day2/`](day2/) | Plan only. The planned Day-2 tools and their design rules. No tool is built yet | 6 |
+| [`policies/`](policies/) | IAP access policies, Model Armor settings, Principal Access Boundary example, and Cloud Monitoring dashboard | 3, 6 |
+| [`pipelines/`](pipelines/) | GitHub Actions and Cloud Build pull request check templates | 5 |
+| [`runbooks/`](runbooks/) | Add a new ADK or `agents-cli` agent. Switch policy mode and reset state. Tear down the starter pack. Handover checklist. Principal Access Boundary | 6 |
+| [`scripts/`](scripts/) | 19 scripts: preflight, configure, offline deploy checks, tool policy check, promotion check, discovery, lateral adoption plan, bind existing agent, doctor, onboard agent, install harness, quarantine agent, init remote state, package agent, ask agent, read audit log, teardown plan, cleanup, and `agy` guard hook | 6 |
+| [`.agents/skills/`](.agents/skills/) | 10 CLI skills (`geap-discover`, `geap-adopt`, `geap-configure`, `geap-preflight`, `geap-deploy`, `geap-verify`, `geap-doctor`, `geap-onboard-agent`, `geap-reset`, `geap-teardown`), [`AGENTS.md`](AGENTS.md), and [`.agents/hooks.json`](.agents/hooks.json) with `scripts/agy_guard.sh` | 6 |
+| [`day2/`](day2/) | Day-2 operational tool index and design rules | 6 |
 
 ## Related folders
 
@@ -189,8 +190,8 @@ class methods in `terraform/adk_class_methods.json`.
 | Agent developer work: scaffold, local run, evaluation | agents-cli is an option | This is agent code, not platform. It belongs to component 5 (pipeline), which is not built |
 
 An agent that agents-cli deploys can use the starter pack gateways with
-`--agent-gateway-egress` or `--agent-gateway-ingress`. This is not tested. See backlog item 25 in
-[`conductor/product.md`](conductor/product.md#backlog).
+`--agent-gateway-egress` or `--agent-gateway-ingress`. Follow
+[`runbooks/add_agents_cli_agent.md`](runbooks/add_agents_cli_agent.md).
 
 ## Deploy the mini build
 
