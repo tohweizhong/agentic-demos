@@ -46,13 +46,13 @@ in Singapore must also know which parts of each service stay in Singapore.
 
 | # | File | Contents | Status |
 |---|---|---|---|
-| 1 | `bootstrap.sh` | Turns on the APIs, creates the staging bucket, and sets the observability default storage location to `asia-southeast1` | Not built |
-| 2 | `agent/agent.py`, `agent/requirements.txt` | One ADK agent. Sessions: a comment says that Agent Runtime connects `VertexAiSessionService`. Memory Bank: `PreloadMemoryTool` and an `after_agent_callback` that calls `callback_context.add_session_to_memory()`. Observability: built-in ADK traces and one custom span around a tool call | Not built |
-| 3 | `deploy.py` | Deploys the agent with `client.runtimes.create`. Sets `context_spec.memory_bank_config` and the telemetry environment variables | Not built |
-| 4 | `samples/1_sessions.py` | Creates a session, sends 2 turns, resumes the session, and lists the events | Not built |
-| 5 | `samples/2_memory_bank.py` | Writes memories in session A. Recalls them in session B. Prints the residency warning | Not built |
-| 6 | `samples/3_o11y.py` | Sends one query. Prints the trace ID and a Cloud Trace link | Not built |
-| 7 | `cleanup.sh` | Deletes the agent (with its sessions and memories) and the staging bucket. The system-created `_Trace` bucket and the default storage setting remain. The script says so | Not built |
+| 1 | `bootstrap.sh` | Turns on the APIs, creates the staging bucket, and sets the observability default storage location to `asia-southeast1` | Built. Offline tests pass. Live run not done |
+| 2 | `agent/agent.py`, `agent/requirements.txt` | One ADK agent. Sessions: a comment says that Agent Runtime connects `VertexAiSessionService`. Memory Bank: `PreloadMemoryTool` and an `after_agent_callback` that calls `callback_context.add_session_to_memory()`. Observability: built-in ADK traces and one custom span around a tool call | Built. Offline tests pass. Live run not done |
+| 3 | `deploy.py` | Deploys the agent with `client.runtimes.create`. Sets `context_spec.memory_bank_config` and the telemetry environment variables | Built. Offline tests pass. Live run not done |
+| 4 | `samples/1_sessions.py` | Creates a session, sends 2 turns, resumes the session, and lists the events | Built. Offline tests pass. Live run not done |
+| 5 | `samples/2_memory_bank.py` | Writes memories in session A. Recalls them in session B. Prints the residency warning | Built. Offline tests pass. Live run not done |
+| 6 | `samples/3_o11y.py` | Sends one query. Prints the trace ID and a Cloud Trace link | Built. Offline tests pass. Live run not done |
+| 7 | `cleanup.sh` | Deletes the agent (with its sessions and memories) and the staging bucket. The system-created `_Trace` bucket and the default storage setting remain. The script says so | Built. Offline tests pass. Live run not done |
 
 ## Check results (step 6, 10 Nov 2026)
 

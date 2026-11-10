@@ -2,10 +2,13 @@
 
 | Status | Track | Description |
 |---|---|---|
-
-No track exists yet. The first track is the version 1 build of the components in
-[product.md](product.md#components). It starts after the project for the first deploy is approved.
+| In progress | [v1_build_20261110](./tracks/v1_build_20261110/index.md) | Version 1 build: agent, deploy script, three samples, bootstrap and clean-up scripts |
 
 ## Open work
 
 The backlog in [product.md](product.md#backlog) is the single list of open work.
+
+---
+
+- [~] **Track: Version 1 build of the agent services starter pack**
+  *Link: [./tracks/v1_build_20261110/index.md](./tracks/v1_build_20261110/index.md)*

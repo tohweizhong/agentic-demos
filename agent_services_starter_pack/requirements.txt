@@ -1,0 +1,2 @@
+# Packages to deploy the agent and run the samples on your computer.
+-r agent/requirements.txt

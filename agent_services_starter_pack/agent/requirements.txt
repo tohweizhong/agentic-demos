@@ -1,0 +1,4 @@
+# Packages for the agent on Agent Runtime (checked 10 Nov 2026).
+# google-cloud-agentplatform 2.7.0 has no "runtimes" extra. Use "agent-engines".
+google-cloud-agentplatform[agent-engines,adk]==2.7.0
+google-adk==2.14.0

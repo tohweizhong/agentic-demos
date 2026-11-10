@@ -1,0 +1,5 @@
+# Packages for the offline tests.
+google-adk==2.14.0
+opentelemetry-sdk<2
+pytest
+pytest-cov
