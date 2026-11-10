@@ -13,13 +13,22 @@
   - [x] Write the code
 - [x] Task: `deploy.py`, the three samples, `bootstrap.sh`, and `cleanup.sh`
 - [x] Task: README with the run steps
-- [ ] Task: Phase Verification and Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification and Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Live run in the approved project (needs approval)
 
-- [ ] Task: Run `bootstrap.sh`, and check the observability setting
-- [ ] Task: Run `deploy.py`, and record the embedding model location result
-- [ ] Task: Run the three samples, and record the results
-- [ ] Task: Check the `_Trace` bucket location
-- [ ] Task: Update product.md, the README status, and the registry
-- [ ] Task: Phase Verification and Checkpoint (Refer to workflow.md)
+- [x] Task: Run `bootstrap.sh`, and check the observability setting
+- [x] Task: Run `deploy.py`, and record the embedding model location result
+- [x] Task: Run the three samples, and record the results
+- [x] Task: Check the `_Trace` bucket location
+- [x] Task: Update product.md, the README status, and the registry
+- [x] Task: Phase Verification and Checkpoint (Refer to workflow.md)
+
+## Live run notes (10 Nov 2026, new test project)
+
+1. Deploy 1 failed: the container did not start. `AdkApp.set_up()` imports `google.cloud.aiplatform`.
+   Fix: pin `google-cloud-aiplatform` and `google-cloud-resource-manager` in `agent/requirements.txt`.
+2. Deploy 2 passed. Sample 1 passed. Stored events use camelCase keys. Fix: the helpers read both forms.
+3. Sample 2 found no memories with `add_session_to_memory()` (IngestEvents), with and without an idle
+   trigger. A direct GenerateMemories call worked. Fix: the callback selects the GenerateMemories path.
+4. Final deploy: samples 1, 2, and 3 passed. `_Trace` is in `asia-southeast1`.

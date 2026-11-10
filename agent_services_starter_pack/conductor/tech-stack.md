@@ -20,7 +20,7 @@
 
 - No Terraform. The three services need only the SDK, the ADK, and `gcloud`.
 - The default Agent Runtime service agent runs the agent. Agent Identity is out of scope.
-- `google-cloud-aiplatform` is not a dependency. `google-cloud-agentplatform` replaces it.
+- The deploy code uses `google-cloud-agentplatform`. The agent also needs `google-cloud-aiplatform` at run time, because `AdkApp.set_up()` imports it on Agent Runtime.
 
 ## Exceptions
 

@@ -74,17 +74,21 @@ def test_get_service_status_makes_a_custom_span_with_attributes():
   assert result["trace_id"] == format(span.context.trace_id, "032x")
 
 
-def test_save_session_to_memory_calls_the_adk_api():
+def test_save_session_to_memory_uses_the_generate_memories_path():
   callback_context = mock.MagicMock()
-  callback_context.add_session_to_memory = mock.AsyncMock()
+  callback_context.session.events = ["event-1", "event-2"]
+  callback_context.add_events_to_memory = mock.AsyncMock()
   result = asyncio.run(agent_module.save_session_to_memory(callback_context))
-  callback_context.add_session_to_memory.assert_awaited_once_with()
+  callback_context.add_events_to_memory.assert_awaited_once_with(
+      events=["event-1", "event-2"],
+      custom_metadata={"wait_for_completion": False},
+  )
   assert result is None
 
 
 def test_save_session_to_memory_does_not_stop_the_turn_on_error():
   callback_context = mock.MagicMock()
-  callback_context.add_session_to_memory = mock.AsyncMock(
+  callback_context.add_events_to_memory = mock.AsyncMock(
       side_effect=ValueError("memory service is not available")
   )
   assert asyncio.run(agent_module.save_session_to_memory(callback_context)) is None

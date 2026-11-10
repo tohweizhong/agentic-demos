@@ -13,11 +13,26 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import config  # pylint: disable=wrong-import-position
 
 
+def _camel(key):
+  head, *rest = key.split("_")
+  return head + "".join(word.title() for word in rest)
+
+
 def _get(obj, key, default=None):
-  """Reads a key from a dict, or an attribute from an object."""
+  """Reads a key from a dict, or an attribute from an object.
+
+  Agent Runtime returns stored session events with camelCase keys (for
+  example "functionResponse"). The stream returns snake_case keys. This
+  helper reads both forms.
+  """
+  if obj is None:
+    return default
   if isinstance(obj, dict):
-    return obj.get(key, default)
-  return getattr(obj, key, default)
+    if key in obj:
+      return obj[key]
+    return obj.get(_camel(key), default)
+  value = getattr(obj, key, None)
+  return value if value is not None else getattr(obj, _camel(key), default)
 
 
 def _parts(event):

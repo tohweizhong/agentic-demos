@@ -1,4 +1,14 @@
 # Packages for the agent on Agent Runtime (checked 10 Nov 2026).
 # google-cloud-agentplatform 2.7.0 has no "runtimes" extra. Use "agent-engines".
 google-cloud-agentplatform[agent-engines,adk]==2.7.0
+# AdkApp.set_up() imports google.cloud.aiplatform on Agent Runtime. The
+# agentplatform package does not supply it. Without it, the container fails
+# to start (live deploy, 10 Nov 2026).
+google-cloud-aiplatform[agent_engines,adk]==2.7.0
+# Agent Runtime telemetry imports google.cloud.resourcemanager_v3 to look up
+# the project number. Without it, the container logs an ImportError.
+google-cloud-resource-manager==1.19.0
 google-adk==2.14.0
+# The deploy SDK asks for these two packages in the requirements.
+cloudpickle==3.1.2
+pydantic==2.14.2

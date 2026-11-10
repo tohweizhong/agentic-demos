@@ -100,3 +100,25 @@ def test_session_id_reads_dict_and_object_forms():
     id = "s2"
 
   assert common.session_id(Session()) == "s2"
+
+
+def test_helpers_read_camel_case_keys_from_stored_events():
+  event = {
+      "author": "services_agent",
+      "content": {
+          "parts": [
+              {"functionCall": {"name": "get_service_status"}},
+              {
+                  "functionResponse": {
+                      "name": "get_service_status",
+                      "response": {"trace_id": "abc"},
+                  }
+              },
+          ]
+      },
+  }
+  assert common.event_summary(event) == (
+      "services_agent: function_call(get_service_status), "
+      "function_response(get_service_status)"
+  )
+  assert common.trace_ids_from_events([event]) == ["abc"]

@@ -46,13 +46,13 @@ in Singapore must also know which parts of each service stay in Singapore.
 
 | # | File | Contents | Status |
 |---|---|---|---|
-| 1 | `bootstrap.sh` | Turns on the APIs, creates the staging bucket, and sets the observability default storage location to `asia-southeast1` | Built. Offline tests pass. Live run not done |
-| 2 | `agent/agent.py`, `agent/requirements.txt` | One ADK agent. Sessions: a comment says that Agent Runtime connects `VertexAiSessionService`. Memory Bank: `PreloadMemoryTool` and an `after_agent_callback` that calls `callback_context.add_session_to_memory()`. Observability: built-in ADK traces and one custom span around a tool call | Built. Offline tests pass. Live run not done |
-| 3 | `deploy.py` | Deploys the agent with `client.runtimes.create`. Sets `context_spec.memory_bank_config` and the telemetry environment variables | Built. Offline tests pass. Live run not done |
-| 4 | `samples/1_sessions.py` | Creates a session, sends 2 turns, resumes the session, and lists the events | Built. Offline tests pass. Live run not done |
-| 5 | `samples/2_memory_bank.py` | Writes memories in session A. Recalls them in session B. Prints the residency warning | Built. Offline tests pass. Live run not done |
-| 6 | `samples/3_o11y.py` | Sends one query. Prints the trace ID and a Cloud Trace link | Built. Offline tests pass. Live run not done |
-| 7 | `cleanup.sh` | Deletes the agent (with its sessions and memories) and the staging bucket. The system-created `_Trace` bucket and the default storage setting remain. The script says so | Built. Offline tests pass. Live run not done |
+| 1 | `bootstrap.sh` | Turns on the APIs, creates the staging bucket, and sets the observability default storage location to `asia-southeast1` | Built. Live test passed (10 Nov 2026) |
+| 2 | `agent/agent.py`, `agent/requirements.txt` | One ADK agent. Sessions: a comment says that Agent Runtime connects `VertexAiSessionService`. Memory Bank: `PreloadMemoryTool` and an `after_agent_callback` that calls `callback_context.add_session_to_memory()`. Observability: built-in ADK traces and one custom span around a tool call | Built. Live test passed (10 Nov 2026) |
+| 3 | `deploy.py` | Deploys the agent with `client.runtimes.create`. Sets `context_spec.memory_bank_config` and the telemetry environment variables | Built. Live test passed (10 Nov 2026) |
+| 4 | `samples/1_sessions.py` | Creates a session, sends 2 turns, resumes the session, and lists the events | Built. Live test passed (10 Nov 2026) |
+| 5 | `samples/2_memory_bank.py` | Writes memories in session A. Recalls them in session B. Prints the residency warning | Built. Live test passed (10 Nov 2026) |
+| 6 | `samples/3_o11y.py` | Sends one query. Prints the trace ID and a Cloud Trace link | Built. Live test passed (10 Nov 2026) |
+| 7 | `cleanup.sh` | Deletes the agent (with its sessions and memories) and the staging bucket. The system-created `_Trace` bucket and the default storage setting remain. The script says so | Built. Live test passed (10 Nov 2026) |
 
 ## Check results (step 6, 10 Nov 2026)
 
@@ -77,17 +77,20 @@ Memory Bank ADK quickstart, Agent Runtime tracing, Observability default setting
 generation with `gemini-3.5-flash` is processed in Singapore. The embedding step for similarity search
 is processed outside Singapore.
 
-**Open item (Not tested):** which location string the embedding model resource name must use when
-the instance is in `asia-southeast1`. Test `locations/asia-southeast1/.../text-embedding-005` first at
-deploy time, and record the result.
+**Result (live test, 10 Nov 2026):** the embedding model resource name with
+`locations/asia-southeast1/.../text-embedding-005` works. The deploy accepted it, and Memory Bank
+generated and retrieved memories with it. The docs still say that ML processing for this model is
+outside Singapore.
 
 ### C2. ADK API to save a session to Memory Bank
 
 | Item | Result | Status |
 |---|---|---|
-| Callback API | `async def cb(callback_context): await callback_context.add_session_to_memory()`, set as `after_agent_callback` | Docs. Method found in `google/adk/agents/context.py` in `google-adk` 2.14.0 |
+| Callback API (docs) | `async def cb(callback_context): await callback_context.add_session_to_memory()`, set as `after_agent_callback` | Docs. Method found in `google/adk/agents/context.py` in `google-adk` 2.14.0. **Did not make memories in the live test.** See the next rows |
 | Smaller option | `callback_context.add_events_to_memory(events=...)` sends only some events | Docs and package file |
 | Read memories | `PreloadMemoryTool` reads memories at the start of each turn | Docs |
+| **Default save path in ADK 2.14** | `add_session_to_memory()` uses the IngestEvents API, not GenerateMemories. ADK starts the call as a background task and does not wait. On Agent Runtime, no memory was made in 180 s (no trigger) or 300 s (60 s idle trigger), and ADK logged no error. With no trigger, IngestEvents waits up to 24 hours | Live test, 10 Nov 2026. The docs say that `add_session_to_memory` starts GenerateMemories |
+| **Working save path** | `callback_context.add_events_to_memory(events=..., custom_metadata={"wait_for_completion": False})`. The key selects the GenerateMemories path. ADK waits for the API call. Memories were ready in less than 20 s | Live test, 10 Nov 2026 |
 | Service wiring on Agent Runtime | `AdkApp` uses `VertexAiMemoryBankService` and `VertexAiSessionService` when `GOOGLE_CLOUD_AGENT_ENGINE_ID` is set, which Agent Runtime does. Locally it uses in-memory services | Docs. Logic found in `agentplatform/frameworks/adk.py` in 2.7.0 |
 
 ### C3. Where the traces are stored
@@ -101,14 +104,18 @@ deploy time, and record the result.
 | Config for Singapore | `gcloud observability settings update --project=PROJECT_ID --location=global --update-mask=default_storage_location --default-storage-location=asia-southeast1`. Run it before the first trace. New system-created buckets then use `asia-southeast1` | Docs and `gcloud` reference |
 | Existing `_Trace` bucket | The setting does not move it. Use the reprovision procedure in the Observability docs | Docs |
 | Trace scopes | They control only which projects a query reads. They do not control storage | Duckie |
-| Custom span | `opentelemetry.trace.get_tracer(...)` and `tracer.start_as_current_span(...)` inside a tool add a child span to the same trace | Duckie. Not tested |
+| Custom span | `opentelemetry.trace.get_tracer(...)` and `tracer.start_as_current_span(...)` inside a tool add a child span to the same trace | Live test, 10 Nov 2026 |
 
-**Open item (Not tested):** whether Agent Runtime traces follow the default storage location. Check
-the `_Trace` bucket location with `gcloud observability buckets list` after the first trace.
+**Result (live test, 10 Nov 2026):** yes. The project had no observability bucket before the first
+deploy. After the first agent request, the system created `_Trace` in `asia-southeast1` (12:01:58 SGT).
+No bucket exists in `global` or `us`. A trace from the agent had 6 spans: 5 ADK spans and the custom
+span `get_service_status` with its attributes.
 
-**Known risk:** in the governance pack region test on 09 Nov 2026, the agent log showed repeated
-`400 Invalid project id in name!` errors from the OpenTelemetry Cloud Trace exporter. The cause is not
-known. The observability sample must check for this error.
+**Known risk (governance pack, 09 Nov 2026):** repeated `400 Invalid project id in name!` errors from
+the OpenTelemetry exporter. In this pack, the first deploy logged `cannot import name
+'resourcemanager_v3'` when telemetry tried to find the project number. After `google-cloud-resource-manager`
+was added, the agent logs had no such error. The missing package is a possible cause of the governance
+pack error (inference, not tested in that pack).
 
 ### C4. Package versions to pin
 
@@ -116,11 +123,12 @@ known. The observability sample must check for this error.
 |---|---|---|
 | `google-cloud-agentplatform` | `2.7.0` (latest on 10 Nov 2026) | Use the extras `[agent-engines,adk]`. Version 2.7.0 has no `runtimes` extra, although the docs show `[runtimes,adk]` |
 | `google-adk` | `2.14.0` (latest on 10 Nov 2026) | The `adk` extra above needs `>=1.27.0,<3.0.0`. Requires Python 3.11 or later |
-| `google-cloud-aiplatform` | Not used | `google-cloud-agentplatform` replaces it for this pack (D8) |
+| `google-cloud-aiplatform` | `2.7.0`, extras `[agent_engines,adk]` | **Required at run time.** `AdkApp.set_up()` imports `google.cloud.aiplatform` on Agent Runtime. Without it, the container does not start (first live deploy, 10 Nov 2026). The deploy code still uses `agentplatform` (D8) |
+| `google-cloud-resource-manager` | `1.19.0` | Agent Runtime telemetry imports `resourcemanager_v3` to find the project number. Without it, the container logs an `ImportError` |
+| `cloudpickle`, `pydantic` | `3.1.2`, `2.14.2` | The deploy SDK warns when they are not in the requirements |
 | `opentelemetry-api`, `opentelemetry-sdk` | From the `agent-engines` extra (`opentelemetry-sdk<2`) | Do not pin separately unless a test needs it |
 
-The full dependency install was not completed in the check. Run a clean install before the first
-deploy, and record the resolved versions.
+The pins are in `agent/requirements.txt`. They resolve together in a clean install (10 Nov 2026).
 
 ## Backlog
 

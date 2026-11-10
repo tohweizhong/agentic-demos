@@ -1,8 +1,8 @@
 """Sample 2: Memory Bank on Agent Runtime.
 
-Memory Bank keeps facts about a user across sessions. The agent sends each
-session to Memory Bank after each turn. Memory Bank generates memories in the
-background. In a new session, PreloadMemoryTool gives the memories to the model.
+Memory Bank keeps facts about a user across sessions. The agent sends the
+session events to Memory Bank after each turn. Memory Bank generates the
+memories in the background. In a new session, PreloadMemoryTool gives the memories to the model.
 
 Usage: python samples/2_memory_bank.py
 """

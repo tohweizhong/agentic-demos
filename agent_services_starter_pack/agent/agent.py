@@ -5,9 +5,10 @@ automatically. This file has no session code. Each call to the agent with a
 `session_id` reads and writes the events of that session.
 
 Memory Bank: `PreloadMemoryTool` reads the memories of the user at the start
-of each turn. `save_session_to_memory` sends the session to Memory Bank after
-each turn. Memory Bank then generates memories in the background. On Agent
-Runtime, `AdkApp` connects `VertexAiMemoryBankService` automatically.
+of each turn. `save_session_to_memory` sends the session events to Memory Bank
+after each turn, with the GenerateMemories API. Memory Bank generates the
+memories in the background. On Agent Runtime, `AdkApp`
+connects `VertexAiMemoryBankService` automatically.
 
 Traces: the environment variable `GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY`
 turns on the built-in ADK traces. `get_service_status` adds one custom span
@@ -64,14 +65,29 @@ def get_service_status(service_name: str) -> dict:
   }
 
 
-async def save_session_to_memory(callback_context: CallbackContext):
-  """Sends the session to Memory Bank after each turn.
+# Selects the GenerateMemories API path in ADK. The value False means that the
+# callback does not wait for memory generation to finish.
+MEMORY_GENERATE_METADATA = {"wait_for_completion": False}
 
-  Memory Bank generates memories in the background. The turn does not wait.
+
+async def save_session_to_memory(callback_context: CallbackContext):
+  """Sends the session events to Memory Bank after each turn.
+
+  ADK 2.14 has two paths. The default path (IngestEvents) starts the call as a
+  background task and does not wait for it. On Agent Runtime, that call did
+  not reach Memory Bank in the live test (10 Nov 2026), and ADK logged no
+  error. The metadata key "wait_for_completion" selects the GenerateMemories
+  path. ADK waits for the API call, and Memory Bank generates the memories in
+  the background. Memory Bank merges new facts with the existing memories of
+  the user, so the callback can send the full session each time.
+
   An error here does not stop the turn.
   """
   try:
-    await callback_context.add_session_to_memory()
+    await callback_context.add_events_to_memory(
+        events=callback_context.session.events,
+        custom_metadata=MEMORY_GENERATE_METADATA,
+    )
   except Exception:  # pylint: disable=broad-exception-caught
     logger.exception("Could not send the session to Memory Bank.")
   return None
