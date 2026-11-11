@@ -51,6 +51,7 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scri
 | `geap-preflight` | `.agents/skills/geap-preflight/SKILL.md` | Runs `scripts/preflight.sh` and checks the JSON readiness report (`GO` or `NO_GO`) |
 | `geap-deploy` | `.agents/skills/geap-deploy/SKILL.md` | Packages the agent source, runs offline unit tests, runs `terraform plan`, and pauses for human approval before `terraform apply` |
 | `geap-verify` | `.agents/skills/geap-verify/SKILL.md` | Verifies the deployed agent, Model Armor content screening, IAP tool authorization, and Cloud Logging entries |
+| `geap-trace` | `.agents/skills/geap-trace/SKILL.md` | Runs `scripts/read_session_trace.sh` for one session or trace, and confirms each probable gateway denial (`NO_DOWNSTREAM`) in the gateway log |
 | `geap-doctor` | `.agents/skills/geap-doctor/SKILL.md` | Runs the posture check to find stale IAM grants and missing gateway bindings |
 | `geap-onboard-agent` | `.agents/skills/geap-onboard-agent/SKILL.md` | Generates terraform code and IAM grants for onboarding a new agent |
 | `geap-reset` | `.agents/skills/geap-reset/SKILL.md` | Returns `iap_enforcement_mode` to `DRY_RUN` and resets the sample MCP server state |
