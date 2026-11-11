@@ -46,7 +46,7 @@
   <text x="850" y="76" font-size="13" fill="#202124" font-family="'Roboto Mono', monospace">enable_ingress_gateway = true</text>
 
   <text x="850" y="170" font-size="13" fill="#202124" font-family="'Roboto Mono', monospace">enable_model_armor = true</text>
-  <text x="850" y="190" font-size="12" fill="#b06000">Needs domain restricted sharing setup</text>
+  <text x="850" y="190" font-size="12" fill="#b06000">May need domain restricted sharing setup</text>
   <text x="850" y="208" font-size="12" font-weight="700" fill="#3c4043">Default in terraform.tfvars.example</text>
 
   <text x="850" y="266" font-size="13" fill="#202124" font-family="'Roboto Mono', monospace">enable_egress_gateway = true</text>

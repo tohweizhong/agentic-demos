@@ -230,7 +230,7 @@ You can enable the five governance tiers one step at a time in `terraform/terraf
 | **Tier 1** | **Identity and Runtime Baseline** | Agent Runtime (`AGENT_IDENTITY` and Sessions), Cloud Run MCP server, regional Cloud Logging bucket | *(Always on)* | Every agent gets a unique SPIFFE identity and calls the MCP server with Cloud Run IAM (`roles/run.invoker`). Needs no organization policy changes |
 | **Tier 2** | **Catalog and Discovery** | Agent Registry (`mcpServers` and `endpoints`) | `enable_agent_registry` (default `true`) | Registers the MCP server and API endpoints in Agent Registry |
 | **Tier 3** | **Outbound Access Control (Egress IAP)** | Egress Agent Gateway (`AGENT_TO_ANYWHERE`) and IAP Policy V2 (`REQUEST_AUTHZ` in `DRY_RUN` or `ENFORCE`) | `enable_egress_gateway` (default `true`) | Enforces per-tool CEL rules on outbound agent traffic. Needs no domain restriction exception when `enable_model_armor = false` |
-| **Tier 4** | **Content Safety (Model Armor)** | Model Armor templates, `CONTENT_AUTHZ` extension, and 3 `gcp-sa-dep` IAM grants | `enable_model_armor` (default `true`) | Screens prompts and tool outputs for prompt injection, jailbreaks, and sensitive data on active gateways. **Only Tier 4 needs the domain restriction setup** |
+| **Tier 4** | **Content Safety (Model Armor)** | Model Armor templates, `CONTENT_AUTHZ` extension, and 3 `gcp-sa-dep` IAM grants | `enable_model_armor` (default `true`) | Screens prompts and tool outputs for prompt injection, jailbreaks, and sensitive data on active gateways. **Only Tier 4 can need the domain restriction setup, when the organization enforces it** |
 | **Tier 5** | **Inbound Client Control (Ingress Gateway)** | Ingress Agent Gateway (`CLIENT_TO_AGENT`) and `clientToAgentConfig` (attaches Model Armor when `enable_model_armor = true`) | `enable_ingress_gateway` (default `false`) | Controls inbound client traffic to the agent |
 
 ### Choose Your Tier
@@ -242,8 +242,8 @@ Pick the highest tier that your organization can approve today. Copy its four li
 | **Tier 1** | You want agents with their own identity first, with no gateway | `false` | `false` | `false` | `false` | None |
 | **Tier 2** | You also want a catalog of approved MCP servers and APIs | `true` | `false` | `false` | `false` | None |
 | **Tier 3** | You also want to allow or deny each tool call. Recommended first production step | `true` | `true` | `false` | `false` | None |
-| **Tier 4** | You also want prompts and answers screened for injection and sensitive data. This is the default in `terraform.tfvars.example` | `true` | `true` | `true` | `false` | Domain restricted sharing setup (see below) |
-| **Tier 5** | You also want to control which clients can call the agent | `true` | `true` | `true` | `true` | Domain restricted sharing setup (see below) |
+| **Tier 4** | You also want prompts and answers screened for injection and sensitive data. This is the default in `terraform.tfvars.example` | `true` | `true` | `true` | `false` | Domain restricted sharing setup, if the organization enforces it (see below) |
+| **Tier 5** | You also want to control which clients can call the agent | `true` | `true` | `true` | `true` | Domain restricted sharing setup, if the organization enforces it (see below) |
 
 Rules for the tiers:
 
