@@ -52,7 +52,7 @@ fi
 
 # 3. Read-only commands of the starter pack. A compound command is allowed only
 #    if every part is on this list.
-SAFE='^((cd|export)[[:space:]].*|(bash|sh)[[:space:]]+)?([^[:space:]]*/)?(scripts/(preflight|deploy_checks|teardown_plan|package_agent|ask_agent|read_audit_log|discover|check_tool_policy|check_promotion|doctor|adoption_plan|bind_existing_agent|configure|onboard_agent)\.sh([[:space:]].*)?|scripts/(quarantine_agent|init_remote_state)\.sh([[:space:]].*)?|terraform(-chdir=[^[:space:]]+)?([[:space:]]+-chdir=[^[:space:]]+)?[[:space:]]+(plan|output|validate|fmt|test|state[[:space:]]+list|show)([[:space:]].*)?|gcloud[[:space:]].*[[:space:]](describe|list|get-iam-policy|get-ancestors|get-value)([[:space:]].*)?|git[[:space:]]+(status|log|diff|pull|branch|rev-parse)([[:space:]].*)?|(cat|grep|ls|echo|printf|pwd|head|tail|wc|jq|true)([[:space:]].*)?)$'
+SAFE='^((cd|export)[[:space:]].*|(bash|sh)[[:space:]]+)?([^[:space:]]*/)?(scripts/(preflight|deploy_checks|teardown_plan|package_agent|ask_agent|read_audit_log|read_session_trace|discover|check_tool_policy|check_promotion|doctor|adoption_plan|bind_existing_agent|configure|onboard_agent)\.sh([[:space:]].*)?|scripts/(quarantine_agent|init_remote_state)\.sh([[:space:]].*)?|terraform(-chdir=[^[:space:]]+)?([[:space:]]+-chdir=[^[:space:]]+)?[[:space:]]+(plan|output|validate|fmt|test|state[[:space:]]+list|show)([[:space:]].*)?|gcloud[[:space:]].*[[:space:]](describe|list|get-iam-policy|get-ancestors|get-value)([[:space:]].*)?|git[[:space:]]+(status|log|diff|pull|branch|rev-parse)([[:space:]].*)?|(cat|grep|ls|echo|printf|pwd|head|tail|wc|jq|true)([[:space:]].*)?)$'
 ALL_SAFE="true"
 while IFS= read -r part; do
   part="$(sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s#^\./##' <<<"${part}")"

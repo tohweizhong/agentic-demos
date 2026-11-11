@@ -14,6 +14,7 @@
       "Bash(scripts/package_agent.sh)",
       "Bash(scripts/ask_agent.sh*)",
       "Bash(scripts/read_audit_log.sh*)",
+      "Bash(scripts/read_session_trace.sh*)",
       "Bash(terraform fmt*)",
       "Bash(terraform validate*)",
       "Bash(terraform test*)",
