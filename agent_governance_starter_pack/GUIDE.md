@@ -62,7 +62,7 @@ This folder includes a CLI harness (`AGENTS.md`, `.agents/hooks.json` with `scri
 |---|---|
 | `deny` | Piped input into `cleanup.sh`, `yes \|`, `gcloud organizations ...`, `gcloud org-policies set-policy/delete/reset`, `terraform`, `gcloud`, or `cleanup.sh` inside `bash -c` or `eval` |
 | `force_ask` (a person must approve) | `terraform apply/destroy/import/state rm`, `cleanup.sh`, `gcloud ... delete`, IAM policy changes |
-| `auto_approve` | The read-only scripts (`preflight.sh`, `deploy_checks.sh`, `teardown_plan.sh`, `package_agent.sh`, `ask_agent.sh`, `read_audit_log.sh`, `configure.sh --dry-run/--show`), `terraform plan/output/validate/fmt/test/state list`, `gcloud ... describe/list` |
+| `auto_approve` | The read-only scripts (`preflight.sh`, `deploy_checks.sh`, `teardown_plan.sh`, `package_agent.sh`, `ask_agent.sh`, `read_audit_log.sh`, `read_session_trace.sh`, `configure.sh --dry-run/--show`), `terraform plan/output/validate/fmt/test/state list`, `gcloud ... describe/list` |
 | `ask` | Everything else |
 
 Sources (checked 09 Nov 2026 in the Jetski source): rule files in `cli/store/permissions.go`, hook format in `cortex/customization/hooks/jsonhook/SPEC.md`. Live test in `agy` 1.4.12 (09 Nov 2026): `/hooks` lists `starter-pack-guard`; a `bash -c "gcloud ..."` command was denied with the guard reason; the reason also shows on permission prompts. `auto_approve` does not remove the prompt in the default review mode, so read-only scripts still ask unless you add the user-level allow rules below.
@@ -95,6 +95,7 @@ Optional user-level rules (in `~/.gemini/antigravity-cli/settings.json`, format 
       "command(scripts/package_agent.sh)", "command(scripts/package_agent.sh *)",
       "command(scripts/ask_agent.sh)", "command(scripts/ask_agent.sh *)",
       "command(scripts/read_audit_log.sh)", "command(scripts/read_audit_log.sh *)",
+      "command(scripts/read_session_trace.sh)", "command(scripts/read_session_trace.sh *)",
       "command(scripts/check_promotion.sh)", "command(scripts/check_promotion.sh *)",
       "command(scripts/check_tool_policy.sh)", "command(scripts/check_tool_policy.sh *)",
       "command(scripts/configure.sh)", "command(scripts/configure.sh *)",
@@ -161,6 +162,7 @@ A customer team can also stop at any tier and stay there. The Terraform checks s
 | `scripts/check_promotion.sh` | Yes | Checks promotion readiness before switching from `DRY_RUN` to `ENFORCE` |
 | `scripts/ask_agent.sh` | Yes | Creates a session and sends a prompt to the deployed agent on Agent Runtime |
 | `scripts/read_audit_log.sh` | Yes | Reads IAP Data Access and Agent Gateway request logs with timestamps in Singapore time (`SGT`) |
+| `scripts/read_session_trace.sh` | Yes | Exports the Cloud Trace spans of one session (or one trace with `--trace`) as a table: model calls, tool calls, Model Armor decisions at the gateway, and MCP server calls. Marks a tool call that failed before the gateway or MCP server as `NO_DOWNSTREAM`. `--json` prints one JSON object for each row |
 | `scripts/discover.sh` | Yes | Inventory of an existing project and its lateral adoption steps (`--prefix`, `--markdown`) |
 | `scripts/adoption_plan.sh` | Yes | Generates a tier-by-tier lateral adoption plan with real project and organization numbers (`--prefix`) |
 | `scripts/bind_existing_agent.sh` | Yes | Generates the `v1beta1` `CreateReasoningEngine` command to bind an existing agent to the gateways (`--agent-id` or `--agent`) |

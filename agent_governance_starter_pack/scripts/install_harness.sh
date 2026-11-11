@@ -50,6 +50,7 @@ if [[ ! -f "${ROOT}/.claude/settings.json" ]]; then
       "command(scripts/package_agent.sh)", "command(scripts/package_agent.sh *)",
       "command(scripts/ask_agent.sh)", "command(scripts/ask_agent.sh *)",
       "command(scripts/read_audit_log.sh)", "command(scripts/read_audit_log.sh *)",
+      "command(scripts/read_session_trace.sh)", "command(scripts/read_session_trace.sh *)",
       "command(scripts/check_promotion.sh)", "command(scripts/check_promotion.sh *)",
       "command(scripts/check_tool_policy.sh)", "command(scripts/check_tool_policy.sh *)",
       "command(scripts/configure.sh)", "command(scripts/configure.sh *)",
