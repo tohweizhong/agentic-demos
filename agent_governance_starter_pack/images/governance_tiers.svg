@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600" font-family="'Google Sans', Roboto, Arial, sans-serif">
   <title>Agent governance starter pack tiers</title>
-  <desc>A pyramid of five governance tiers. Tier 1 is the base and is always on. Each higher tier adds one control and one Terraform variable (the vertical path). On the left, a lateral path for each tier brings existing agents, MCP servers, and clients in the project under the same control. Tiers 4 and 5 need the domain restricted sharing setup.</desc>
+  <desc>A pyramid of five governance tiers. Tier 1 is the base and is always on. Each higher tier adds one control and one Terraform variable (the vertical path). On the left, a lateral path for each tier brings existing agents, MCP servers, and clients in the project under the same control. Tier 4 needs the domain restricted sharing setup when the organization enforces it.</desc>
   <rect x="0" y="0" width="1600" height="600" fill="#ffffff"/>
   <g transform="translate(420,0)">
 
@@ -44,7 +44,6 @@
   <text x="850" y="22" font-size="13" font-weight="700" fill="#3c4043">Terraform variable</text>
 
   <text x="850" y="76" font-size="13" fill="#202124" font-family="'Roboto Mono', monospace">enable_ingress_gateway = true</text>
-  <text x="850" y="96" font-size="12" fill="#b06000">Needs domain restricted sharing setup</text>
 
   <text x="850" y="170" font-size="13" fill="#202124" font-family="'Roboto Mono', monospace">enable_model_armor = true</text>
   <text x="850" y="190" font-size="12" fill="#b06000">Needs domain restricted sharing setup</text>
@@ -91,6 +90,6 @@
   <text x="20" y="476" font-size="12" fill="#5f6368">Grant roles to each new principal</text>
   <line x1="470" y1="466" x2="470" y2="466" stroke="#188038" stroke-width="2" stroke-dasharray="6 4"/>
   <polygon points="480,466 468,460 468,472" fill="#188038"/>
-  <text x="20" y="560" font-size="12" fill="#5f6368">Planned, not built: discovery, adoption plan, and lateral tools.</text>
-  <text x="20" y="578" font-size="12" fill="#5f6368">See conductor/tracks/existing_project_adoption_20261109.</text>
+  <text x="20" y="560" font-size="12" fill="#5f6368">Built: discover.sh, adoption_plan.sh, bind_existing_agent.sh, and the geap-discover and geap-adopt skills.</text>
+  <text x="20" y="578" font-size="12" fill="#5f6368">Binding an existing agent to a gateway redeploys it, so it gets a new principal.</text>
 </svg>
