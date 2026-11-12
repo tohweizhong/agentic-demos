@@ -5,6 +5,7 @@ Commands:
     tools       Select the next tool for an agent.
     multimodal  Ask several questions about one synthetic image.
     eval        Measure accuracy of one choice question on a labeled CSV file.
+    judge       Grade answers with a rubric and measure agreement with human labels.
     compare     Compare one Decisions API call with one generateContent call.
 """
 
@@ -24,6 +25,7 @@ from decisions_demo import render
 from decisions_demo.client import DecisionInput, DecisionResult, DecisionsAPIError, image_block
 from decisions_demo.config import DEFAULT_TIER_MODELS, Backend, Config, ConfigError, load_config
 from decisions_demo.evaluate import DatasetError
+from decisions_demo.judge import RubricError
 from decisions_demo.questions import Question
 from decisions_demo.sample_image import make_delivery_slip, multimodal_questions
 from decisions_demo.scenario import SAMPLE_EMAIL, decide_triage, triage_questions
@@ -136,6 +138,85 @@ def _cmd_eval(args: argparse.Namespace, client: Decider, console: Console) -> No
 COMMANDS["eval"] = _cmd_eval
 
 
+def _cmd_judge(args: argparse.Namespace, client: Decider, console: Console) -> None:
+    import csv
+
+    from rich.table import Table
+
+    from decisions_demo import judge
+
+    checks = judge.load_rubric(Path(args.rubric))
+    rows = judge.load_answers(Path(args.answers), check_keys={c.key for c in checks})
+    questions = judge.rubric_questions(checks)
+    console.print(f"Answers: {args.answers} ({len(rows)} rows) | Checks: {len(checks)}")
+
+    verdicts = []
+    input_tokens = 0
+    for row in rows:
+        result = client.decide(judge.judge_input(row.query, row.answer), questions)
+        verdicts.append(judge.decide_verdict(checks, result, args.min_confidence))
+        input_tokens += result.input_tokens
+
+    human = [row.label for row in rows]
+    metrics = judge.agreement(human, [v.verdict for v in verdicts])
+    correct = sum(h == v.verdict for h, v in zip(human, verdicts, strict=True))
+    kappa = "n/a" if metrics.kappa is None else f"{metrics.kappa:.2f}"
+    console.print(f"Accuracy: {metrics.accuracy:.1%} ({correct}/{metrics.total})")
+    console.print(f"Cohen's kappa: {kappa}")
+    console.print(
+        f"Review rows: {sum(v.review for v in verdicts)} (confidence < {args.min_confidence})"
+    )
+    review_counts = {c.key: sum(c.key in v.review_checks for v in verdicts) for c in checks}
+    if any(review_counts.values()):
+        causes = ", ".join(f"{k} {n}" for k, n in review_counts.items() if n)
+        console.print(f"Checks below the confidence limit (rows): {causes}")
+    console.print(f"Input tokens: {input_tokens} | Output tokens: 0")
+
+    table = Table(title="Confusion matrix (rows: human label, columns: judge verdict)")
+    table.add_column("human")
+    for label in judge.LABELS:
+        table.add_column(label, justify="right")
+    for label in judge.LABELS:
+        table.add_row(label, *[str(metrics.confusion[label][j]) for j in judge.LABELS])
+    console.print(table)
+
+    lines = []
+    for check in checks:
+        pairs = [
+            (row.check_labels[check.key], v.check_passed[check.key])
+            for row, v in zip(rows, verdicts, strict=True)
+            if check.key in row.check_labels
+        ]
+        if pairs:
+            same = sum(h == j for h, j in pairs)
+            lines.append(f"  {check.key}: {same / len(pairs):.1%} ({same}/{len(pairs)})")
+    if lines:
+        console.print("Agreement for each check:")
+        for line in lines:
+            console.print(line)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    keys = [c.key for c in checks]
+    with output.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(
+            ["query", "answer", "label", "verdict", "failed_checks", "review"]
+            + [f"p:{k}" for k in keys]
+            + [f"c:{k}" for k in keys]
+        )
+        for row, v in zip(rows, verdicts, strict=True):
+            writer.writerow(
+                [row.query, row.answer, row.label, v.verdict, ";".join(v.failed), v.review]
+                + [f"{v.probabilities[k]:.4f}" for k in keys]
+                + [f"{v.confidences[k]:.4f}" for k in keys]
+            )
+    console.print(f"Results CSV: {output}")
+
+
+COMMANDS["judge"] = _cmd_judge
+
+
 def _decision_value(answer: Any) -> Any:
     """Return the answer in the same form as the generateContent JSON."""
     from decisions_demo.client import ChoiceAnswer, NoulAnswer
@@ -214,6 +295,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dataset", default="data/sample_emails.csv", help="CSV with query,label.")
     p.add_argument("--question", default="data/triage_question.json", help="Question JSON.")
     p.add_argument("--output", default="results/eval_results.csv", help="Results CSV path.")
+    p = sub.add_parser("judge", help="Grade answers with a rubric and compare with labels.")
+    p.add_argument("--answers", default="data/judge_answers.csv", help="CSV: query,answer,label.")
+    p.add_argument("--rubric", default="data/judge_rubric.json", help="Rubric JSON.")
+    p.add_argument("--output", default="results/judge_results.csv", help="Results CSV path.")
+    p.add_argument(
+        "--min-confidence",
+        type=float,
+        default=0.7,
+        help="Mark a row for review when a check confidence is below this value.",
+    )
     p = sub.add_parser("compare", help="Compare with one generateContent call.")
     p.add_argument("--email", help="Email text. Default: a sample email.")
     p.add_argument("--model", default=None, help="generateContent model. Default: the lite tier.")
@@ -256,7 +347,7 @@ def main(
     """Run one command. Returns 0 on success, 1 on an API error, 2 on a config error."""
     args = build_parser().parse_args(argv)
     console = Console()
-    err = Console(stderr=True)
+    err = Console(stderr=True, soft_wrap=True)
     try:
         if client is None:
             client = _make_client(console)
@@ -272,8 +363,8 @@ def main(
     except ConfigError as error:
         err.print(f"Configuration error: {error}")
         return 2
-    except DatasetError as error:
-        err.print(f"Dataset error: {error}")
+    except (DatasetError, RubricError) as error:
+        err.print(f"Input file error: {error}")
         return 2
     except DecisionsAPIError as error:
         err.print(f"Decisions API error: {error}")

@@ -1,0 +1,39 @@
+{
+  "checks": [
+    {
+      "key": "answers_the_query",
+      "type": "noul",
+      "instructions": "The answer addresses the topic of the customer query.",
+      "pass_when": true
+    },
+    {
+      "key": "promises_money",
+      "type": "noul",
+      "instructions": "The answer promises a refund, compensation, or a waiver of a charge before any review.",
+      "pass_when": false
+    },
+    {
+      "key": "wrong_reference",
+      "type": "noul",
+      "instructions": "The answer mentions a tracking number that is different from the tracking number in the customer query.",
+      "pass_when": false
+    },
+    {
+      "key": "gives_next_step",
+      "type": "noul",
+      "instructions": "The answer tells the customer what to do next or what happens next.",
+      "pass_when": true
+    },
+    {
+      "key": "tone",
+      "type": "score",
+      "instructions": "Rate the tone of the answer to the customer.",
+      "levels": [
+        "Rude or blaming: the answer blames or insults the customer.",
+        "Neutral: correct but cold.",
+        "Polite: friendly and respectful."
+      ],
+      "min_level": 1
+    }
+  ]
+}
