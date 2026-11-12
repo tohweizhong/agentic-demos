@@ -35,6 +35,13 @@ in a few minutes.
 5. **Model-tier callback.** A `before_model_callback` sends a `score` question about
    request difficulty and sets the model tier for that turn.
 
+### Part 3: the Decisions API as a judge
+
+6. **Rubric judge.** The `judge` command grades text answers from any system with `noul` and
+   `score` checks in one request for each answer. It measures agreement with human labels
+   (accuracy, Cohen's kappa, and agreement for each check). It marks rows with a low
+   pass-decision probability for review. Track: `judge_20261112`.
+
 ## Comparison
 
 For one scenario, the demo sends the same questions in two ways:

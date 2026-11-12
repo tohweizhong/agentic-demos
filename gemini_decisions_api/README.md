@@ -7,7 +7,8 @@ Your code then branches on the answers.
 The demo has two parts:
 
 - **Part 1: the raw API.** Command-line commands and a notebook for email triage, tool
-  selection, multimodal input, evaluation, and a comparison with `generateContent`.
+  selection, multimodal input, evaluation, a rubric judge, and a comparison with
+  `generateContent`.
 - **Part 2: ADK.** An ADK agent that routes each email with the Decisions API, and a
   `before_model_callback` that selects the model tier for each turn.
 
@@ -154,6 +155,7 @@ python -m decisions_demo triage       # Category, complexity, and checks for one
 python -m decisions_demo tools        # Select the next tool for an agent.
 python -m decisions_demo multimodal   # Several questions about one synthetic image.
 python -m decisions_demo eval         # Accuracy on data/sample_emails.csv.
+python -m decisions_demo judge        # Grade answers with a rubric. See "Judge" below.
 python -m decisions_demo compare      # Same questions through generateContent.
 ```
 
@@ -180,6 +182,82 @@ correct and incorrect rows. It writes all rows to `results/eval_results.csv`.
 ### Notebook
 
 `notebooks/decisions_api_demo.ipynb` explains each use case step by step.
+
+## Judge: grade answers with a rubric
+
+The `judge` command grades text answers from any system: this demo's ADK agent, Gemini
+Enterprise, or another agent. Each answer gets one Decisions API request with all rubric
+checks. The command then compares the verdicts with human labels.
+
+```bash
+python -m decisions_demo judge
+python -m decisions_demo judge --answers my_answers.csv --rubric my_rubric.json --min-confidence 0.7
+```
+
+```mermaid
+flowchart LR
+    csv["Answers CSV: query, answer, label"] --> loop
+    rubric["Rubric JSON: noul and score checks"] --> loop
+    loop["One Decisions API request for each answer: all checks"] --> rules["Pass rules for each check"]
+    rules --> verdict["Verdict: good or bad, and failed checks"]
+    rules --> review["Review flag: a pass decision below the confidence limit"]
+    verdict --> agree["Agreement with human labels: accuracy, Cohen's kappa, confusion matrix"]
+    verdict --> out["results/judge_results.csv"]
+```
+
+### Answers file (CSV)
+
+| Column | Required | Content |
+|---|---|---|
+| `query` | yes | The question that the system answered. |
+| `answer` | yes | The answer to grade. |
+| `label` | yes | The human label: `good` or `bad`. |
+| `check:<key>` | no | A human label for one check: `yes` if the check passes, `no` if it fails. The command then reports the agreement for that check. |
+
+### Rubric file (JSON)
+
+```json
+{"checks": [
+  {"key": "answers_the_query", "type": "noul",
+   "instructions": "The answer addresses the topic of the customer query.", "pass_when": true},
+  {"key": "promises_money", "type": "noul",
+   "instructions": "The answer promises a refund before any review.", "pass_when": false},
+  {"key": "tone", "type": "score", "instructions": "Rate the tone of the answer.",
+   "levels": ["Rude.", "Neutral.", "Polite."], "min_level": 1}
+]}
+```
+
+- An answer is `good` when every check passes.
+- A `noul` check passes when the answer equals `pass_when`.
+- A `score` check passes when the most likely level is `min_level` or higher.
+- A row is marked for review when the probability of a pass or fail decision is below
+  `--min-confidence`. For a `score` check, the probabilities of all passing levels are
+  added. Thus a split between "Neutral" and "Polite" does not cause a review.
+
+### Sample data and result (12 Nov 2026)
+
+`data/judge_answers.csv` has 20 synthetic answers: 10 good, and 10 with one planted defect
+each (wrong topic, money promise, wrong tracking number, no next step, rude tone).
+
+| Measure | Result |
+|---|---|
+| Verdict accuracy | 20 of 20 (100 percent) |
+| Cohen's kappa | 1.00 |
+| Agreement for each check | 90 to 100 percent. `gives_next_step` 18 of 20, `answers_the_query` 19 of 20. |
+| Rows for review | 3 of 20 |
+| Tokens and cost | 8,020 input tokens, 0 output tokens, about US$0.0008 |
+
+The planted defects are clear, so this result is not a benchmark. Use your own labeled
+answers to measure the judge on real work.
+
+### Limits of the judge
+
+- **No reasons.** The judge gives probabilities, not explanations. Use an LLM judge for rows
+  where you need the reason.
+- **Human labels are still necessary.** A judge must be checked against a set of answers that
+  people labeled. The judge makes grading cheaper. It does not remove the labeled set.
+- **Input formats.** The Decisions API accepts text, images, audio, video, and PDF. Convert
+  other files first.
 
 ## Part 2: the ADK agent
 

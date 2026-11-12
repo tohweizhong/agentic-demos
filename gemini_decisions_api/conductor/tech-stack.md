@@ -119,3 +119,14 @@ https://ai.google.dev/gemini-api/docs/decisions-api (read on 12 Nov 2026).
 - Expected errors in order: no visibility label gives `404 Method not found`. No allowlist tag
   gives `404 Publisher model ... was not found`. No quota gives `429`.
 
+### 12 Nov 2026: Judge method and first result
+
+- Cohen's kappa uses the standard library: (observed - expected) / (1 - expected). Kappa is
+  "n/a" when both label lists hold only one class.
+- Review flag: for a `score` check, the confidence is the probability of the pass or fail
+  decision (the sum over the passing levels), not the probability of the top level. In the
+  first run, the top-level confidence for `tone` had a median of 0.61, because the model
+  split between "Neutral" and "Polite". That marked 16 of 20 rows for review. With the
+  pass-decision probability, 3 of 20 rows need review.
+- Result on 20 synthetic answers: 20 of 20 correct, kappa 1.00, 8,020 input tokens.
+
