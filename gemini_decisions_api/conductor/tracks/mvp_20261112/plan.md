@@ -89,35 +89,54 @@
     469 ms. The synthetic emails are easy. This result is not a benchmark.
 - [x] Task: Phase Verification and Checkpoint (refer to workflow.md)
 
-## Phase 4: Comparison
+## Phase 4: Comparison [checkpoint: 4eac7fc]
 
-- [ ] Task: generateContent path
-  - [ ] Write tests: the JSON schema matches the triage questions. Parse the response.
-  - [ ] Implement the `generateContent` call with the same questions.
-- [ ] Task: Command `compare`
-  - [ ] Write tests: the cost estimate uses the price constants. The table marks it "estimated".
-  - [ ] Implement the command.
-- [ ] Task: Phase Verification and Checkpoint (refer to workflow.md)
+  - Verification: `pytest --cov` passed (117 tests, 96 percent coverage) and `ruff check`
+    passed. Real API runs checked. User approved on 12 Nov 2026 22:08 SGT.
 
-## Phase 5: ADK agent
+- [x] Task: generateContent path
+  - [x] Write tests: the JSON schema matches the triage questions. Parse the response.
+  - [x] Implement the `generateContent` call with the same questions.
+  - Summary: `compare.py` builds a JSON schema and a prompt from the same questions. Thinking
+    tokens count as output tokens.
+- [x] Task: Command `compare`
+  - [x] Write tests: the cost estimate uses the price constants. The table marks it "estimated".
+  - [x] Implement the command.
+  - Summary: default model is the lite tier, with a 60 s limit. Real run: Decisions 396 ms,
+    543 tokens. Flash-Lite 46,122 ms (service slow on 12 Nov), 333 + 60 tokens. 5 of 6 agree.
+- [x] Task: Phase Verification and Checkpoint (refer to workflow.md)
 
-- [ ] Task: Router agent
-  - [ ] Write tests with the fake client: each category selects the correct sub-agent.
-  - [ ] Implement the `BaseAgent` subclass and the six sub-agents.
-- [ ] Task: Model-tier callback
-  - [ ] Write tests: each complexity level sets the correct model.
-  - [ ] Implement the callback, or the fallback from spec FR5.
-- [ ] Task: Integration test
-  - [ ] Run the agent against the real API with `adk run`. Mark the test as integration.
-- [ ] Task: Phase Verification and Checkpoint (refer to workflow.md)
+## Phase 5: ADK agent [checkpoint: c9bad5d]
 
-## Phase 6: Notebook and README
+  - Verification: `pytest --cov` passed (117 tests, 96 percent coverage) and `ruff check`
+    passed. Real API runs checked. User approved on 12 Nov 2026 22:08 SGT.
 
-- [ ] Task: Notebook
-  - [ ] Write `notebooks/decisions_api_demo.ipynb` with one section for each use case.
-  - [ ] Run it from top to bottom with `jupyter nbconvert --execute`.
-- [ ] Task: README
-  - [ ] Write the demo README: setup, commands, known limits.
-  - [ ] Add the demo to the top-level `README.md` table.
-  - [ ] Change the evaluation example in `product.md` to the six labels.
-- [ ] Task: Phase Verification and Checkpoint (refer to workflow.md)
+- [x] Task: Router agent
+  - [x] Write tests with the fake client: each category selects the correct sub-agent.
+  - [x] Implement the `BaseAgent` subclass and the six sub-agents.
+  - Summary: `decisions_agent/agent.py`. The router writes `category`, `routed_to` to state.
+- [x] Task: Model-tier callback
+  - [x] Write tests: each complexity level sets the correct model.
+  - [x] Implement the callback, or the fallback from spec FR5.
+  - Summary: the callback sets `llm_request.model`. No fallback needed.
+- [x] Task: Integration test
+  - [x] Run the agent against the real API. Mark the test as integration.
+  - Summary: real run passed in 6.3 s: `damage_claim` (0.9975), tier `pro` (score 1.76).
+    `gemini-3.8-flash` and `gemini-4-argon` returned 504 on 12 Nov, so a local `.env`
+    override set flash and pro to `gemini-3-flash-preview` for this run only.
+- [x] Task: Phase Verification and Checkpoint (refer to workflow.md)
+
+## Phase 6: Notebook and README [checkpoint: a71807b]
+
+  - Verification: `pytest --cov` passed (117 tests, 96 percent coverage) and `ruff check`
+    passed. Real API runs checked. User approved on 12 Nov 2026 22:08 SGT.
+
+- [x] Task: Notebook
+  - [x] Write `notebooks/decisions_api_demo.ipynb` with one section for each use case.
+  - [x] Run it from top to bottom with `jupyter nbconvert --execute`.
+  - Summary: 6 sections. Executed with real calls. The saved outputs contain no key.
+- [x] Task: README
+  - [x] Write the demo README: setup, commands, known limits.
+  - [x] Add the demo to the top-level `README.md` list.
+  - [x] Change the evaluation example in `product.md` to the six labels.
+- [x] Task: Phase Verification and Checkpoint (refer to workflow.md)
