@@ -9,3 +9,8 @@
 
 - [~] **Track: Test the Vertex AI backend (blocked until early access)**
   *Link: [./tracks/vertex_20261112/index.md](./tracks/vertex_20261112/index.md)*
+
+---
+
+- [~] **Track: Decisions API judge**
+  *Link: [./tracks/judge_20261112/index.md](./tracks/judge_20261112/index.md)*
