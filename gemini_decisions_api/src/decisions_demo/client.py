@@ -156,7 +156,9 @@ class DecisionsClient:
                 f"/locations/{self.config.location}/decisions"
             )
             headers = {"Authorization": f"Bearer {self._token_provider()}"}
-            return url, headers, f"publishers/google/models/{model}"
+            # Vertex AI takes the bare model ID (from Duckie, 12 Nov 2026). Confirm it with a
+            # real call after the project gets early access.
+            return url, headers, model
         headers = {"x-goog-api-key": self.config.api_key or ""}
         return f"{GEMINI_API_BASE}/decisions", headers, f"models/{model}"
 

@@ -119,7 +119,8 @@ def test_vertex_request_shape():
         "https://aiplatform.googleapis.com/v1beta1/projects/demo-p/locations/global/decisions"
     )
     assert seen["auth"] == "Bearer token-1"
-    assert seen["body"]["model"] == "publishers/google/models/gemini-decision-exp"
+    # Duckie (12 Nov 2026): Vertex AI needs the bare model ID. Not confirmed by a real call yet.
+    assert seen["body"]["model"] == "gemini-decision-exp"
 
 
 def test_decide_returns_parsed_result_with_latency():

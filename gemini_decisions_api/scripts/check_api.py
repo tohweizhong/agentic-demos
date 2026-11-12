@@ -76,7 +76,7 @@ def build_request() -> tuple[str, dict[str, str], dict]:
         model = os.environ.get("DECISIONS_MODEL") or "gemini-decision-exp"
         url = f"{VERTEX_API_BASE}/projects/{project}/locations/{location}/decisions"
         headers = {"Authorization": f"Bearer {credentials.token}"}
-        model_name = f"publishers/google/models/{model}"
+        model_name = model  # Vertex AI takes the bare model ID.
     else:
         key = os.environ.get("GEMINI_API_KEY")
         if not key:

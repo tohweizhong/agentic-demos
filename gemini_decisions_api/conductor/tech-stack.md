@@ -105,3 +105,17 @@ https://ai.google.dev/gemini-api/docs/decisions-api (read on 12 Nov 2026).
   before the callback runs.
 - `tests/test_adk_model_switch.py` confirms it: without a callback, ADK calls the agent
   model. When the callback sets `llm_request.model`, ADK calls the new model.
+
+### 12 Nov 2026: First Vertex AI request (before early access)
+
+- Request: `POST https://aiplatform.googleapis.com/v1beta1/projects/<project>/locations/global/decisions`
+  with an ADC token. Result: `404 Method not found`, detail "Method CreateDecisionHttp not
+  found ... not visible to labels: {PUBLIC}". The URL maps to the Decisions method. The
+  project does not have the `DECISIONS_API_EAP` visibility label yet.
+- Duckie says that Vertex AI needs the bare model ID (`"model": "gemini-decision-exp"`), not
+  `publishers/google/models/...`. The client now sends the bare ID. This is not confirmed by
+  a real call. Duckie also said that the Gemini Developer API uses `gemini-decision-eap`, but
+  the real call with `models/gemini-decision-1` worked, so treat Duckie's model facts with care.
+- Expected errors in order: no visibility label gives `404 Method not found`. No allowlist tag
+  gives `404 Publisher model ... was not found`. No quota gives `429`.
+

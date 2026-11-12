@@ -7,5 +7,5 @@
 
 ---
 
-- [ ] **Track: Test the Vertex AI backend (blocked until early access)**
+- [~] **Track: Test the Vertex AI backend (blocked until early access)**
   *Link: [./tracks/vertex_20261112/index.md](./tracks/vertex_20261112/index.md)*
