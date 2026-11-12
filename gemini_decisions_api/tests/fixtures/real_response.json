@@ -1,0 +1,48 @@
+{
+  "answers": {
+    "complexity": {
+      "confidence": 0.6053050402890692,
+      "score": 1.303397863255739,
+      "probabilities": {
+        "2": 0.34904641148333493,
+        "1": 0.6053050402890692,
+        "0": 0.04564854822759591
+      },
+      "legend": {
+        "0": "Low: one simple fact answers it.",
+        "2": "High: needs a policy decision or a human.",
+        "1": "Medium: needs a lookup and a short explanation."
+      },
+      "type": "score"
+    },
+    "category": {
+      "confidence": 0.9997251730528218,
+      "choice": "tracking",
+      "probabilities": {
+        "tracking": 0.9997251730528218,
+        "weight_dispute": 2.184190027624503e-05,
+        "damage_claim": 4.607150976790404e-05,
+        "redelivery": 0.00015863846033430356,
+        "import_tax": 3.835398722034138e-05,
+        "scam_check": 9.921089579441379e-06
+      },
+      "type": "choice"
+    },
+    "has_tracking_number": {
+      "confidence": 0.974825365377438,
+      "noul": 0.974825365377438,
+      "type": "noul"
+    }
+  },
+  "usage": {
+    "total_tokens": 391,
+    "total_input_tokens": 391,
+    "input_tokens_by_modality": [
+      {
+        "modality": "text",
+        "tokens": 391
+      }
+    ],
+    "total_output_tokens": 0
+  }
+}

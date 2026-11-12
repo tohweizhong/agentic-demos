@@ -114,11 +114,11 @@ The demo supports two backends. One environment variable selects the backend.
 
 ## Open items to test in the first track
 
-- The `google-genai` SDK version that has `client.decisions.create`.
-- A change to `llm_request.model` in `before_model_callback` changes the model that
-  ADK calls.
-- The price for each 1M input tokens. The blog post gives $0.10. Duckie did not
-  confirm it.
+- Closed on 12 Nov 2026. See the change log in `tech-stack.md`:
+  - `client.decisions.create` is in `google-genai` 3.2.0, which conflicts with ADK. The
+    demo uses REST.
+  - A change to `llm_request.model` in `before_model_callback` changes the called model.
+  - The price is US$0.10 for each 1M input tokens (official pricing page).
 
 ## Success criteria
 

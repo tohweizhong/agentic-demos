@@ -1,0 +1,16 @@
+# Runtime
+google-adk==2.14.0
+google-genai==2.34.0
+google-auth==2.62.2
+httpx==0.28.1
+python-dotenv==1.2.4
+rich==15.0.0
+pillow==13.0.0
+
+# This demo package (src/decisions_demo), installed in editable mode.
+-e .
+
+# Development
+pytest==9.2.0
+pytest-cov==7.1.0
+ruff==0.17.3
