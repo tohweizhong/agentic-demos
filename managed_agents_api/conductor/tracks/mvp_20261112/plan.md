@@ -40,23 +40,44 @@
     - [x] Run it against the real API. Record the times and any error in `tech-stack.md`.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Agent lifecycle and inline sources
+## Phase 2: Agent lifecycle and Cloud Storage source [checkpoint: 59b8e53]
 
-- [ ] Task: Synthetic data (FR4)
-    - [ ] Write failing tests: fixed seed, column names, row count.
-    - [ ] Implement `data.py`, which makes the sales CSV text.
-- [ ] Task: Agent configuration (FR4)
-    - [ ] Write failing tests: three inline sources, the target paths, the `demo-` ID prefix.
-    - [ ] Add `assets/AGENTS.md` and `assets/report-writer/SKILL.md`.
-    - [ ] Implement `agent_config.py`.
-- [ ] Task: Lifecycle functions (FR3)
-    - [ ] Write failing tests: create, get, list, and update with the fake client.
-    - [ ] Check if the SDK has an update method. Use REST `PATCH` if it does not.
-    - [ ] Implement `lifecycle.py`. Record the update result in `tech-stack.md`.
-- [ ] Task: Lifecycle script
-    - [ ] Implement `scripts/01_lifecycle.py`.
-    - [ ] Run it against the real API.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- Verification: `pytest --cov=src` 64 passed, coverage 93 percent. `ruff check` clean.
+  Real bucket setup and lifecycle run passed. User confirmed on 12 Nov 2026 22:28 SGT.
+
+- [x] Task: Synthetic data (FR4)
+    - Summary: `data.py` makes 144 rows of seeded monthly sales (12 months, 4 regions,
+      3 products). Revenue is units times price.
+    - [x] Write failing tests: fixed seed, column names, row count.
+    - [x] Implement `data.py`, which makes the sales CSV text.
+- [x] Task: Agent configuration (FR4)
+    - Summary: `agent_config.py` mounts `gs://BUCKET/agent` at `/.agent` with one `gcs` source,
+      a system instruction that points to `/.agent/AGENTS.md`, and the `*` network allowlist.
+    - Change: the real API rejects `inline` sources (HTTP 400). The user selected a Cloud
+      Storage bucket on 12 Nov 2026 22:19 SGT.
+    - Change: the API needs a network allowlist with a data source, and accepts only `*`.
+      The user accepted `*` on 12 Nov 2026 22:25 SGT.
+    - [x] Write failing tests: one `gcs` source, `gs://BUCKET/agent` mounted at `/.agent`.
+    - [x] Change `agent_config.py` to the `gcs` source.
+- [x] Task: Demo bucket setup (FR4)
+    - Summary: `storage.py` and `scripts/00b_setup_bucket.py` create the bucket with uniform
+      access in `US` and upload three files. Real run: bucket created, three files uploaded.
+    - [x] Write failing tests with a fake storage client: create if missing, uniform access,
+      upload paths, and an existing bucket in the same project.
+    - [x] Implement `storage.py` and `scripts/00b_setup_bucket.py`.
+    - [x] Run it against the real API.
+- [x] Task: Lifecycle functions (FR3)
+    - Summary: `lifecycle.py`: REST create, update (`PATCH` with `update_mask`), and delete;
+      SDK get and list with pages. The docs confirm that the SDK has no update method.
+    - [x] Write failing tests: create, get, list, and update with the fake client.
+    - [x] Check if the SDK has an update method. Use REST `PATCH` if it does not.
+    - [x] Implement `lifecycle.py`. Record the update result in `tech-stack.md`.
+- [x] Task: Lifecycle script
+    - Summary: `lifecycle_demo.py` and `scripts/01_lifecycle.py`. It reuses an agent that
+      exists (HTTP 409). Real run: create 13.3 s, get, list, and update passed.
+    - [x] Implement `scripts/01_lifecycle.py`.
+    - [x] Run it against the real API.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Interactions
 
@@ -79,7 +100,8 @@
 ## Phase 4: Cleanup, reference, and documents
 
 - [ ] Task: Cleanup script (FR9)
-    - [ ] Write failing tests: only `demo-` agents are deleted, the confirmation, `--yes`.
+    - [ ] Write failing tests: only `demo-` agents are deleted, the confirmation, `--yes`,
+      and `--bucket`, which deletes the demo bucket after a second confirmation.
     - [ ] Implement `scripts/99_cleanup.py` with the agent identity notice.
 - [ ] Task: REST reference (FR10)
     - [ ] Write `scripts/rest_reference.sh`. Run each command once against the real API.
