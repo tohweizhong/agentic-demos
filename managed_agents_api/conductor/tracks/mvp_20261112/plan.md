@@ -1,25 +1,44 @@
 # Plan: Track 1 — MVP (lifecycle, interactions, inline skills)
 
-## Phase 1: Project base and access check
+## Phase 1: Project base and access check [checkpoint: 395ba83]
 
-- [ ] Task: Make the project files
-    - [ ] Add `requirements.txt` (pinned), `requirements-dev.txt`, `pyproject.toml` (ruff, pytest).
-    - [ ] Add `.env.example` and `.gitignore` (`.env`, `.venv/`, `output/`).
-    - [ ] Add an empty package `src/managed_agents_demo/` and `tests/`.
-- [ ] Task: Configuration module (FR1)
-    - [ ] Write failing tests: project ID read from the environment, error text when it is missing.
-    - [ ] Implement `config.py`.
-- [ ] Task: Terminal output module
-    - [ ] Write failing tests: the request, response, and result blocks, and token masking.
-    - [ ] Implement `console.py` with `rich`.
-- [ ] Task: Client module and operation polling
-    - [ ] Write failing tests with a fake client: poll until `done`, a time limit, an error result.
-    - [ ] Implement `client.py`: the SDK client, a REST helper with `httpx`, and `wait_for_operation`.
-- [ ] Task: Access check script (FR2)
-    - [ ] Write failing tests: create, wait, delete, and the HTTP 403 message.
-    - [ ] Implement `scripts/00_access_check.py`.
-    - [ ] Run it against the real API. Record the times and any error in `tech-stack.md`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- Verification: `pytest --cov=src` 30 passed, coverage 92 percent. `ruff check` clean.
+  Real access check passed in the test project. User confirmed on 12 Nov 2026 22:12 SGT.
+
+- [x] Task: Make the project files
+    - Summary: Added `requirements.txt`, `requirements-dev.txt`, `pyproject.toml`, `.env.example`,
+      and `.gitignore`. The SDK installs `httpx2`, so the demo uses it instead of `httpx`.
+    - [x] Add `requirements.txt` (pinned), `requirements-dev.txt`, `pyproject.toml` (ruff, pytest).
+    - [x] Add `.env.example` and `.gitignore` (`.env`, `.venv/`, `output/`).
+    - [x] Add an empty package `src/managed_agents_demo/` and `tests/`.
+- [x] Task: Configuration module (FR1)
+    - Summary: `config.py` reads `GOOGLE_CLOUD_PROJECT` and rejects the placeholder value.
+      It holds the base agent, the location, and the `demo-` prefix.
+    - [x] Write failing tests: project ID read from the environment, error text when it is missing.
+    - [x] Implement `config.py`.
+- [x] Task: Terminal output module
+    - Summary: `console.py` prints the request, response, result, and error blocks.
+      It masks every `Authorization` value at any depth.
+    - [x] Write failing tests: the request, response, and result blocks, and token masking.
+    - [x] Implement `console.py` with `rich`.
+- [x] Task: Client module and operation polling
+    - Summary: `client.py` has a REST client with ADC tokens, `ApiError` with the denied
+      permission, and `wait_for_operation` with a time limit. Tests use `MockTransport`.
+    - [x] Write failing tests with a fake client: poll until `done`, a time limit, an error result.
+    - [x] Implement `client.py`: the SDK client, a REST helper with `httpx`, and `wait_for_operation`.
+- [x] Task: Access check script (FR2)
+    - Summary: `access_check.py` and `scripts/00_access_check.py`. Real run in the test project:
+      create 373.2 s, delete 6.5 s, passed. Times recorded in `tech-stack.md`.
+    - Note: the tests and the code for Phase 1 were written in the same step while the
+      package install ran. The red phase was not run separately.
+    - Fix: a unit test in `test_scripts.py` read the real `.env` file and called the real API
+      two times. `python-dotenv` searched from the script folder, not the current folder.
+      Both runs deleted their agent. `config.load` now uses `find_dotenv(usecwd=True)`, and
+      `tests/conftest.py` blocks real credentials and the SDK client in all unit tests.
+    - [x] Write failing tests: create, wait, delete, and the HTTP 403 message.
+    - [x] Implement `scripts/00_access_check.py`.
+    - [x] Run it against the real API. Record the times and any error in `tech-stack.md`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Agent lifecycle and inline sources
 
