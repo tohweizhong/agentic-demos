@@ -228,38 +228,28 @@ project: `roles/modelarmor.calloutUser`, `roles/modelarmor.user`, and
 traffic.
 
 If the organization enforces `iam.allowedPolicyMemberDomains`, IAM refuses the 3 grants with
-`Error 400: ... is not in permitted organization, failedPrecondition`. This constraint has no
-exception for one principal, and service agents are not part of your organization
+`not in permitted organization`. This constraint has no exception for one principal
 ([Domain-restricted sharing](https://docs.cloud.google.com/organization-policy/domain-restricted-sharing)).
-Tests in Argolis (08, 10, and 12 Nov 2026) showed:
-
-| What we tried at project level | Result |
-|---|---|
-| Override with `allowAll` | Works. The grants can need a few minutes after the override (see the note below) |
-| Override with `is:C02h8e9nw` (the `google.com` customer ID) | Fails. The service agent is not in that directory |
-| `iam.managed.allowedPolicyMembers` with `allowedMemberSubjects`, while the project still inherits `iam.allowedPolicyMemberDomains` | Fails. IAM checks the two constraints separately |
+An allowed value such as a Google customer ID does not cover the service agent. A project-level
+`iam.allowedPolicyMemberDomains` exception is necessary while the organization uses this constraint.
 
 The organization admin chooses one approach before the apply. The numbers match
 [GUIDE.md](GUIDE.md) Section 3:
 
 | Approach | How it works | Use |
 |---|---|---|
-| Approach 1: managed constraint | The organization replaces `iam.allowedPolicyMemberDomains` with `iam.managed.allowedPolicyMembers`, and the project names the service agent in `allowedMemberSubjects` | Production. Works only when the legacy constraint does not also apply to the project |
-| Approach 2: short-lived project exception | Set `allow_google_managed_members = true` and apply. Terraform creates a project-level override (`allowAll`), waits, and grants the 3 roles. Then set it to `false` and apply again. The grants stay, because the constraint is not retroactive | Argolis and sandbox projects. Tested live |
+| Approach 1: managed constraint | The organization replaces `iam.allowedPolicyMemberDomains` with `iam.managed.allowedPolicyMembers`, and the project names the service agent in `allowedMemberSubjects` | Production |
+| Approach 2: short-lived project exception | Set `allow_google_managed_members = true` and apply. Terraform creates a project-level exception, waits, and grants the 3 roles. Then set it to `false` and apply again. The grants stay | Sandbox projects |
 | Approach 3: keep the exception | Keep `allow_google_managed_members = true` | Disposable sandbox projects only |
 
-> [!NOTE]
-> Two findings from the 12 Nov 2026 rehearsal:
->
-> - IAM can need more than the 30-second wait in Terraform to use a new override. If the 3 grants
->   fail with `not in permitted organization` just after Terraform created the override, run
->   `gcloud org-policies describe iam.allowedPolicyMemberDomains --project=PROJECT_ID --effective`.
->   When it shows `allowAll: true`, run `terraform plan` and apply again. On 12 Nov the second apply
->   worked about 8 minutes later.
-> - Each gateway has its own tenant service agent. If `scripts/preflight.sh` says that the 3 roles
->   are already present, they can belong to an older gateway. A new gateway can still need the
->   exception. Keep the exception until the last gateway with Model Armor (the ingress gateway at
->   Tier 5) has its grants.
+With Approach 2, note two points:
+
+- If the grants fail with `not in permitted organization` just after Terraform created the
+  exception, IAM has not used it yet. Run
+  `gcloud org-policies describe iam.allowedPolicyMemberDomains --project=PROJECT_ID --effective`.
+  When it shows `allowAll: true`, plan and apply again.
+- Each gateway has its own tenant service agent. Keep the exception until each gateway with Model
+  Armor has its grants.
 
 If you want to deploy without the `gcp-sa-dep` Model Armor grants, set `enable_model_armor = false` (Tiers 1 to 3) or set `enable_egress_gateway = false` and `enable_ingress_gateway = false` (Tiers 1 and 2) in `terraform/terraform.tfvars`.
 
