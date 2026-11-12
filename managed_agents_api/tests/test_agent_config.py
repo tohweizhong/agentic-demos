@@ -17,12 +17,12 @@ def test_body_has_base_agent_and_tools():
 
 def test_body_mounts_bucket_prefix_at_agent_folder():
     sources = agent_config.build_agent_body(bucket="my-bucket")["base_environment"]["sources"]
-    assert sources == [{"type": "gcs", "source": "gs://my-bucket/agent", "target": "/.agent"}]
+    assert sources == [{"type": "gcs", "source": "gs://my-bucket/agent", "target": ".agent"}]
 
 
 def test_system_instruction_points_to_agents_md():
     body = agent_config.build_agent_body(bucket="b")
-    assert "/.agent/AGENTS.md" in body["system_instruction"]
+    assert "/workspace/.agent/AGENTS.md" in body["system_instruction"]
 
 
 def test_network_allowlist_is_all_domains():
@@ -52,7 +52,7 @@ def test_bucket_files_have_paths_and_content():
     ]
     assert files["agent/data/sales.csv"] == data.make_sales_csv()
     assert files["agent/skills/report-writer/SKILL.md"].startswith("---\nname: report-writer")
-    assert "/.agent/data/sales.csv" in files["agent/AGENTS.md"]
+    assert "/workspace/.agent/data/sales.csv" in files["agent/AGENTS.md"]
 
 
 def test_load_asset_reads_file():

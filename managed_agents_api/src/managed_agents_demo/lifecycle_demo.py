@@ -21,6 +21,7 @@ from managed_agents_demo import console as out
 from managed_agents_demo.config import AGENT_ID_PREFIX, Settings
 
 _MAX_LINES = 3
+_CONFIG_FIELDS = ("description", "system_instruction", "tools", "base_environment")
 
 
 def shorten_sources(body: dict[str, Any]) -> dict[str, Any]:
@@ -91,7 +92,18 @@ def run(
         if exc.status != 409:
             out.error(console, exc.message, status=exc.status)
             return 1
-        console.print(f"The agent {agent_id} already exists. The script uses the existing agent.")
+        console.print(
+            f"The agent {agent_id} already exists. "
+            "The script sends the current configuration to it."
+        )
+        fields = {key: body[key] for key in _CONFIG_FIELDS}
+        try:
+            operation = lifecycle.update(rest, agent_id, fields)
+            out.response(console, operation)
+            wait(operation)
+        except (client.ApiError, client.OperationError, TimeoutError) as update_exc:
+            out.error(console, f"Update failed: {update_exc}")
+            return 1
     except (client.OperationError, TimeoutError) as exc:
         out.error(console, f"Create failed: {exc}")
         return 1

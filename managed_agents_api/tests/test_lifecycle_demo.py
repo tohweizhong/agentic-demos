@@ -113,7 +113,9 @@ def test_run_reuses_existing_agent():
 
     code, calls, text = run(handler)
     assert code == 0
-    assert [method for method, _ in calls] == ["POST", "PATCH"]
+    # The script sends the current configuration to the agent that exists, then the
+    # description update.
+    assert [method for method, _ in calls] == ["POST", "PATCH", "PATCH"]
     assert "already exists" in text
 
 

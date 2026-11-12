@@ -44,3 +44,11 @@ def test_setup_bucket_script_stops_without_project(monkeypatch, tmp_path, capsys
     monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
     assert load_script("00b_setup_bucket.py").main() == 1
     assert "GOOGLE_CLOUD_PROJECT is not set" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("name", ["02_interact.py", "03_session.py", "04_override.py"])
+def test_interaction_scripts_stop_without_project(monkeypatch, tmp_path, capsys, name):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
+    assert load_script(name).main() == 1
+    assert "GOOGLE_CLOUD_PROJECT is not set" in capsys.readouterr().out

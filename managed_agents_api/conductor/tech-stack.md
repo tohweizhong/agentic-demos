@@ -124,3 +124,29 @@
 - The SDK prints `UserWarning: Agents usage is experimental` on each call. The demo hides it.
 - Cloud Audit Logs: no `aiplatform.googleapis.com` entries were found for the create, update,
   or delete calls, 20 minutes after the calls.
+
+### 12 Nov 2026: sandbox paths and interactions
+
+- A `gcs` mount target must be inside `/workspace`. The target `/.agent` fails at mount time
+  with "Invalid target path /.agent: Path '/.agent' escapes /workspace". The create call does
+  not reject it. The demo uses the target `.agent`, so the files are in `/workspace/.agent`.
+- Files that the agent writes under the mount (`/workspace/.agent/output/`) appear in the
+  bucket under `agent/output/`. The sandbox also creates a zero-byte `agent/output/` object.
+- Stream events: `interaction.created`, `interaction.status_update`, `step.start`,
+  `step.delta`, `step.stop`, `interaction.completed`. Text chunks have an `event_id`. The API
+  can repeat the full text of a step in one delta without an `event_id`.
+- `interaction.completed` has the interaction ID, the status, the token usage, and
+  `environment_id`.
+- Harness tools come as `function_call` steps (`list_dir`, `view_file`, `run_command`,
+  `create_file`, `delete_file`). Built-in tools come as `<tool>_call` steps, for example
+  `google_search_call`.
+- With network access, the agent installed pandas and matplotlib with `pip` and made a PNG chart.
+- The analysis turn took 230.6 s, 16 tool calls, and 235,419 tokens. The follow-up turn with
+  `previous_interaction_id` and the same `environment` took 11.1 s and used no tools.
+- The interaction `tools` field accepts `code_execution`, `computer_use`, `file_search`,
+  `function`, `google_maps`, `google_search`, `mcp_server`, `retrieval`, and `url_context`.
+  It rejects `filesystem` (HTTP 400).
+- An override with only `code_execution` did not remove the harness file tools. An override
+  that adds `google_search` gave the agent a working search tool for that turn only.
+- Google Search grounding does not come as a `google_search_call` step. It comes as a
+  `text_annotation_delta` with `url_citation` annotations (title and a redirect URL).

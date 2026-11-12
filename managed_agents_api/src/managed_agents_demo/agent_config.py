@@ -2,11 +2,12 @@
 
 The Managed Agents API accepts only `gcs` and `skill_registry` sources. The demo
 uploads three files to a Cloud Storage bucket under the `agent/` prefix, and mounts
-that prefix at `/.agent` in the sandbox:
+that prefix at `.agent` in the sandbox. A mount target must be inside the sandbox
+folder `/workspace`, so the files appear here:
 
-- `/.agent/AGENTS.md`: the agent instructions.
-- `/.agent/skills/report-writer/SKILL.md`: one skill.
-- `/.agent/data/sales.csv`: the synthetic sales data.
+- `/workspace/.agent/AGENTS.md`: the agent instructions.
+- `/workspace/.agent/skills/report-writer/SKILL.md`: one skill.
+- `/workspace/.agent/data/sales.csv`: the synthetic sales data.
 """
 
 from __future__ import annotations
@@ -21,14 +22,17 @@ from managed_agents_demo.config import AGENT_ID_PREFIX, BASE_AGENT
 ANALYST_AGENT_ID = "demo-data-analyst"
 ASSETS = Path(__file__).resolve().parents[2] / "assets"
 BUCKET_PREFIX = "agent"
-MOUNT_TARGET = "/.agent"
+# The target is relative to /workspace. The absolute path "/.agent" fails at mount time:
+# "Invalid target path /.agent: Path '/.agent' escapes /workspace".
+MOUNT_TARGET = ".agent"
+MOUNT_PATH = "/workspace/.agent"
 # The Preview API needs an allowlist when a data source is set, and it accepts only "*".
 # The user accepted this for the demo on 12 Nov 2026. The data is synthetic.
 NETWORK_ALLOWLIST = ("*",)
 
 SYSTEM_INSTRUCTION = (
-    "Read /.agent/AGENTS.md before you start, and follow it. "
-    "Write all output files to /.agent/output/."
+    "Read /workspace/.agent/AGENTS.md before you start, and follow it. "
+    "Write all output files to /workspace/.agent/output/."
 )
 
 # Agent ID rules from the docs: 1 to 63 characters, lowercase letters, numbers, and
