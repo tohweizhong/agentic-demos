@@ -249,6 +249,21 @@ elif [[ -n "${CLOUDSDK_CONFIG:-}" && -f "${CLOUDSDK_CONFIG}/application_default_
 elif curl -s -m 3 -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" 2>/dev/null | grep -q "@"; then
   TF_ADC_SOURCE="metadata_server"
 fi
+if [[ "${TF_ADC_SOURCE}" == "none" ]]; then
+  if [[ -n "${CLOUDSDK_CONFIG:-}" ]]; then
+    # Cloud Shell: the login writes the file to $CLOUDSDK_CONFIG of this shell.
+    TF_ADC_FIX="gcloud auth application-default login && export GOOGLE_APPLICATION_CREDENTIALS=\"${CLOUDSDK_CONFIG}/application_default_credentials.json\""
+  else
+    TF_ADC_FIX="gcloud auth application-default login"
+  fi
+fi
+
+# 7c. Free disk space in terraform/, so that terraform.tfstate is not cut short.
+# -1 means that df gave no number. The report then has a warning, not a blocker.
+DISK_FREE_MB="$(df -Pm "${TF_DIR}" 2>/dev/null | awk 'NR==2 {print $4}')"
+if [[ ! "${DISK_FREE_MB}" =~ ^[0-9]+$ ]]; then
+  DISK_FREE_MB="-1"
+fi
 
 # 8. Compute blockers and warnings
 REPORT="$(jq -n \
@@ -291,11 +306,11 @@ REPORT="$(jq -n \
       (if $log_bucket_state == "DELETE_REQUESTED" then
         "Log bucket " + $log_bucket_id + " is in DELETE_REQUESTED state (7-day soft-delete lock). Undelete it before apply: gcloud logging buckets undelete " + $log_bucket_id + " --location=" + $region + " --project=" + $project
        else empty end),
-      (if $disk_free_mb < 250 then
+      (if ($disk_free_mb >= 0 and $disk_free_mb < 250) then
         "Free disk space in terraform/ is " + ($disk_free_mb | tostring) + " MB (< 250 MB). Free disk space before running Terraform so terraform.tfstate is not truncated."
        else empty end),
       (if $tf_adc_source == "none" then
-        "Terraform has no credentials: no GOOGLE_APPLICATION_CREDENTIALS file, no ~/.config/gcloud ADC file, and no metadata server account. Run: gcloud auth application-default login"
+        "Terraform has no credentials: no GOOGLE_APPLICATION_CREDENTIALS file, no ~/.config/gcloud ADC file, and no metadata server account. Run this in the same shell before terraform or agy: " + $tf_adc_fix
        elif $tf_adc_source == "missing_file" then
         "GOOGLE_APPLICATION_CREDENTIALS points to a file that does not exist. Terraform does not fall back to the metadata server when this variable is set. Run: " + $tf_adc_fix
        elif $tf_adc_source == "cloudsdk_config_only" then
@@ -307,6 +322,9 @@ REPORT="$(jq -n \
     ];
   def warnings:
     [
+      (if $disk_free_mb < 0 then
+        "Could not read the free disk space in terraform/ with df. Check it before terraform apply."
+       else empty end),
       (if ($disk_free_mb >= 250 and $disk_free_mb < 1024) then
         "Free disk space in terraform/ is " + ($disk_free_mb | tostring) + " MB (< 1024 MB). Free up space soon."
        else empty end),
