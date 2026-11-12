@@ -29,10 +29,7 @@
   - [x] Record the price for each 1M input tokens from the official pricing page.
   - Summary: tiers are `gemini-3.5-flash-lite`, `gemini-3.8-flash`, `gemini-4-argon`.
     The official pricing page gives US$0.10 for each 1M input tokens for `gemini-decision-1`.
-- [ ] Task: Test the Vertex AI backend (BLOCKED: waiting for early access)
-  - [ ] Run `scripts/check_api.py` with `GOOGLE_GENAI_USE_VERTEXAI=true`.
-  - [ ] Record the result. If access is not granted yet, mark the task as blocked
-        and continue. Do not block phase 1 on this task.
+- [x] Task: Test the Vertex AI backend: moved to track `vertex_20261112` (waits for early access).
 - [x] Task: Test the ADK callback model change
   - [x] Write a test agent. Change `llm_request.model` in `before_model_callback`.
   - [x] Record if ADK calls the new model.
