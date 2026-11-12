@@ -1,0 +1,11 @@
+{
+  "instructions": "Which enquiry category does this customer email belong to?",
+  "options": {
+    "tracking": "Where is my parcel. One or more tracking numbers.",
+    "redelivery": "Missed delivery. Book a new delivery or a locker.",
+    "weight_dispute": "The customer disputes the billed parcel weight.",
+    "scam_check": "The customer asks if a message or a link is real.",
+    "import_tax": "A question about import tax or customs charges.",
+    "damage_claim": "The parcel arrived damaged. The customer wants money."
+  }
+}

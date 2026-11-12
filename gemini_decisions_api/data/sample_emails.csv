@@ -1,0 +1,25 @@
+query,label
+"My parcel AB123456789XX has said 'in transit' for six days. Where is it?",tracking
+"I ordered three items and got tracking numbers AB111111111XX and AB222222222XX. Only one has moved. What is happening?",tracking
+"The app says my parcel was delivered yesterday but nothing is at my door. Can you check?",tracking
+"When will my parcel arrive? The seller says it was posted last week.",tracking
+"I found a card in my letterbox that says you tried to deliver. I want it delivered on Saturday instead.",redelivery
+"Nobody was home when the courier came. Can I collect my parcel at a locker near my office?",redelivery
+"I missed the delivery twice. Please book a new slot for next Tuesday morning.",redelivery
+"The slip says the parcel was too big for the letterbox. How do I get it now?",redelivery
+"You charged me for 6.4 kg but the box weighed 1.8 kg on my scale. Please explain the bill.",weight_dispute
+"Why was I billed for a large parcel? It was a small, light box.",weight_dispute
+"The shipping invoice uses the box size, not the real weight. That is not fair. I want the charge checked.",weight_dispute
+"I think the weight on my receipt is wrong. The parcel was 2 kg, not 5 kg.",weight_dispute
+"I got an SMS that says I must pay 1.99 at parcel-fee-pay.example to release my parcel. Is it from you?",scam_check
+"An email asks me to confirm my address with a link to deliveries-help.example. Is this real?",scam_check
+"Someone called me and said my parcel is held until I pay a fee by card. Do you do this?",scam_check
+"Is the message from 'PARCEL-SG' asking for my bank details genuine?",scam_check
+"I was charged import tax on a gift from my sister overseas. Why do I have to pay?",import_tax
+"The online shop already charged me tax at checkout, and now customs wants tax again. Can I get it waived?",import_tax
+"How much customs duty will I pay for a pair of headphones bought overseas?",import_tax
+"My parcel is held at customs. What documents do you need to release it?",import_tax
+"The vase in my parcel arrived broken. I want my money back.",damage_claim
+"The box was crushed and the laptop screen is cracked. How do I claim?",damage_claim
+"Water got into the parcel and the books are ruined. I need compensation of 120 dollars.",damage_claim
+"My order arrived with a torn box and two items are damaged. What do I do now?",damage_claim
