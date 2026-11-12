@@ -79,23 +79,35 @@
     - [x] Run it against the real API.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Interactions
+## Phase 3: Interactions [checkpoint: 4e43aec]
 
-- [ ] Task: Event stream handling (FR5)
-    - [ ] Write failing tests with recorded events: agent text, the final event, the interaction ID, the environment ID.
-    - [ ] Implement `interactions.py`.
-- [ ] Task: Single-turn script (FR5, FR8)
-    - [ ] Implement `scripts/02_interact.py`. Save the IDs to `output/last_interaction.json`.
-    - [ ] Run it against the real API. Check that the agent writes a chart and a report.
-- [ ] Task: Multi-turn session (FR6)
-    - [ ] Write failing tests: `previous_interaction_id` and the environment ID go in the request.
-    - [ ] Implement `scripts/03_session.py`.
-    - [ ] Run it against the real API.
-- [ ] Task: Configuration override (FR7)
-    - [ ] Write failing tests: the override `tools` list goes in the request, and the stored agent is not changed.
-    - [ ] Implement `scripts/04_override.py`.
-    - [ ] Run it against the real API.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- Verification: `pytest --cov=src` 86 passed, coverage 94 percent. `ruff check` clean.
+  Real runs of scripts 02, 03, and 04 passed. User confirmed on 12 Nov 2026 22:45 SGT.
+
+- [x] Task: Event stream handling (FR5)
+    - Summary: `interactions.py` reads the real event shapes, skips the repeated full text,
+      and records harness and built-in tool calls. Test events copy a real recording.
+    - [x] Write failing tests with recorded events: agent text, the final event, the interaction ID, the environment ID.
+    - [x] Implement `interactions.py`.
+- [x] Task: Single-turn script (FR5, FR8)
+    - Summary: real run: 230.6 s, 16 tool calls. The agent wrote `report.md` and a PNG chart,
+      and both are in the bucket. Its numbers agree with an independent calculation.
+    - Fix: the mount target `/.agent` failed in the sandbox. The target is now `.agent`.
+    - [x] Implement `scripts/02_interact.py`. Save the IDs to `output/last_interaction.json`.
+    - [x] Run it against the real API. Check that the agent writes a chart and a report.
+- [x] Task: Multi-turn session (FR6)
+    - Summary: real run: 11.1 s, no tool calls. The agent repeated North, 95.3 percent, from
+      the first turn.
+    - [x] Write failing tests: `previous_interaction_id` and the environment ID go in the request.
+    - [x] Implement `scripts/03_session.py`.
+    - [x] Run it against the real API.
+- [x] Task: Configuration override (FR7)
+    - Summary: the override adds `google_search` for one turn. The agent used search, and the
+      stored tools stayed `code_execution` and `filesystem`. SDK errors now print, not raise.
+    - [x] Write failing tests: the override `tools` list goes in the request, and the stored agent is not changed.
+    - [x] Implement `scripts/04_override.py`.
+    - [x] Run it against the real API.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Cleanup, reference, and documents
 
