@@ -9,7 +9,7 @@
 | Library                | Purpose                                                                   |
 |------------------------|---------------------------------------------------------------------------|
 | `google-genai`         | `client.agents` and `client.interactions`. Version 3.2.0.                 |
-| `httpx`                | REST calls that the SDK does not have: update an agent, get an operation. |
+| `httpx2`               | REST calls that the SDK does not have: update an agent, get an operation. |
 | `google-auth`          | Application Default Credentials and short-lived access tokens.            |
 | `google-cloud-storage` | Upload the input CSV file. Download the files that the agent writes.      |
 | `python-dotenv`        | Reads the project ID and the bucket name from the `.env` file.            |
@@ -67,3 +67,31 @@
 ## Not used
 
 - No ADK, no backend framework, no frontend framework, and no database in the first version.
+
+## Change log
+
+### 12 Nov 2026: `httpx2`, not `httpx`
+
+- `google-genai` 3.2.0 installs `httpx2` 2.16.0, not `httpx`. The SDK imports `httpx` if it is
+  present, and uses `httpx2` if it is not.
+- The demo REST client uses `httpx2` (`import httpx2 as httpx`). Thus the demo installs no
+  second HTTP library. `httpx2` has the same API, including `MockTransport` for the unit tests.
+
+### 12 Nov 2026: SDK facts from the docs and the package
+
+- The docs say that the Python SDK has no `update` method. Use REST `PATCH` with `update_mask`.
+- The docs say that SDK `agents.create()` and `agents.delete()` return the final result.
+  They do not show the long-running operation. The demo uses REST to show the operation.
+- The SDK source type allows `gcs`, `inline`, `repository`, and `skill_registry`. An `inline`
+  source has `content`, `target`, and an optional `encoding`. The Agent Platform docs show only
+  `gcs` and `skill_registry`. Phase 2 tests `inline` against the real API.
+- The interaction `curl` examples in the docs send the header `Api-Revision: 2026-05-20`.
+
+### 12 Nov 2026: first real access check (test project)
+
+- Create operation for the first agent in the project: 373.2 s. The docs say two to three
+  minutes. The access check timeout is 600 s.
+- Delete operation: the first response already had `"done": true`. Total time 6.5 s.
+- The delete operation name uses the numeric agent ID, not the custom ID.
+- The `admin@` account of the Argolis organization had enough access. The role that a
+  user with fewer permissions needs is still not confirmed.

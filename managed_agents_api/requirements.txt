@@ -1,0 +1,7 @@
+# Runtime packages. Versions checked on 12 Nov 2026.
+google-genai==3.2.0
+# google-genai 3.2.0 installs httpx2 and google-auth. The demo uses both directly.
+httpx2==2.16.0
+google-auth==2.62.2
+python-dotenv==1.2.4
+rich==15.0.0

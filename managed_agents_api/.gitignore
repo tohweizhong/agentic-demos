@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Demo output
+output/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
