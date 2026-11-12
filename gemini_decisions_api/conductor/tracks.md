@@ -12,5 +12,5 @@
 
 ---
 
-- [~] **Track: Decisions API judge**
+- [x] **Track: Decisions API judge**
   *Link: [./tracks/judge_20261112/index.md](./tracks/judge_20261112/index.md)*
