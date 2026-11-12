@@ -9,7 +9,8 @@ description = "Demo of the Gemini Decisions API in plain Python and in an ADK ag
 requires-python = ">=3.11"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["decisions_demo*", "decisions_agent*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
@@ -22,6 +23,8 @@ addopts = "-m 'not integration'"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# The notebook is for reading. Its cells favour short, flat code over lint rules.
+extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
