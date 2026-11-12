@@ -206,6 +206,9 @@ cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 # Edit terraform/terraform.tfvars: project_id, project_number, and organization_id.
 
 gcloud auth application-default login
+# Cloud Shell only: Terraform does not read $CLOUDSDK_CONFIG.
+# Run this in the same tab where you run terraform or agy. Run it again after a Cloud Shell restart.
+export GOOGLE_APPLICATION_CREDENTIALS="$CLOUDSDK_CONFIG/application_default_credentials.json"
 scripts/package_agent.sh
 
 cd terraform

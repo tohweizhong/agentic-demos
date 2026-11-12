@@ -32,6 +32,9 @@ git clone https://github.com/tohweizhong/agentic-demos.git
 cd agentic-demos/agent_governance_starter_pack
 gcloud auth login
 gcloud auth application-default login
+# Cloud Shell only: Terraform does not read $CLOUDSDK_CONFIG.
+# Run this in the same tab where you run terraform or agy. Run it again after a Cloud Shell restart.
+export GOOGLE_APPLICATION_CREDENTIALS="$CLOUDSDK_CONFIG/application_default_credentials.json"
 ```
 
 A fresh clone has no Terraform state. To deploy a second copy into a project that already has a starter pack deployment from another clone, use a different `name_prefix`. All resource names, including the IAP access policy ID (`<name_prefix>-agent-egress`), use the prefix. The project-wide resources (the IAP audit config and the agent principal set grant) are shared by both copies, so tear down with `scripts/cleanup.sh` without `--include-project-wide` while the other copy is in use.
@@ -219,6 +222,9 @@ gcloud projects create PROJECT_ID --organization=ORG_ID
 gcloud billing projects link PROJECT_ID --billing-account=BILLING_ACCOUNT_ID
 gcloud projects describe PROJECT_ID --format="value(projectNumber)"   # PROJECT_NUMBER
 gcloud auth application-default login
+# Cloud Shell only: Terraform does not read $CLOUDSDK_CONFIG.
+# Run this in the same tab where you run terraform or agy. Run it again after a Cloud Shell restart.
+export GOOGLE_APPLICATION_CREDENTIALS="$CLOUDSDK_CONFIG/application_default_credentials.json"
 ```
 
 ## 3. Choose a Governance Tier and Check Domain Restricted Sharing
