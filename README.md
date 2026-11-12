@@ -29,6 +29,7 @@
   * [ge_wif_scim_check](./ge_utils/ge_wif_scim_check/): Script to check a WIF pool for SCIM tenants and the provider attribute mapping
 * [agent_governance_starter_pack](./agent_governance_starter_pack/): Draft agent governance starter pack for Gemini Enterprise Agent Platform (landing zone, Agent Identity, Agent Registry, Agent Gateway, reference agent on Agent Runtime)
 * [agent_services_starter_pack](./agent_services_starter_pack/): Draft ADK sample code for Sessions, Memory Bank, and observability on Agent Runtime in asia-southeast1. Complements agent_governance_starter_pack
+* [gemini_decisions_api](./gemini_decisions_api/): Gemini Decisions API demo: typed yes/no, choice, and score decisions in Python, an evaluation command, and an ADK router agent
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI

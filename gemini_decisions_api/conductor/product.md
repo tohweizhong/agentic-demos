@@ -61,8 +61,8 @@ Example:
 
 ```csv
 query,label
-"My invoice shows a double charge",billing
-"The mug arrived cracked",replacements
+"You charged me for 6.4 kg but the box weighed 1.8 kg",weight_dispute
+"The vase in my parcel arrived broken",damage_claim
 ```
 
 ### Question definition
