@@ -14,6 +14,14 @@
 # - --project defaults to the Terraform output project_id.
 # - --json prints one JSON object for each row, for other tools.
 #
+# Exit codes: 0 = traces found. 1 = error, or TRACE: NOT_FOUND (the session has no
+# traces, but other agent spans exist). 2 = usage. 3 = TRACE: NOT_APPLICABLE (no
+# agent in the project sends ADK spans, so agent telemetry is off).
+#
+# The starter pack agent does not turn telemetry on, so expect NOT_APPLICABLE for
+# it. The script is for agents that send ADK telemetry, for example agents that
+# you adopt on the lateral path.
+#
 # Read-only. It uses the Cloud Trace API v1 (projects.traces.list and get).
 # Cloud Trace API v2 can only write spans. The request bills the target project
 # for quota (x-goog-user-project). Without this header, the shared gcloud client
@@ -193,7 +201,20 @@ def rows_for_trace(tid):
 
 tids = [trace_id] if trace_id else trace_ids_for_session()
 if not tids:
-    sys.exit(f"No traces found for session {session} in the last {since} in project {project}.")
+    # Find out if any agent in the project sends ADK spans in the same window.
+    probe = call(base + "?" + urllib.parse.urlencode({
+        "filter": "+gen_ai.operation.name:invoke_agent",
+        "startTime": since_start(since),
+        "view": "MINIMAL",
+        "pageSize": "1",
+    }))
+    if not probe.get("traces"):
+        print(f"TRACE: NOT_APPLICABLE (no agent spans in project {project} in the last {since}. "
+              "The agent does not send telemetry to Cloud Trace. The starter pack agent does not turn "
+              "telemetry on. Use scripts/read_audit_log.sh for the gateway evidence.)")
+        sys.exit(3)
+    sys.exit(f"TRACE: NOT_FOUND (no traces for session {session} in the last {since} in project {project}. "
+             "Other agent spans exist. Check the session ID, or wait 1 to 2 minutes for new spans.)")
 
 all_rows = []
 for tid in tids:

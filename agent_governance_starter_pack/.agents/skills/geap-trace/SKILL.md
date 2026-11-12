@@ -23,7 +23,11 @@ API v1 in the project from `terraform output project_id`.
    | One trace ID | `scripts/read_session_trace.sh --trace TRACE_ID` |
    | A request for machine-readable output | Add `--json` |
 
-3. Read the rows and the summary line. Use this table:
+3. If the script prints `TRACE: NOT_APPLICABLE` (exit 3), stop. Tell the user that the agent does not
+   send telemetry to Cloud Trace, so no trace evidence exists. The starter pack agent does not turn
+   telemetry on. Use `scripts/read_audit_log.sh` for the gateway evidence. If the script prints
+   `TRACE: NOT_FOUND`, check the session ID with the user, or wait 1 to 2 minutes and run it again.
+4. Read the rows and the summary line. Use this table:
 
    | Row | Result | Meaning |
    |---|---|---|
@@ -34,12 +38,12 @@ API v1 in the project from `terraform output project_id`.
    | `MODEL_ARMOR` | `MODIFY` or `BLOCK` | Model Armor changed or blocked the content. The detail column names the template and the finding |
    | `MCP_HTTP` | Not `2xx` | The MCP server on Cloud Run returned an error |
 
-4. For each `NO_DOWNSTREAM` row, confirm the denial. Run `scripts/read_audit_log.sh 1h`, or a
+5. For each `NO_DOWNSTREAM` row, confirm the denial. Run `scripts/read_audit_log.sh 1h`, or a
    longer window that covers the row time. Look for a gateway row with status `403`.
    - IAP policy V1 writes the `403 DENIED` row to the gateway request log.
    - IAP policy V2 does not write this row (b/583376130). If there is no row, say that the denial
      is probable but not confirmed in the logs.
-5. Report to the user:
+6. Report to the user:
    - The number of traces and tool calls.
    - Each `NO_DOWNSTREAM`, `ERROR`, `MODIFY`, or `BLOCK` row, with its time in SGT and the tool name.
    - Which result you confirmed in the logs, and which result is only trace evidence.
