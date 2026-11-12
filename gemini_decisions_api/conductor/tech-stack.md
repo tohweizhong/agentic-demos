@@ -19,8 +19,14 @@ The evaluation command uses the standard library `csv` module. It does not use p
 
 ## API
 
-- Gemini Developer API, `v1beta` endpoint, with an API key from Google AI Studio.
-- Model for decisions: `gemini-decision-1`.
+- Default backend: Gemini Developer API, `v1beta` endpoint, with an API key from
+  Google AI Studio. Model for decisions: `gemini-decision-1`.
+- Second backend: Vertex AI, `v1beta1` endpoint, location `global`, with Application
+  Default Credentials. Model for decisions: `gemini-decision-exp`. It is in early
+  access, and the project must be on the allowlist.
+- The `google-genai` SDK selects the backend from the environment:
+  `GOOGLE_GENAI_USE_VERTEXAI`, `GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION`.
+  The demo code does not change between backends. Only the model ID changes.
 - Models for comparison and ADK sub-agents: Gemini Flash-Lite, Flash, and Pro.
   Track 1 sets the exact model IDs.
 

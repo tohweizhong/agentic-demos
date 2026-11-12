@@ -23,6 +23,19 @@ Two next steps: `AUTO_REPLY` or `HUMAN_DRAFT`.
 
 ## Functional requirements
 
+### FR0. Two backends (phase 1)
+
+- A config module reads the environment and selects the backend.
+  - Default: Gemini Developer API with `GEMINI_API_KEY`. Model `gemini-decision-1`.
+  - `GOOGLE_GENAI_USE_VERTEXAI=true`: Vertex AI with ADC, `GOOGLE_CLOUD_PROJECT`, and
+    `GOOGLE_CLOUD_LOCATION=global`. Model `gemini-decision-exp`.
+- The model IDs are in one place in the config module. A user can override them
+  with environment variables.
+- If the settings for the selected backend are missing, the demo stops with a clear
+  error message that states the missing variable.
+- The demo prints the backend and the model ID at the start of each command.
+- `.env.example` shows both backends. The Vertex AI lines are commented out.
+
 ### FR1. Fact check (phase 1)
 
 - Find the `google-genai` version that has `client.decisions.create`. Pin it.
@@ -79,7 +92,9 @@ Two next steps: `AUTO_REPLY` or `HUMAN_DRAFT`.
 
 ## Acceptance criteria
 
-- All commands run against the real API and print real numbers.
+- All commands run against the real Gemini Developer API and print real numbers.
+- The Vertex AI backend passes the `check_api.py` script after the project gets early
+  access. Until then, the README marks the Vertex AI backend as "not tested".
 - `eval` on the sample data prints accuracy, a confusion matrix, and a results CSV.
 - `adk web` starts the agent, and the router selects a sub-agent for each category.
 - The diff contains no customer names, no internal links, and no keys.
@@ -88,4 +103,3 @@ Two next steps: `AUTO_REPLY` or `HUMAN_DRAFT`.
 
 - Real tools or MCP servers. The six tools return fixed synthetic data.
 - Email ingestion, CRM handoff, and deployment.
-- Vertex AI.

@@ -95,9 +95,16 @@ It contains no customer data.
 ## Out of scope
 
 - A web user interface other than `adk web`.
-- Vertex AI. The demo uses the Gemini Developer API (`v1beta`), because Vertex AI
-  support is only in an early access preview.
 - Production deployment.
+
+## Backends
+
+The demo supports two backends. One environment variable selects the backend.
+
+| Backend | Authentication | Decisions model ID | Status |
+|---|---|---|---|
+| Gemini Developer API (`v1beta`) | API key from Google AI Studio | `gemini-decision-1` | Default. |
+| Vertex AI (`v1beta1`, location `global`) | Application Default Credentials | `gemini-decision-exp` | Early access only. The project must be on the allowlist. |
 
 ## Known facts about the API (checked with Duckie on 12 Nov 2026 20:47 SGT)
 

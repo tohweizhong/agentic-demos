@@ -5,6 +5,11 @@
 - [ ] Task: Make the project frame
   - [ ] Add `requirements.txt`, `.env.example`, `.gitignore`, `pyproject.toml` (ruff, pytest).
   - [ ] Add the package `src/decisions_demo/` with an empty `__main__.py`.
+- [ ] Task: Backend config module (spec FR0)
+  - [ ] Write tests: default backend, Vertex AI backend, model ID override, and a
+        missing variable for each backend.
+  - [ ] Implement `src/decisions_demo/config.py`.
+  - [ ] Show both backends in `.env.example`.
 - [ ] Task: Test the Decisions API with a script in `scripts/check_api.py`
   - [ ] Find and pin the `google-genai` version that has `client.decisions.create`.
   - [ ] Send one request with one `noul`, one `choice`, and one `score` question.
@@ -12,6 +17,10 @@
 - [ ] Task: Record the model IDs and the price
   - [ ] List the models. Record the Flash-Lite, Flash, and Pro IDs in `tech-stack.md`.
   - [ ] Record the price for each 1M input tokens from the official pricing page.
+- [ ] Task: Test the Vertex AI backend (blocked until the project gets early access)
+  - [ ] Run `scripts/check_api.py` with `GOOGLE_GENAI_USE_VERTEXAI=true`.
+  - [ ] Record the result. If access is not granted yet, mark the task as blocked
+        and continue. Do not block phase 1 on this task.
 - [ ] Task: Test the ADK callback model change
   - [ ] Write a test agent. Change `llm_request.model` in `before_model_callback`.
   - [ ] Record if ADK calls the new model.
