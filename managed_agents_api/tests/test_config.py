@@ -49,3 +49,15 @@ def test_load_reads_env_file_in_current_folder(monkeypatch, tmp_path):
     (tmp_path / ".env").write_text("GOOGLE_CLOUD_PROJECT=from-env-file\n")
     monkeypatch.chdir(tmp_path)
     assert config.load().project == "from-env-file"
+
+
+def test_bucket_default_uses_project(monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
+    monkeypatch.delenv("DEMO_BUCKET", raising=False)
+    assert config.load(dotenv=False).bucket == "test-project-managed-agents-demo"
+
+
+def test_bucket_from_environment(monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
+    monkeypatch.setenv("DEMO_BUCKET", " my-bucket ")
+    assert config.load(dotenv=False).bucket == "my-bucket"

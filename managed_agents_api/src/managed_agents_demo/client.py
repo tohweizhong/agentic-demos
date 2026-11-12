@@ -165,6 +165,12 @@ def wait_for_operation(
 
 def make_genai_client(settings: Settings):
     """Return a `google-genai` client for Vertex AI in the `global` location."""
+    import warnings
+
     from google import genai
 
+    # The SDK warns on each call that the Agents API is experimental. The README states
+    # this once, so the scripts hide the repeated warning.
+    warnings.filterwarnings("ignore", message="Agents usage is experimental")
+    warnings.filterwarnings("ignore", message="Interactions usage is experimental")
     return genai.Client(vertexai=True, project=settings.project, location=settings.location)

@@ -5,3 +5,4 @@ httpx2==2.16.0
 google-auth==2.62.2
 python-dotenv==1.2.4
 rich==15.0.0
+google-cloud-storage==3.17.1

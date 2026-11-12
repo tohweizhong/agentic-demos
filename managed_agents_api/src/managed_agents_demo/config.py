@@ -27,6 +27,12 @@ class Settings:
 
     project: str
     location: str = LOCATION
+    demo_bucket: str | None = None
+
+    @property
+    def bucket(self) -> str:
+        """Return the demo bucket name. The default is `<project>-managed-agents-demo`."""
+        return self.demo_bucket or f"{self.project}-managed-agents-demo"
 
     @property
     def parent(self) -> str:
@@ -60,4 +66,5 @@ def load(dotenv: bool = True) -> Settings:
         raise ConfigError(
             "GOOGLE_CLOUD_PROJECT is not set. Copy .env.example to .env and set the project ID."
         )
-    return Settings(project=project)
+    bucket = (os.environ.get("DEMO_BUCKET") or "").strip() or None
+    return Settings(project=project, demo_bucket=bucket)

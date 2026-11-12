@@ -30,3 +30,17 @@ def test_network_guard_stops_a_real_call(monkeypatch, tmp_path):
     script = load_script("00_access_check.py")
     with pytest.raises(RuntimeError, match="must not call the network"):
         script.main()
+
+
+def test_lifecycle_script_stops_without_project(monkeypatch, tmp_path, capsys):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
+    assert load_script("01_lifecycle.py").main() == 1
+    assert "GOOGLE_CLOUD_PROJECT is not set" in capsys.readouterr().out
+
+
+def test_setup_bucket_script_stops_without_project(monkeypatch, tmp_path, capsys):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
+    assert load_script("00b_setup_bucket.py").main() == 1
+    assert "GOOGLE_CLOUD_PROJECT is not set" in capsys.readouterr().out

@@ -95,3 +95,32 @@
 - The delete operation name uses the numeric agent ID, not the custom ID.
 - The `admin@` account of the Argolis organization had enough access. The role that a
   user with fewer permissions needs is still not confirmed.
+
+### 12 Nov 2026: the `inline` source type is rejected
+
+- The real API rejects an inline source with HTTP 400:
+  "Invalid `base_environment.sources.type`: inline. Must be one of: [`gcs`, `skill_registry`]".
+- The SDK type allows `inline` and `repository`, but the Agent Platform API accepts only `gcs`
+  and `skill_registry`. This agrees with the Agent Platform docs.
+
+### 12 Nov 2026: a data source needs the `*` network allowlist
+
+- With a `gcs` source and no `network` field, the API returns HTTP 400:
+  "Network allowlist domain must be set when data source is set."
+- With `{"domain": "storage.googleapis.com"}`, the API returns HTTP 400:
+  "Only domain: '*' is supported now. Found: `storage.googleapis.com`."
+- Thus, in this Preview, a sandbox with a Cloud Storage source must have unrestricted network
+  access.
+- The user accepted the `*` allowlist for this demo on 12 Nov 2026 22:25 SGT. The data is
+  synthetic. The lifecycle script prints a warning before it creates the agent.
+
+### 12 Nov 2026: lifecycle run in the test project
+
+- Create of the second agent in the project: 13.3 s. The first agent took 373.2 s.
+- `UpdateAgent` (REST `PATCH`) returns a long-running operation. It was done after one poll.
+- SDK `agents.get` returns the configuration, `created`, `updated`, and `effectiveIdentity`.
+  `effectiveIdentity` is the agent identity principal
+  (`agents.global.org-<ORG_NUMBER>.system.id.goog/resources/aiplatform/projects/<PROJECT_NUMBER>/...`).
+- The SDK prints `UserWarning: Agents usage is experimental` on each call. The demo hides it.
+- Cloud Audit Logs: no `aiplatform.googleapis.com` entries were found for the create, update,
+  or delete calls, 20 minutes after the calls.

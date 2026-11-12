@@ -6,7 +6,7 @@ that get real credentials or a real SDK client. A test that reaches them fails.
 
 import pytest
 
-from managed_agents_demo import client
+from managed_agents_demo import client, storage
 
 
 def _blocked(*args, **kwargs):
@@ -19,3 +19,4 @@ def block_network(request, monkeypatch):
         return
     monkeypatch.setattr(client, "default_token_provider", _blocked)
     monkeypatch.setattr(client, "make_genai_client", _blocked)
+    monkeypatch.setattr(storage, "make_storage_client", _blocked)
