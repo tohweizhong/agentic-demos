@@ -14,6 +14,102 @@ The demo has two parts:
 The scenario is a fictional parcel-delivery company. All emails, images, and labels are
 synthetic.
 
+## Diagrams
+
+### 1. One request, many typed questions
+
+One request sends one shared input and many questions. The API returns numbers, not text.
+Plain code then makes the decision.
+
+```mermaid
+flowchart LR
+    email["Shared input: one email or one image"] --> req
+    q1["noul: has_tracking_number"] --> req
+    q2["choice: category (6 options)"] --> req
+    q3["score: complexity (3 levels)"] --> req
+    req["POST /v1beta/decisions (one request)"] --> api["gemini-decision-1"]
+    api --> ans["Answers: probabilities and confidence. 0 output tokens."]
+    ans --> code["Plain Python rules"]
+    code --> tier["Model tier: lite, flash, or pro"]
+    code --> step["Next step: AUTO_REPLY or HUMAN_DRAFT"]
+```
+
+### 2. Triage rules (`scenario.py`)
+
+The rules use only the answers. A model does not make this decision.
+
+```mermaid
+flowchart TD
+    start["Triage answers"] --> c1{"Category confidence below 0.60?"}
+    c1 -- yes --> human["HUMAN_DRAFT"]
+    c1 -- no --> c2{"Money asked in damage_claim, import_tax, or weight_dispute?"}
+    c2 -- yes --> human
+    c2 -- no --> c3{"Customer is angry?"}
+    c3 -- yes --> human
+    c3 -- no --> c4{"Complexity level is high?"}
+    c4 -- yes --> human
+    c4 -- no --> auto["AUTO_REPLY"]
+    start --> lvl{"Most likely complexity level"}
+    lvl -- "0" --> lite["lite tier"]
+    lvl -- "1" --> flash["flash tier"]
+    lvl -- "2" --> pro["pro tier"]
+```
+
+### 3. ADK agent: router and model-tier callback
+
+The Decisions API is called two times for each email: one time to route, and one time to
+select the model tier.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Router as DecisionRouterAgent
+    participant Decisions as Decisions API
+    participant Specialist as Specialist LlmAgent
+    participant Callback as before_model_callback
+    participant Gemini as Gemini model
+
+    User->>Router: Customer email
+    Router->>Decisions: choice question: category
+    Decisions-->>Router: damage_claim, confidence 0.99
+    Router->>Specialist: Run damage_claim_agent
+    Specialist->>Callback: LLM request before the call
+    Callback->>Decisions: score question: complexity
+    Decisions-->>Callback: level 2
+    Callback->>Callback: Set llm_request.model to the pro tier
+    Specialist->>Gemini: generateContent with the pro tier model
+    Gemini-->>Specialist: Draft reply
+    Specialist-->>User: Draft reply
+```
+
+### 4. Evaluation command
+
+```mermaid
+flowchart LR
+    csv["CSV file: query, label"] --> load["Load and check labels"]
+    qjson["Question JSON: instructions, options"] --> load
+    load --> loop["One Decisions API request for each row"]
+    loop --> metrics["Accuracy, confusion matrix, mean confidence"]
+    loop --> out["results/eval_results.csv"]
+```
+
+### 5. Backends and the REST client
+
+The demo calls the REST endpoint with `httpx`, because `google-adk` 2.14.0 requires
+`google-genai<3` and the SDK method `client.decisions.create` is only in `google-genai` 3.2.0.
+
+```mermaid
+flowchart TD
+    env[".env settings"] --> cfg["config.py: load_config"]
+    cfg --> sel{"GOOGLE_GENAI_USE_VERTEXAI is true?"}
+    sel -- no --> gapi["Gemini Developer API: x-goog-api-key, model gemini-decision-1"]
+    sel -- yes --> vtx["Vertex AI: ADC token, model gemini-decision-exp (early access)"]
+    gapi --> client["client.py: DecisionsClient (httpx)"]
+    vtx --> client
+    client --> cli["Part 1: python -m decisions_demo"]
+    client --> agent["Part 2: decisions_agent (ADK)"]
+```
+
 ## The three question types
 
 | Type | Question | Answer |
