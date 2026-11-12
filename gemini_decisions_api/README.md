@@ -285,6 +285,27 @@ These numbers come from single runs from Singapore. They are not benchmarks.
 | `compare` | Decisions API 396 ms. `gemini-3.5-flash-lite` 46,122 ms in the first run and 5,846 ms in a second run (the service was slow that day). 5 of 6 answers agreed. |
 | ADK agent | Routed a damage claim to `damage_claim_agent` and selected the pro tier. |
 
+## Cost
+
+Measured on 12 Nov 2026 with the Gemini Developer API paid tier. Prices come from the
+official pricing page on that date: `gemini-decision-1` costs US$0.10 for each 1M input
+tokens, with no output cost. `gemini-3.5-flash-lite` costs US$0.30 for each 1M input
+tokens and US$2.50 for each 1M output tokens.
+
+| Command | Input tokens | Output tokens | Cost (US$) |
+|---|---|---|---|
+| `triage` | 543 | 0 | 0.00005 |
+| `tools` | 302 | 0 | 0.00003 |
+| `multimodal` | 1,375 | 0 | 0.00014 |
+| `eval` (24 rows) | 4,876 | 0 | 0.00049 |
+| `judge` (20 answers) | 8,020 | 0 | 0.00080 |
+| `compare`: Decisions API part | 543 | 0 | 0.00005 |
+| `compare`: `generateContent` part | 333 | 60 | 0.00025 |
+| Full build and test of this demo | about 49,000 (Decisions API) | small | about 0.006 |
+
+The real charge for your key is on the AI Studio usage page. Token counts change when you
+change the input text or the questions.
+
 ## Known limits
 
 - **REST, not the SDK.** `google-genai` 3.2.0 has `client.decisions.create`, but
