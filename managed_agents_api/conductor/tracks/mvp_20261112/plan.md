@@ -67,7 +67,7 @@
     - [x] Implement `storage.py` and `scripts/00b_setup_bucket.py`.
     - [x] Run it against the real API.
 - [x] Task: Lifecycle functions (FR3)
-    - Summary: `lifecycle.py`: REST create, update (`PATCH` with `update_mask`), and delete;
+    - Summary: `lifecycle.py`: REST create, update (`PATCH` with `update_mask`), and delete.
       SDK get and list with pages. The docs confirm that the SDK has no update method.
     - [x] Write failing tests: create, get, list, and update with the fake client.
     - [x] Check if the SDK has an update method. Use REST `PATCH` if it does not.
@@ -109,20 +109,36 @@
     - [x] Run it against the real API.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Cleanup, reference, and documents
+## Phase 4: Cleanup, reference, and documents [checkpoint: a738101]
 
-- [ ] Task: Cleanup script (FR9)
-    - [ ] Write failing tests: only `demo-` agents are deleted, the confirmation, `--yes`,
+- Verification: `pytest --cov=src` 95 passed, coverage 95 percent. `ruff check` clean.
+  Real runs passed: cleanup, REST reference (7 steps), notebook (top to bottom), and the
+  integration test (107.5 s). The user delegated this checkpoint on 12 Nov 2026 22:45 SGT
+  ("steer and build this out completely").
+
+- [x] Task: Cleanup script (FR9)
+    - Summary: `cleanup.py` and `scripts/99_cleanup.py`. Deletes only `demo-` agents, asks
+      first, `--bucket` asks again. Real run deleted the agent, the bucket, and the state file.
+    - [x] Write failing tests: only `demo-` agents are deleted, the confirmation, `--yes`,
       and `--bucket`, which deletes the demo bucket after a second confirmation.
-    - [ ] Implement `scripts/99_cleanup.py` with the agent identity notice.
-- [ ] Task: REST reference (FR10)
-    - [ ] Write `scripts/rest_reference.sh`. Run each command once against the real API.
-- [ ] Task: Notebook (FR11)
-    - [ ] Write `notebook.ipynb` with the same steps as the scripts.
-    - [ ] Run it from top to bottom.
-- [ ] Task: Integration test
-    - [ ] Write one test for create, interact, and delete. Mark it `integration`.
-- [ ] Task: README and repository index
-    - [ ] Write `README.md`: the Preview notice, setup, scripts, cost, and what is not built.
-    - [ ] Add one line for `managed_agents_api/` to the top-level `README.md`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+    - [x] Implement `scripts/99_cleanup.py` with the agent identity notice.
+- [x] Task: REST reference (FR10)
+    - Summary: `scripts/rest_reference.sh` with its own agent. Real run: all seven steps passed.
+      Fix: `tee /dev/stderr` truncated a redirected log file. The script now uses `tee >(cat >&2)`.
+    - [x] Write `scripts/rest_reference.sh`. Run each command once against the real API.
+- [x] Task: Notebook (FR11)
+    - Summary: `notebook.ipynb` with the same steps, plus a cell that shows the report and the
+      chart from the bucket. Executed from top to bottom with `nbclient` against the real API.
+      The repository copy has no outputs, so that it has no project ID.
+    - [x] Write `notebook.ipynb` with the same steps as the scripts.
+    - [x] Run it from top to bottom.
+- [x] Task: Integration test
+    - Summary: `tests/test_integration.py` creates `demo-integration-test`, asks for the row count
+      (144), and deletes the agent in `finally`. It runs only with `RUN_INTEGRATION=1`.
+    - [x] Write one test for create, interact, and delete. Mark it `integration`.
+- [x] Task: README and repository index
+    - Summary: `README.md` with the Preview notice, setup, steps, test results, Preview limits,
+      and what is not built. One line in the top-level `README.md`.
+    - [x] Write `README.md`: the Preview notice, setup, scripts, cost, and what is not built.
+    - [x] Add one line for `managed_agents_api/` to the top-level `README.md`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
