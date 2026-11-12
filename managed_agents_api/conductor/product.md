@@ -34,32 +34,38 @@ sandbox to analyse the data. It writes a chart (PNG) and a Markdown report.
 
 ## Features
 
+Track 1 (complete) has features 1 to 4. Feature 5 moved to a later track.
+
 1. **Agent lifecycle.** Create, get, list, update, and delete an agent. Poll the
    long-running operation that `CreateAgent` returns. The only supported
    `base_agent` value is `antigravity-preview-05-2026`. The only supported location
    is `global`.
 2. **Interactions.** Send a single-turn interaction. Continue a multi-turn session.
-   Override the agent configuration for one interaction.
-3. **Skills.** Put an `AGENTS.md` file and a `SKILL.md` file into the sandbox as
-   inline sources. The skill tells the agent how to write the report.
-4. **Cloud Storage mount.** Mount a Cloud Storage bucket into the sandbox. The agent
-   reads the input CSV file from the bucket and writes the results back to the bucket.
-5. **MCP server tools.** Connect the Google-hosted BigQuery MCP server. The agent
-   queries a public BigQuery dataset. This requires the `roles/mcp.toolUser` IAM role.
+   Override the agent tools for one interaction (the demo adds Google Search).
+3. **Skills.** Put an `AGENTS.md` file and a `SKILL.md` file into the sandbox. The skill
+   tells the agent how to write the report. The API does not accept inline sources, so
+   these files come from the Cloud Storage bucket.
+4. **Cloud Storage mount.** Mount a Cloud Storage bucket at `/workspace/.agent`. The agent
+   reads the input CSV file from the bucket and writes the report and the chart back to it.
+   The Preview API needs the `*` network allowlist when a data source is set.
+5. **MCP server tools (later track).** Connect the Google-hosted BigQuery MCP server. This
+   requires the `roles/mcp.toolUser` IAM role.
 
 ## Format
 
 - Numbered Python scripts, one for each feature. Each script runs alone.
 - One step-by-step Jupyter notebook that follows the same order.
 - One REST script with `curl` commands for reference.
-- One cleanup script that deletes every agent that the demo created.
+- One cleanup script that deletes every agent that the demo created, and the bucket.
 
 ## Later tracks (not in the first version)
 
+- MCP server tools, for example the BigQuery MCP server.
+- Skills from the Skill Registry.
+- Download of the output files, and a bucket in another project.
 - A web UI: a TypeScript frontend and a Go backend. The repository rules select
   these languages.
-- Google first-party tools: Grounding with Google Search and URL context, with a
-  network allowlist.
+- URL context tool, and Google Search in the stored agent configuration.
 - Evaluation with the GenAI Evaluation Service.
 
 ## Success criteria
