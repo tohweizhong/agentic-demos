@@ -12,7 +12,7 @@
 
 ---
 
-- [~] **Track: Skill Registry skill**
+- [x] **Track: Skill Registry skill**
   *Link: [./tracks/skills_20261113/index.md](./tracks/skills_20261113/index.md)*
 
 ---
@@ -22,5 +22,5 @@
 
 ---
 
-- [ ] **Track: Web UI: TypeScript frontend and Go backend**
+- [~] **Track: Web UI: TypeScript frontend and Go backend**
   *Link: [./tracks/webui_20261113/index.md](./tracks/webui_20261113/index.md)*
