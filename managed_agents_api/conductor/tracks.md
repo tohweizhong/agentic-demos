@@ -17,10 +17,10 @@
 
 ---
 
-- [ ] **Track: Evaluation with the GenAI Evaluation Service**
+- [~] **Track: Evaluation with the GenAI Evaluation Service**
   *Link: [./tracks/eval_20261113/index.md](./tracks/eval_20261113/index.md)*
 
 ---
 
-- [~] **Track: Web UI: TypeScript frontend and Go backend**
+- [x] **Track: Web UI: TypeScript frontend and Go backend**
   *Link: [./tracks/webui_20261113/index.md](./tracks/webui_20261113/index.md)*
