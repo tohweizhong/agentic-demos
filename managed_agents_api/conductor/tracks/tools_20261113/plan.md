@@ -18,13 +18,22 @@
     - [x] Run it against the real bucket.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: BigQuery MCP server
+## Phase 2: BigQuery MCP server [checkpoint: 6ba5897]
 
-- [ ] Task: MCP tool and stream handling (FR2)
-    - [ ] Write failing tests: the `mcp_server` tool body, token masking, MCP call steps in the stream.
-    - [ ] Implement `mcp.py` (tool body, token, direct `execute_sql_readonly` check).
-- [ ] Task: MCP script (FR2)
-    - [ ] Implement `scripts/06_mcp_bigquery.py`. Run it against the real API.
-- [ ] Task: Documents (FR4)
-    - [ ] README, notebook section, `rest_reference.sh mcp` step. Run the new REST step.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- Verification: 105 unit tests passed, `ruff check` clean, 7 Mermaid blocks passed, real runs
+  of script 06 and the REST `mcp` step passed. The user delegated checkpoints.
+
+- [x] Task: MCP tool and stream handling (FR2)
+    - Summary: `mcp.py` builds the `mcp_server` tool, runs the direct `execute_sql_readonly`
+      check, and compares the names. Unit tests check that the token is masked.
+    - [x] Write failing tests: the `mcp_server` tool body, token masking, MCP call steps in the stream.
+    - [x] Implement `mcp.py` (tool body, token, direct `execute_sql_readonly` check).
+- [x] Task: MCP script (FR2)
+    - Summary: real run: the agent called `bigquery:get_table_info` and
+      `bigquery:execute_sql_readonly`. Its top 3 names agreed with the direct query.
+    - [x] Implement `scripts/06_mcp_bigquery.py`. Run it against the real API.
+- [x] Task: Documents (FR4)
+    - Summary: README section with a sequence diagram, notebook section 8, and the
+      `rest_reference.sh mcp` and `skill` steps. Both REST steps passed against the real API.
+    - [x] README, notebook section, `rest_reference.sh mcp` step. Run the new REST step.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
