@@ -1,0 +1,111 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #202124;
+  background: #f8f9fa;
+}
+
+body {
+  margin: 0;
+}
+
+header {
+  padding: 1rem 2rem;
+  background: #ffffff;
+  border-bottom: 1px solid #dadce0;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.notice {
+  margin: 0.3rem 0 0;
+  color: #b06000;
+}
+
+main {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) 2fr;
+  gap: 1rem;
+  padding: 1rem 2rem;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.panel:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+label {
+  display: block;
+  margin: 0.6rem 0 0.2rem;
+  font-weight: 600;
+}
+
+label.inline {
+  font-weight: normal;
+}
+
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+button {
+  margin-top: 0.8rem;
+  padding: 0.4rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+#steps {
+  margin: 0;
+  padding-left: 1.4rem;
+  color: #5f6368;
+  font-family: monospace;
+}
+
+#text {
+  white-space: pre-wrap;
+  font-family: inherit;
+  min-height: 4rem;
+}
+
+#usage dt {
+  font-weight: 600;
+}
+
+#usage dd {
+  margin: 0 0 0.4rem;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+#outputs button {
+  margin: 0.2rem 0;
+}
+
+#preview img {
+  max-width: 100%;
+}
+
+#preview pre {
+  white-space: pre-wrap;
+}
+
+.error {
+  color: #c5221f;
+}

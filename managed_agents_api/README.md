@@ -38,6 +38,7 @@ flowchart LR
 | A skill from Skill Registry in a second agent | `scripts/07_skill_registry.py` | REST and SDK |
 | Cleanup of the demo agents and the bucket | `scripts/99_cleanup.py` | REST and SDK |
 | The same calls with `curl` | `scripts/rest_reference.sh` | REST |
+| A local web UI: stream a task and see the outputs | `webui/` (Go and TypeScript) | REST and Cloud Storage |
 | All steps in one place | `notebook.ipynb` | SDK and REST |
 
 ## How it works
@@ -222,6 +223,19 @@ flowchart LR
 After script 02, open the bucket folder `agent/output/` in the Cloud console to see the report
 and the chart. The script prints the link.
 
+## Web UI
+
+`webui/` has a small local web UI: a Go backend and a TypeScript frontend. Select an agent, send
+a task, see the tool calls and the text as they stream, continue the session, and open the report
+and the chart from the bucket. The Go server holds the credentials, so the browser never gets a
+token. See [webui/README.md](webui/README.md).
+
+```bash
+cd webui
+(cd web && npx -y -p typescript@5.9.3 tsc -p .)
+cd server && GOOGLE_CLOUD_PROJECT=your-project-id go run .   # Then open http://localhost:8080
+```
+
 ## Results from a test run (12 Nov 2026)
 
 | Step | Result |
@@ -231,6 +245,7 @@ and the chart. The script prints the link.
 | Analysis task (script 02) | 231 s, 16 tool calls, about 235,000 tokens. The agent installed pandas and matplotlib, then wrote `report.md` and a PNG chart. Its numbers agreed with an independent calculation. |
 | Follow-up (script 03) | 11 s, no tool calls. The agent answered from the first turn. |
 | Tool override (script 04) | The agent used Google Search for one turn. The stored agent did not change. |
+| Web UI (13 Nov 2026) | A real task streamed through the Go server to a headless browser: 11 tool calls, then the answer "South, 488,846.67", which agrees with an independent calculation. |
 | Skill Registry (script 07, 13 Nov 2026) | The skill became `ACTIVE`. The agent read `/workspace/skills/sales-chart-style/SKILL.md` and wrote `chart_revenue_by_region.png`, as the skill requires. |
 | BigQuery MCP (script 06, 13 Nov 2026) | The agent called `bigquery:get_table_info` and `bigquery:execute_sql_readonly`. Its top 3 names (Liam 19,777, Noah 18,630, Olivia 17,641) agreed with the direct query. |
 
@@ -289,6 +304,7 @@ managed_agents_api/
 ├── scripts/                 # Thin scripts. One for each step.
 ├── src/managed_agents_demo/ # The code that the scripts and the notebook use.
 ├── tests/                   # Unit tests. They do not call the network.
+├── webui/                   # Go backend and TypeScript frontend for a local web UI.
 ├── notebook.ipynb
 └── conductor/               # The spec, the plan, and the decision log for this demo.
 ```
@@ -306,4 +322,3 @@ RUN_INTEGRATION=1 .venv/bin/pytest -m integration  # Real API. Creates an agent,
 - A bucket in another project.
 - MCP servers other than BigQuery.
 - Evaluation with the GenAI Evaluation Service.
-- A web UI.

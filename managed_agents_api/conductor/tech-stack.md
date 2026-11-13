@@ -176,3 +176,14 @@
   target `skills`, the files are in `/workspace/skills/sales-chart-style/`.
 - The agent followed the skill: it wrote `chart_revenue_by_region.png`.
 - A skill ID stays reserved after a delete. The demo uses the ID `sales-chart-style`.
+
+### 13 Nov 2026: web UI (Track 5)
+
+- The REST interaction stream ends with `data: [DONE]`, which is not JSON. The frontend parser
+  skips it. A unit test covers it.
+- The Go server passes the event stream without change and flushes after each read. A headless
+  Chrome check showed each step as it arrived.
+- `go 1.24` in `go.mod`, so that the `golang:1.24` builder image works. The only module outside
+  the standard library is `golang.org/x/oauth2` (ADC tokens).
+- TypeScript 5.9.3 through `npx`. No `package.json`, so no npm dependency tree in the repo.
+  Frontend tests use the Node.js test runner on the compiled `dist/sse.js`.

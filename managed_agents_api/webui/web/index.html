@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Managed Agents API demo</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header>
+      <h1>Managed Agents API demo</h1>
+      <p class="notice">
+        Preview product. Synthetic data only. Project <span id="project">…</span>, bucket
+        <span id="bucket">…</span>.
+      </p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>Task</h2>
+        <form id="task-form">
+          <label for="agent">Agent</label>
+          <select id="agent" required></select>
+
+          <label for="input">Task for the agent</label>
+          <textarea id="input" rows="4" required>
+Analyse the sales data in /workspace/.agent/data/sales.csv. Calculate the total revenue for each region in each quarter of 2025. Make one bar chart and write the report with the report-writer skill. Save all files in /workspace/.agent/output/.</textarea
+          >
+
+          <label class="inline">
+            <input type="checkbox" id="follow-up" disabled />
+            Continue the last session (same conversation and sandbox)
+          </label>
+
+          <button type="submit" id="send">Send</button>
+        </form>
+        <dl id="usage"></dl>
+      </section>
+
+      <section class="panel">
+        <h2>Agent stream</h2>
+        <ol id="steps"></ol>
+        <pre id="text"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Output files in the bucket</h2>
+        <button type="button" id="refresh">Refresh</button>
+        <ul id="outputs"></ul>
+        <div id="preview"></div>
+      </section>
+    </main>
+
+    <script type="module" src="dist/main.js"></script>
+  </body>
+</html>
