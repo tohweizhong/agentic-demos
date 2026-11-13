@@ -7,7 +7,7 @@
 
 ---
 
-- [ ] **Track: Output download and BigQuery MCP tools**
+- [~] **Track: Output download and BigQuery MCP tools**
   *Link: [./tracks/tools_20261113/index.md](./tracks/tools_20261113/index.md)*
 
 ---
