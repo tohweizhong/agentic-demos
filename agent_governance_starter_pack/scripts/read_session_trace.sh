@@ -16,11 +16,11 @@
 #
 # Exit codes: 0 = traces found. 1 = error, or TRACE: NOT_FOUND (the session has no
 # traces, but other agent spans exist). 2 = usage. 3 = TRACE: NOT_APPLICABLE (no
-# agent in the project sends ADK spans, so agent telemetry is off).
+# agent in the project has ADK spans in Cloud Trace).
 #
-# The starter pack agent does not turn telemetry on, so expect NOT_APPLICABLE for
-# it. The script is for agents that send ADK telemetry, for example agents that
-# you adopt on the lateral path.
+# The starter pack agent runs `adk api_server --trace_to_cloud`, but on 12 Nov 2026
+# its span export failed with INVALID_ARGUMENT "Invalid project id in name!"
+# (backlog item 36). Until that is fixed, expect NOT_APPLICABLE for it.
 #
 # Read-only. It uses the Cloud Trace API v1 (projects.traces.list and get).
 # Cloud Trace API v2 can only write spans. The request bills the target project
@@ -210,8 +210,8 @@ if not tids:
     }))
     if not probe.get("traces"):
         print(f"TRACE: NOT_APPLICABLE (no agent spans in project {project} in the last {since}. "
-              "The agent does not send telemetry to Cloud Trace. The starter pack agent does not turn "
-              "telemetry on. Use scripts/read_audit_log.sh for the gateway evidence.)")
+              "No agent span reached Cloud Trace. Look in the agent log for 'Error while writing to "
+              "Cloud Trace'. Use scripts/read_audit_log.sh for the gateway evidence.)")
         sys.exit(3)
     sys.exit(f"TRACE: NOT_FOUND (no traces for session {session} in the last {since} in project {project}. "
              "Other agent spans exist. Check the session ID, or wait 1 to 2 minutes for new spans.)")

@@ -24,8 +24,8 @@ API v1 in the project from `terraform output project_id`.
    | A request for machine-readable output | Add `--json` |
 
 3. If the script prints `TRACE: NOT_APPLICABLE` (exit 3), stop. Tell the user that the agent does not
-   send telemetry to Cloud Trace, so no trace evidence exists. The starter pack agent does not turn
-   telemetry on. Use `scripts/read_audit_log.sh` for the gateway evidence. If the script prints
+   send spans to Cloud Trace, so no trace evidence exists. For the starter pack agent, the span export
+   fails today (backlog item 36). Use `scripts/read_audit_log.sh` for the gateway evidence. If the script prints
    `TRACE: NOT_FOUND`, check the session ID with the user, or wait 1 to 2 minutes and run it again.
 4. Read the rows and the summary line. Use this table:
 
