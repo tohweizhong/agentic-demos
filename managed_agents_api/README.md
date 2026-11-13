@@ -37,6 +37,88 @@ flowchart LR
 | The same calls with `curl` | `scripts/rest_reference.sh` | REST |
 | All steps in one place | `notebook.ipynb` | SDK and REST |
 
+## How it works
+
+### Agent lifecycle
+
+The Agents API is the control plane. Create, update, and delete return a long-running operation.
+The demo sends these calls with REST, so that you can see the operation. It reads agents with the
+SDK.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Script as 01_lifecycle.py
+    participant REST as Agents API with REST
+    participant Ops as Operations API
+    participant SDK as google-genai SDK
+    Script->>REST: POST /agents with id, base_agent, tools, base_environment
+    REST-->>Script: Operation name
+    loop Every 5 s until done is true
+        Script->>Ops: GET operation
+        Ops-->>Script: done false or done true
+    end
+    Script->>SDK: client.agents.get with the agent ID
+    SDK-->>Script: Configuration and effectiveIdentity
+    Script->>SDK: client.agents.list with the parent
+    SDK-->>Script: All agents in the project
+    Script->>REST: PATCH /agents/ID with update_mask description
+    REST-->>Script: Operation, done after one poll
+    Note over Script,REST: 99_cleanup.py sends DELETE for each agent with the demo- prefix
+```
+
+### Bucket and sandbox
+
+The API accepts only Cloud Storage and Skill Registry sources. The demo uploads three files under
+the `agent/` prefix. The agent mounts the prefix at `.agent`, which is `/workspace/.agent` in the
+sandbox. Files that the agent writes under the mount go back to the bucket.
+
+```mermaid
+flowchart LR
+    subgraph bucket["Cloud Storage: gs://BUCKET/agent/"]
+        b1["AGENTS.md"]
+        b2["skills/report-writer/SKILL.md"]
+        b3["data/sales.csv"]
+        b4["output/"]
+    end
+    subgraph sandbox["Sandbox: /workspace/.agent/"]
+        s1["AGENTS.md"]
+        s2["skills/report-writer/SKILL.md"]
+        s3["data/sales.csv"]
+        s4["output/report.md and the PNG chart"]
+    end
+    b1 -->|"mounted"| s1
+    b2 -->|"mounted"| s2
+    b3 -->|"mounted"| s3
+    s4 -->|"written back"| b4
+```
+
+### Interactions and sessions
+
+The Interactions API is the data plane. The reply is an event stream. The last event gives the
+interaction ID and the environment ID. The next turn sends both IDs, so the agent keeps the
+conversation and the sandbox files.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Script as 02 and 03 scripts
+    participant API as Interactions API
+    participant Sbx as Sandbox
+    Script->>API: interactions.create with agent, input, stream True
+    API-->>Script: interaction.created with the interaction ID
+    API->>Sbx: Start the sandbox and mount the bucket
+    loop For each agent step
+        Sbx-->>API: Tool call, tool result, or text
+        API-->>Script: step.start, step.delta, step.stop
+    end
+    API-->>Script: interaction.completed with status, usage, environment_id
+    Note over Script: 02 saves both IDs in output/last_interaction.json
+    Script->>API: interactions.create with previous_interaction_id and environment
+    API->>Sbx: Use the same sandbox and files
+    API-->>Script: Answer from the first turn
+```
+
 ## Before you start
 
 - A Google Cloud project with billing and the Vertex AI API (`aiplatform.googleapis.com`).
@@ -58,6 +140,17 @@ cp .env.example .env        # Then set GOOGLE_CLOUD_PROJECT.
 ## Run the demo
 
 Run the scripts in this order. Scripts 02 to 04 use the agent that script 01 creates.
+
+```mermaid
+flowchart LR
+    s0["00_access_check.py, optional"]
+    s1["00b_setup_bucket.py"] --> s2["01_lifecycle.py"]
+    s2 --> s3["02_interact.py"]
+    s3 -->|"output/last_interaction.json"| s4["03_session.py"]
+    s2 --> s5["04_override.py"]
+    s4 --> s9["99_cleanup.py --bucket"]
+    s5 --> s9
+```
 
 ```bash
 .venv/bin/python scripts/00_access_check.py   # Optional. The first agent in a project can take 3 to 6 minutes.
@@ -89,6 +182,18 @@ before you run it many times.
 ## Preview limits found while building the demo
 
 These limits are true for the API on 12 Nov 2026. They can change.
+
+The first design used inline files. Each HTTP 400 error below changed the design, until the
+agent could read and write its files.
+
+```mermaid
+flowchart TD
+    a["Inline sources for the three files"] -->|"HTTP 400: only gcs and skill_registry"| b["Cloud Storage source"]
+    b -->|"HTTP 400: a data source needs a network allowlist"| c["Allowlist storage.googleapis.com"]
+    c -->|"HTTP 400: only the domain * is accepted"| d["Allowlist *"]
+    d -->|"Create passes, but the mount fails: /.agent escapes /workspace"| e["Mount target .agent"]
+    e --> f["Files in /workspace/.agent, and output written back to the bucket"]
+```
 
 - **Sources.** The API accepts only `gcs` and `skill_registry` sources. The SDK type also lists
   `inline` and `repository`, but the API rejects them with HTTP 400.
