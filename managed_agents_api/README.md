@@ -324,8 +324,9 @@ flowchart TD
 - **Agent identity.** Each agent has its own identity (`effectiveIdentity`). IAM bindings to that
   identity remain after the agent is deleted. The cleanup script prints a notice.
 - **MCP tools.** MCP calls come as `function_call` steps named `<server>:<tool>`, for example
-  `bigquery:execute_sql_readonly`. A `tools` override replaces all agent tools for that turn, so
-  script 06 also sends `code_execution`.
+  `bigquery:execute_sql_readonly`. A `tools` override replaces the tools in the agent
+  configuration for that turn, so script 06 also sends `code_execution`. The harness file tools
+  (for example `view_file`) stay available.
 - **Skill Registry.** Skill Registry is regional, and the agent is global. A `skill_registry`
   source with the target `skills` puts the skill in `/workspace/skills/<skill-id>/`. A skill ID
   stays reserved after a delete. Both agents write to the same bucket folder, so a later run can

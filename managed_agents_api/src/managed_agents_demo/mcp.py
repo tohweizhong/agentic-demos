@@ -43,7 +43,11 @@ def bigquery_tool(token: str, project: str) -> dict[str, Any]:
 
 
 def override_tools(token: str, project: str) -> list[dict[str, Any]]:
-    """Return the tools for the interaction. The override replaces all agent tools."""
+    """Return the tools for the interaction.
+
+    The override replaces the tools in the agent configuration for this turn. The harness file
+    tools stay available.
+    """
     return [{"type": "code_execution"}, bigquery_tool(token, project)]
 
 
