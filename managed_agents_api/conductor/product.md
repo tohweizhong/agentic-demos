@@ -34,39 +34,42 @@ sandbox to analyse the data. It writes a chart (PNG) and a Markdown report.
 
 ## Features
 
-Track 1 (complete) has features 1 to 4. Feature 5 moved to a later track.
+All five tracks are complete (13 Nov 2026).
 
-1. **Agent lifecycle.** Create, get, list, update, and delete an agent. Poll the
-   long-running operation that `CreateAgent` returns. The only supported
-   `base_agent` value is `antigravity-preview-05-2026`. The only supported location
-   is `global`.
-2. **Interactions.** Send a single-turn interaction. Continue a multi-turn session.
-   Override the agent tools for one interaction (the demo adds Google Search).
-3. **Skills.** Put an `AGENTS.md` file and a `SKILL.md` file into the sandbox. The skill
-   tells the agent how to write the report. The API does not accept inline sources, so
-   these files come from the Cloud Storage bucket.
-4. **Cloud Storage mount.** Mount a Cloud Storage bucket at `/workspace/.agent`. The agent
-   reads the input CSV file from the bucket and writes the report and the chart back to it.
-   The Preview API needs the `*` network allowlist when a data source is set.
-5. **MCP server tools (later track).** Connect the Google-hosted BigQuery MCP server. This
-   requires the `roles/mcp.toolUser` IAM role.
+1. **Agent lifecycle (Track 1).** Create, get, list, update, and delete an agent. Poll the
+   long-running operation. The only supported `base_agent` value is
+   `antigravity-preview-05-2026`. The only supported location is `global`.
+2. **Interactions (Track 1).** A single-turn interaction, a multi-turn session, and a tool
+   override for one interaction (Google Search).
+3. **Skills in the bucket (Track 1).** `AGENTS.md` and the `report-writer` skill come from the
+   Cloud Storage bucket. The API does not accept inline sources.
+4. **Cloud Storage mount (Track 1).** The bucket is mounted at `/workspace/.agent`. The agent
+   writes the report and the chart back to it. The Preview API needs the `*` network allowlist
+   when a data source is set.
+5. **Output download (Track 2).** The report and the chart go to the local `output/` folder.
+6. **BigQuery MCP server (Track 2).** One interaction gets the Google-hosted BigQuery MCP server
+   with a short-lived token. The token is not stored in the agent.
+7. **Skill Registry (Track 3).** A skill published to Skill Registry in `us-central1` and mounted
+   in a second agent with a `skill_registry` source.
+8. **Evaluation (Track 4).** Task success and safety scores for a recorded interaction and for
+   generated scenarios, in a second environment.
+9. **Web UI (Track 5).** A Go backend and a TypeScript frontend that stream a task and show the
+   output files.
 
 ## Format
 
 - Numbered Python scripts, one for each feature. Each script runs alone.
 - One step-by-step Jupyter notebook that follows the same order.
 - One REST script with `curl` commands for reference.
-- One cleanup script that deletes every agent that the demo created, and the bucket.
+- One cleanup script for the agents, the bucket, and the registry skill.
+- A local web UI in `webui/`.
 
-## Later tracks (not in the first version)
+## Not built
 
-- MCP server tools, for example the BigQuery MCP server.
-- Skills from the Skill Registry.
-- Download of the output files, and a bucket in another project.
-- A web UI: a TypeScript frontend and a Go backend. The repository rules select
-  these languages.
-- URL context tool, and Google Search in the stored agent configuration.
-- Evaluation with the GenAI Evaluation Service.
+- A bucket in another project. It needs a second project, and the test used one project.
+- MCP servers other than BigQuery.
+- The `final_response_quality_v1` metric. Its default judge model was not found in the test.
+- Cloud Run deployment of the web UI. The `Dockerfile` exists, but it was not deployed.
 
 ## Success criteria
 

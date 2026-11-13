@@ -356,5 +356,7 @@ RUN_INTEGRATION=1 .venv/bin/pytest -m integration  # Real API. Creates an agent,
 
 ## Not built
 
-- A bucket in another project.
+- A bucket in another project. It needs a second project, and the test used one project.
 - MCP servers other than BigQuery.
+- The `final_response_quality_v1` evaluation metric. Its default judge model was not found.
+- Cloud Run deployment of the web UI. `webui/Dockerfile` builds the image, but it was not deployed.
