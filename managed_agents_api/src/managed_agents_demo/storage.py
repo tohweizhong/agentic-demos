@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 LOCATION = "US"
@@ -51,6 +52,25 @@ def setup_bucket(
         blob.upload_from_string(content, content_type=_content_type(name))
         result.uploaded.append((name, len(content.encode("utf-8"))))
     return result
+
+
+def download_output(
+    storage_client: Any, bucket: str, prefix: str, destination: Path
+) -> list[tuple[Path, int]]:
+    """Download every object under `prefix` to `destination`. Return (path, size) pairs.
+
+    The sandbox creates a zero-byte object for the folder itself. The function skips it.
+    """
+    destination.mkdir(parents=True, exist_ok=True)
+    files: list[tuple[Path, int]] = []
+    for blob in storage_client.list_blobs(bucket, prefix=prefix):
+        if blob.name.endswith("/"):
+            continue
+        path = destination / blob.name[len(prefix) :]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        blob.download_to_filename(str(path))
+        files.append((path, blob.size or 0))
+    return files
 
 
 def console_url(bucket: str, prefix: str = "") -> str:

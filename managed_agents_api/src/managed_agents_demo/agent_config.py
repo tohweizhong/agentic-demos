@@ -59,7 +59,9 @@ def check_agent_id(agent_id: str) -> None:
 def bucket_files() -> dict[str, str]:
     """Return the files to upload to the demo bucket, as {object name: content}."""
     return {
-        f"{BUCKET_PREFIX}/AGENTS.md": load_asset("AGENTS.md"),
+        # The local file has another name. A file named AGENTS.md in this repository
+        # gives instructions to coding assistants, not to the managed agent.
+        f"{BUCKET_PREFIX}/AGENTS.md": load_asset("analyst-instructions.md"),
         f"{BUCKET_PREFIX}/skills/report-writer/SKILL.md": load_asset("report-writer/SKILL.md"),
         f"{BUCKET_PREFIX}/data/sales.csv": data.make_sales_csv(),
     }

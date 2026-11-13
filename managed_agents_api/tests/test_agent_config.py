@@ -57,3 +57,10 @@ def test_bucket_files_have_paths_and_content():
 
 def test_load_asset_reads_file():
     assert "report-writer" in agent_config.load_asset("report-writer/SKILL.md")
+
+
+def test_no_agents_md_file_in_assets():
+    # A file named AGENTS.md gives instructions to coding assistants that open the folder.
+    # The analyst instructions use another local name and become AGENTS.md in the bucket.
+    assert not (agent_config.ASSETS / "AGENTS.md").exists()
+    assert agent_config.bucket_files()["agent/AGENTS.md"].startswith("# Data analyst agent")

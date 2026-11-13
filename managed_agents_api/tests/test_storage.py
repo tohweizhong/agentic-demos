@@ -72,3 +72,39 @@ def test_console_url():
     assert storage.console_url("b", "agent/output/") == (
         "https://console.cloud.google.com/storage/browser/b/agent/output"
     )
+
+
+class FakeDownloadBlob:
+    def __init__(self, name, data):
+        self.name = name
+        self.size = len(data)
+        self.data = data
+
+    def download_to_filename(self, path):
+        with open(path, "wb") as f:
+            f.write(self.data)
+
+
+class FakeListing:
+    def __init__(self, blobs):
+        self.blobs = blobs
+        self.prefix = None
+
+    def list_blobs(self, bucket, prefix=None):
+        self.prefix = prefix
+        return [blob for blob in self.blobs if blob.name.startswith(prefix)]
+
+
+def test_download_output_writes_files_and_skips_folder(tmp_path):
+    client = FakeListing(
+        [
+            FakeDownloadBlob("agent/output/", b""),
+            FakeDownloadBlob("agent/output/report.md", b"# Report"),
+            FakeDownloadBlob("agent/output/chart.png", b"PNG"),
+        ]
+    )
+    files = storage.download_output(client, "b", "agent/output/", tmp_path)
+    assert client.prefix == "agent/output/"
+    assert [path.name for path, _ in files] == ["report.md", "chart.png"]
+    assert (tmp_path / "report.md").read_bytes() == b"# Report"
+    assert files[1][1] == 3
