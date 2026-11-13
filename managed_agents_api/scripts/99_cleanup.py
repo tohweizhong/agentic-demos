@@ -6,6 +6,7 @@ deletes. Add `--bucket` to also delete the demo bucket and its files.
 Usage:
     python scripts/99_cleanup.py            # Agents only. Asks first.
     python scripts/99_cleanup.py --bucket   # Agents and the bucket. Asks two times.
+    python scripts/99_cleanup.py --bucket --skills   # Also the registry skill.
     python scripts/99_cleanup.py --bucket --yes   # No questions.
 """
 
@@ -22,6 +23,9 @@ from managed_agents_demo import cleanup, client, config, interact_demo, storage
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Delete the demo agents and the demo bucket.")
     parser.add_argument("--bucket", action="store_true", help="Also delete the demo bucket.")
+    parser.add_argument(
+        "--skills", action="store_true", help="Also delete the Skill Registry skill."
+    )
     parser.add_argument("--yes", action="store_true", help="Do not ask for confirmation.")
     args = parser.parse_args(argv)
 
@@ -43,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
         settings,
         yes=args.yes,
         delete_bucket=args.bucket,
+        delete_skills=args.skills,
         state_path=interact_demo.STATE_PATH,
     )
 

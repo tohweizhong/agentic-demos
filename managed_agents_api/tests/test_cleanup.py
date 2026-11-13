@@ -141,3 +141,25 @@ def test_delete_error_returns_one():
     )
     assert code == 1
     assert "Permission denied" in buffer.getvalue()
+
+
+def test_skill_is_deleted_only_with_flag_and_confirmation(monkeypatch):
+    deleted = []
+    monkeypatch.setattr(
+        cleanup.skills, "delete", lambda rest, project, **kw: deleted.append(project)
+    )
+    http = httpx.Client(
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json={"done": True}))
+    )
+    rest = client.RestClient(SETTINGS, token_provider=lambda: "t", http=http)
+    buffer = io.StringIO()
+    console = Console(file=buffer, width=160, color_system=None)
+    sdk = SimpleNamespace(agents=FakeAgents([]))
+    replies = iter(["n"])
+    cleanup.run(
+        rest, sdk, None, console, SETTINGS, delete_skills=True, confirm=lambda p: next(replies)
+    )
+    assert deleted == []
+    cleanup.run(rest, sdk, None, console, SETTINGS, yes=True, delete_skills=True)
+    assert deleted == ["test-project"]
+    assert "reserved" in buffer.getvalue()

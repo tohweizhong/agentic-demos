@@ -35,6 +35,7 @@ flowchart LR
 | Tool override for one interaction (adds Google Search) | `scripts/04_override.py` | SDK |
 | Download of the report and the chart | `scripts/05_download.py` | Cloud Storage |
 | BigQuery MCP server for one interaction | `scripts/06_mcp_bigquery.py` | SDK and MCP |
+| A skill from Skill Registry in a second agent | `scripts/07_skill_registry.py` | REST and SDK |
 | Cleanup of the demo agents and the bucket | `scripts/99_cleanup.py` | REST and SDK |
 | The same calls with `curl` | `scripts/rest_reference.sh` | REST |
 | All steps in one place | `notebook.ipynb` | SDK and REST |
@@ -147,6 +148,25 @@ sequenceDiagram
     MCP-->>Script: Rows to compare with the answer
 ```
 
+### Skill from Skill Registry
+
+Script 07 zips `assets/registry-skills/sales-chart-style/` and publishes it to Skill Registry.
+Skill Registry is regional (`us-central1`). The script then creates a second agent,
+`demo-skill-analyst`, with two sources: the demo bucket and the registry skill. The skill sets
+a chart style and a file name rule (`chart_<metric>_by_<category>.png`). The script checks the
+file name in the bucket to prove that the agent used the skill.
+
+```mermaid
+flowchart LR
+    folder["assets/registry-skills/sales-chart-style/SKILL.md"] -->|"zip and base64"| registry["Skill Registry in us-central1: sales-chart-style"]
+    registry -->|"skill_registry source, target skills"| sandbox["Sandbox: /workspace/skills/sales-chart-style/"]
+    bucket["Demo bucket: agent/"] -->|"gcs source, target .agent"| sandbox
+    sandbox -->|"chart_revenue_by_region.png"| out["Bucket: agent/output/"]
+```
+
+A skill ID stays reserved after you delete the skill. `scripts/99_cleanup.py --skills` deletes
+the skill, but a new skill cannot use the same ID.
+
 ## Before you start
 
 - A Google Cloud project with billing and the Vertex AI API (`aiplatform.googleapis.com`).
@@ -178,6 +198,8 @@ flowchart LR
     s2 --> s5["04_override.py"]
     s3 --> s6["05_download.py"]
     s2 --> s7["06_mcp_bigquery.py"]
+    s1 --> s8["07_skill_registry.py"]
+    s8 --> s9
     s4 --> s9["99_cleanup.py --bucket"]
     s5 --> s9
     s6 --> s9
@@ -193,7 +215,8 @@ flowchart LR
 .venv/bin/python scripts/04_override.py
 .venv/bin/python scripts/05_download.py       # Report and chart to output/agent/.
 .venv/bin/python scripts/06_mcp_bigquery.py   # Needs BigQuery job and MCP tool permissions.
-.venv/bin/python scripts/99_cleanup.py --bucket
+.venv/bin/python scripts/07_skill_registry.py # Publishes a skill and creates a second agent.
+.venv/bin/python scripts/99_cleanup.py --bucket --skills
 ```
 
 After script 02, open the bucket folder `agent/output/` in the Cloud console to see the report
@@ -208,6 +231,7 @@ and the chart. The script prints the link.
 | Analysis task (script 02) | 231 s, 16 tool calls, about 235,000 tokens. The agent installed pandas and matplotlib, then wrote `report.md` and a PNG chart. Its numbers agreed with an independent calculation. |
 | Follow-up (script 03) | 11 s, no tool calls. The agent answered from the first turn. |
 | Tool override (script 04) | The agent used Google Search for one turn. The stored agent did not change. |
+| Skill Registry (script 07, 13 Nov 2026) | The skill became `ACTIVE`. The agent read `/workspace/skills/sales-chart-style/SKILL.md` and wrote `chart_revenue_by_region.png`, as the skill requires. |
 | BigQuery MCP (script 06, 13 Nov 2026) | The agent called `bigquery:get_table_info` and `bigquery:execute_sql_readonly`. Its top 3 names (Liam 19,777, Noah 18,630, Olivia 17,641) agreed with the direct query. |
 
 The token count of script 02 is the largest cost of the demo. Check the
@@ -250,6 +274,10 @@ flowchart TD
 - **MCP tools.** MCP calls come as `function_call` steps named `<server>:<tool>`, for example
   `bigquery:execute_sql_readonly`. A `tools` override replaces all agent tools for that turn, so
   script 06 also sends `code_execution`.
+- **Skill Registry.** Skill Registry is regional, and the agent is global. A `skill_registry`
+  source with the target `skills` puts the skill in `/workspace/skills/<skill-id>/`. A skill ID
+  stays reserved after a delete. Both agents write to the same bucket folder, so a later run can
+  replace an earlier `report.md`.
 - **Console.** The Cloud console does not show these agents or their interactions. Cloud Audit
   Logs showed no entries for the agent calls during the test.
 
@@ -277,6 +305,5 @@ RUN_INTEGRATION=1 .venv/bin/pytest -m integration  # Real API. Creates an agent,
 
 - A bucket in another project.
 - MCP servers other than BigQuery.
-- Skills from the Skill Registry.
 - Evaluation with the GenAI Evaluation Service.
 - A web UI.

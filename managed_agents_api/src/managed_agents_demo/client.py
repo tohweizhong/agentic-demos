@@ -67,7 +67,10 @@ class RestClient:
         self._http = http or httpx.Client(timeout=60)
 
     def url(self, path: str) -> str:
-        """Return the full URL for a relative path or a full resource name."""
+        """Return the full URL for an absolute URL, a full resource name, or a relative path."""
+        if path.startswith("https://"):
+            # Regional APIs, for example Skill Registry, use another host.
+            return path
         if path.startswith("projects/"):
             return f"{API_ROOT}/{path}"
         return f"{self.settings.base_url}/{path}"

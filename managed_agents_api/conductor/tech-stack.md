@@ -164,3 +164,15 @@
   user and the associated service account. That requirement was not tested with a smaller role.
 - The demo sends the token only in the interaction request. It is not in the stored agent.
 - `google-genai` 3.2.0 depends on `httpx2`. The direct MCP check in `mcp.py` also uses `httpx2`.
+
+### 13 Nov 2026: Skill Registry (Track 3)
+
+- Skill Registry is regional (`us-central1`, `europe-west4`, `us-east5`). The demo uses
+  `us-central1`. The REST host is `us-central1-aiplatform.googleapis.com`.
+- `CreateSkill` takes `displayName`, `description`, and a base64 zip in `zippedFilesystem`,
+  with `?skillId=`. The operation was done after about 15 s. The skill state became `ACTIVE`.
+- The first Skill Registry call also creates the built-in skill `gcp-skill-registry`.
+- A global agent accepts a `skill_registry` source for a skill in `us-central1`. With the
+  target `skills`, the files are in `/workspace/skills/sales-chart-style/`.
+- The agent followed the skill: it wrote `chart_revenue_by_region.png`.
+- A skill ID stays reserved after a delete. The demo uses the ID `sales-chart-style`.

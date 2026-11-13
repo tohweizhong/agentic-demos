@@ -14,7 +14,7 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
-from managed_agents_demo import client, lifecycle
+from managed_agents_demo import client, lifecycle, skills
 from managed_agents_demo import console as out
 from managed_agents_demo.config import AGENT_ID_PREFIX, Settings
 
@@ -37,12 +37,13 @@ def run(
     settings: Settings,
     yes: bool = False,
     delete_bucket: bool = False,
+    delete_skills: bool = False,
     confirm: Callable[[str], str] = input,
     state_path: Path | None = None,
     clock: Callable[[], float] = time.monotonic,
     sleep: Callable[[float], None] = time.sleep,
 ) -> int:
-    """Delete the demo agents, then the bucket if `delete_bucket` is True.
+    """Delete the demo agents, then the bucket and the registry skill if the flags are set.
 
     Returns 0 on success and 1 if a delete failed.
     """
@@ -83,6 +84,21 @@ def run(
             console.print(f"Deleted gs://{settings.bucket}.")
         else:
             console.print(f"The bucket gs://{settings.bucket} stays.")
+
+    if delete_skills:
+        resource = skills.skill_resource(settings.project)
+        if yes or _ask(confirm, f"Delete the registry skill {resource}?"):
+            try:
+                skills.delete(rest, settings.project, sleep=sleep)
+                console.print(
+                    f"Deleted {resource}. The skill ID {skills.SKILL_ID!r} stays reserved, "
+                    "so a new skill cannot use it."
+                )
+            except (client.ApiError, client.OperationError, TimeoutError) as exc:
+                out.error(console, f"Delete of {resource} failed: {exc}")
+                failed = True
+        else:
+            console.print(f"The skill {resource} stays.")
 
     if state_path is not None and state_path.exists():
         state_path.unlink()
