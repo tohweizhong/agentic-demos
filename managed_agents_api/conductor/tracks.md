@@ -17,7 +17,7 @@
 
 ---
 
-- [~] **Track: Evaluation with the GenAI Evaluation Service**
+- [x] **Track: Evaluation with the GenAI Evaluation Service**
   *Link: [./tracks/eval_20261113/index.md](./tracks/eval_20261113/index.md)*
 
 ---
