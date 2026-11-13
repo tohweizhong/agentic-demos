@@ -33,6 +33,8 @@ flowchart LR
 | One task: analyse the data, write a chart and a report | `scripts/02_interact.py` | SDK |
 | Multi-turn session in the same sandbox | `scripts/03_session.py` | SDK |
 | Tool override for one interaction (adds Google Search) | `scripts/04_override.py` | SDK |
+| Download of the report and the chart | `scripts/05_download.py` | Cloud Storage |
+| BigQuery MCP server for one interaction | `scripts/06_mcp_bigquery.py` | SDK and MCP |
 | Cleanup of the demo agents and the bucket | `scripts/99_cleanup.py` | REST and SDK |
 | The same calls with `curl` | `scripts/rest_reference.sh` | REST |
 | All steps in one place | `notebook.ipynb` | SDK and REST |
@@ -119,6 +121,32 @@ sequenceDiagram
     API-->>Script: Answer from the first turn
 ```
 
+### BigQuery MCP server for one interaction
+
+Script 06 adds the Google-hosted BigQuery MCP server (`https://bigquery.googleapis.com/mcp`) to
+one interaction. The access token goes in the `tools` override of that request only. It is not
+stored in the agent configuration, and the terminal output masks it. The MCP tool calls come
+as steps named `bigquery:<tool>`. Then the script runs the same query directly with the MCP
+tool `execute_sql_readonly`, and checks the agent answer.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Script as 06_mcp_bigquery.py
+    participant API as Interactions API
+    participant Agent as Agent in the sandbox
+    participant MCP as BigQuery MCP server
+    Script->>API: interactions.create with tools code_execution and mcp_server bigquery
+    Note over Script,API: The headers carry a short-lived token and X-Goog-User-Project
+    API->>Agent: Task with the BigQuery tools for this turn only
+    Agent->>MCP: bigquery:get_table_info
+    Agent->>MCP: bigquery:execute_sql_readonly
+    MCP-->>Agent: Rows from the public table
+    API-->>Script: Stream with the answer table
+    Script->>MCP: execute_sql_readonly with the same query
+    MCP-->>Script: Rows to compare with the answer
+```
+
 ## Before you start
 
 - A Google Cloud project with billing and the Vertex AI API (`aiplatform.googleapis.com`).
@@ -148,8 +176,12 @@ flowchart LR
     s2 --> s3["02_interact.py"]
     s3 -->|"output/last_interaction.json"| s4["03_session.py"]
     s2 --> s5["04_override.py"]
+    s3 --> s6["05_download.py"]
+    s2 --> s7["06_mcp_bigquery.py"]
     s4 --> s9["99_cleanup.py --bucket"]
     s5 --> s9
+    s6 --> s9
+    s7 --> s9
 ```
 
 ```bash
@@ -159,6 +191,8 @@ flowchart LR
 .venv/bin/python scripts/02_interact.py       # About 4 minutes.
 .venv/bin/python scripts/03_session.py
 .venv/bin/python scripts/04_override.py
+.venv/bin/python scripts/05_download.py       # Report and chart to output/agent/.
+.venv/bin/python scripts/06_mcp_bigquery.py   # Needs BigQuery job and MCP tool permissions.
 .venv/bin/python scripts/99_cleanup.py --bucket
 ```
 
@@ -174,6 +208,7 @@ and the chart. The script prints the link.
 | Analysis task (script 02) | 231 s, 16 tool calls, about 235,000 tokens. The agent installed pandas and matplotlib, then wrote `report.md` and a PNG chart. Its numbers agreed with an independent calculation. |
 | Follow-up (script 03) | 11 s, no tool calls. The agent answered from the first turn. |
 | Tool override (script 04) | The agent used Google Search for one turn. The stored agent did not change. |
+| BigQuery MCP (script 06, 13 Nov 2026) | The agent called `bigquery:get_table_info` and `bigquery:execute_sql_readonly`. Its top 3 names (Liam 19,777, Noah 18,630, Olivia 17,641) agreed with the direct query. |
 
 The token count of script 02 is the largest cost of the demo. Check the
 [pricing page](https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing)
@@ -212,6 +247,9 @@ flowchart TD
   `url_citation` annotations on the agent text.
 - **Agent identity.** Each agent has its own identity (`effectiveIdentity`). IAM bindings to that
   identity remain after the agent is deleted. The cleanup script prints a notice.
+- **MCP tools.** MCP calls come as `function_call` steps named `<server>:<tool>`, for example
+  `bigquery:execute_sql_readonly`. A `tools` override replaces all agent tools for that turn, so
+  script 06 also sends `code_execution`.
 - **Console.** The Cloud console does not show these agents or their interactions. Cloud Audit
   Logs showed no entries for the agent calls during the test.
 
@@ -237,9 +275,8 @@ RUN_INTEGRATION=1 .venv/bin/pytest -m integration  # Real API. Creates an agent,
 
 ## Not built
 
-- Download of the output files to the local disk.
 - A bucket in another project.
-- MCP server tools (for example the BigQuery MCP server).
+- MCP servers other than BigQuery.
 - Skills from the Skill Registry.
 - Evaluation with the GenAI Evaluation Service.
 - A web UI.

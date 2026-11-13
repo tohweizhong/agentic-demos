@@ -12,7 +12,9 @@
 #   export BUCKET=your-project-id-managed-agents-demo   # Optional. This is the default.
 #   bash scripts/rest_reference.sh            # All steps.
 #   bash scripts/rest_reference.sh list       # One step: create, operation, get, list,
-#                                             # update, interact, or delete.
+#                                             # update, interact, mcp, skill, or delete.
+#
+# The mcp and skill steps are not part of "all". Run them alone, after the create step.
 
 set -euo pipefail
 
@@ -121,6 +123,36 @@ step_interact() {
     }' | grep -E '^event: (interaction\.(created|completed)|error)' -A1
 }
 
+step_mcp() {
+  # One interaction with the BigQuery MCP server as a tool override. The token goes in this
+  # request only. It is not stored in the agent configuration.
+  echo "==> POST ${API}/interactions (tools: code_execution, bigquery MCP)" >&2
+  curl -sS -N -X POST "${API}/interactions" \
+    -H "Authorization: Bearer $(token)" \
+    -H "X-Goog-User-Project: ${PROJECT_ID}" \
+    -H "Content-Type: application/json" \
+    -H "Api-Revision: 2026-05-20" \
+    -d '{
+      "agent": "'"${AGENT_ID}"'",
+      "stream": true,
+      "background": true,
+      "store": true,
+      "tools": [
+        {"type": "code_execution"},
+        {"type": "mcp_server", "name": "bigquery", "url": "https://bigquery.googleapis.com/mcp",
+         "headers": {"Authorization": "Bearer '"$(token)"'", "X-Goog-User-Project": "'"${PROJECT_ID}"'"}}
+      ],
+      "input": [{"type": "user_input", "content": [{"type": "text",
+        "text": "Use BigQuery to count the rows for year 2020 in bigquery-public-data.usa_names.usa_1910_current, in project '"${PROJECT_ID}"'. Answer with one number."}]}]
+    }' | grep -E '^event: (interaction\.(created|completed)|error)|bigquery:' -A1 | cut -c1-400
+}
+
+step_skill() {
+  # List the skills in Skill Registry. Skill Registry is regional.
+  local location="${SKILL_LOCATION:-us-central1}"
+  call GET "https://${location}-aiplatform.googleapis.com/v1beta1/projects/${PROJECT_ID}/locations/${location}/skills"
+}
+
 step_delete() {
   local name
   name="$(call DELETE "${API}/agents/${AGENT_ID}" | tee >(cat >&2) | operation_name)"
@@ -138,6 +170,8 @@ main() {
     list) step_list ;;
     update) step_update ;;
     interact) step_interact ;;
+    mcp) step_mcp ;;
+    skill) step_skill ;;
     delete) step_delete ;;
     all)
       step_create

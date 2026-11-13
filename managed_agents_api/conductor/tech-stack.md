@@ -150,3 +150,17 @@
   that adds `google_search` gave the agent a working search tool for that turn only.
 - Google Search grounding does not come as a `google_search_call` step. It comes as a
   `text_annotation_delta` with `url_citation` annotations (title and a redirect URL).
+
+### 13 Nov 2026: BigQuery MCP server (Track 2)
+
+- `tools/list` on `https://bigquery.googleapis.com/mcp` works without credentials. `tools/call`
+  needs a token. The normal ADC token (scope `cloud-platform`) works. A token from
+  `gcloud auth application-default print-access-token --scopes=...` was rejected as invalid.
+- In an interaction `tools` override, an `mcp_server` tool with `Authorization` and
+  `X-Goog-User-Project` headers works. The agent called `bigquery:get_table_info` and
+  `bigquery:execute_sql_readonly`. MCP calls come as `function_call` steps named
+  `<server>:<tool>`.
+- The `admin@` account needed no extra role grant. The docs name `roles/mcp.toolUser` for the
+  user and the associated service account. That requirement was not tested with a smaller role.
+- The demo sends the token only in the interaction request. It is not in the stored agent.
+- `google-genai` 3.2.0 depends on `httpx2`. The direct MCP check in `mcp.py` also uses `httpx2`.
