@@ -32,5 +32,5 @@
 * [gemini_decisions_api](./gemini_decisions_api/): Gemini Decisions API demo: typed yes/no, choice, and score decisions in Python, an evaluation command, and an ADK router agent
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
-* [managed_agents_api](./managed_agents_api/): Managed Agents API demo on Gemini Enterprise Agent Platform: agent lifecycle, a data analyst agent in a managed sandbox with a Cloud Storage mount, sessions, and a tool override
+* [managed_agents_api](./managed_agents_api/): Managed Agents API demo on Gemini Enterprise Agent Platform: agent lifecycle, a data analyst agent in a managed sandbox with a Cloud Storage mount, sessions, tool overrides, the BigQuery MCP server, a Skill Registry skill, evaluation, and a Go and TypeScript web UI
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI

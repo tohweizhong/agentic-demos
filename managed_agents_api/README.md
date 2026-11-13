@@ -36,6 +36,7 @@ flowchart LR
 | Download of the report and the chart | `scripts/05_download.py` | Cloud Storage |
 | BigQuery MCP server for one interaction | `scripts/06_mcp_bigquery.py` | SDK and MCP |
 | A skill from Skill Registry in a second agent | `scripts/07_skill_registry.py` | REST and SDK |
+| Evaluation with the GenAI Evaluation Service | `scripts/08_evaluate.py` | Evaluation SDK |
 | Cleanup of the demo agents and the bucket | `scripts/99_cleanup.py` | REST and SDK |
 | The same calls with `curl` | `scripts/rest_reference.sh` | REST |
 | A local web UI: stream a task and see the outputs | `webui/` (Go and TypeScript) | REST and Cloud Storage |
@@ -168,6 +169,40 @@ flowchart LR
 A skill ID stays reserved after you delete the skill. `scripts/99_cleanup.py --skills` deletes
 the skill, but a new skill cannot use the same ID.
 
+### Evaluation
+
+Script 08 uses the GenAI Evaluation Service, as the Managed Agents evaluation guide describes.
+It has two modes:
+
+- **Recorded** (default): score the interaction that script 02 saved.
+- **Generated** (`--generate N`): generate N scenarios from the agent configuration, run the agent
+  on them, and score the conversations. This mode runs the agent, so it costs more.
+
+For managed agents, the SDK accepts only three metrics: `multi_turn_task_success_v1`,
+`final_response_quality_v1`, and `safety_v1`. The demo uses task success and safety.
+`final_response_quality_v1` failed in the test, because its default judge model
+(`gemini-2.5-pro` in `global`) was "not found".
+
+The evaluation SDK needs `google-genai` < 3, and the demo uses 3.2.0. Thus the evaluation runs
+in a second virtual environment:
+
+```bash
+python3 -m venv .venv-eval
+.venv-eval/bin/pip install -r requirements-eval.txt
+.venv-eval/bin/pip install --no-deps --no-build-isolation -e .
+.venv-eval/bin/python scripts/08_evaluate.py                # Recorded mode.
+.venv-eval/bin/python scripts/08_evaluate.py --generate 1   # Generated mode, one scenario.
+```
+
+```mermaid
+flowchart LR
+    rec["output/last_interaction.json from script 02"] -->|"recorded mode"| ds["Evaluation dataset"]
+    gen["generate_conversation_scenarios"] --> inf["run_inference: the agent runs each scenario"]
+    inf -->|"generated mode"| ds
+    ds --> ev["evaluate: task success and safety"]
+    ev --> res["Scores and rationales, saved in output/eval/"]
+```
+
 ## Before you start
 
 - A Google Cloud project with billing and the Vertex AI API (`aiplatform.googleapis.com`).
@@ -200,6 +235,7 @@ flowchart LR
     s3 --> s6["05_download.py"]
     s2 --> s7["06_mcp_bigquery.py"]
     s1 --> s8["07_skill_registry.py"]
+    s3 -->|"output/last_interaction.json"| s10["08_evaluate.py, in .venv-eval"]
     s8 --> s9
     s4 --> s9["99_cleanup.py --bucket"]
     s5 --> s9
@@ -217,6 +253,7 @@ flowchart LR
 .venv/bin/python scripts/05_download.py       # Report and chart to output/agent/.
 .venv/bin/python scripts/06_mcp_bigquery.py   # Needs BigQuery job and MCP tool permissions.
 .venv/bin/python scripts/07_skill_registry.py # Publishes a skill and creates a second agent.
+.venv-eval/bin/python scripts/08_evaluate.py  # Scores the interaction from step 02. See "Evaluation".
 .venv/bin/python scripts/99_cleanup.py --bucket --skills
 ```
 
@@ -321,4 +358,3 @@ RUN_INTEGRATION=1 .venv/bin/pytest -m integration  # Real API. Creates an agent,
 
 - A bucket in another project.
 - MCP servers other than BigQuery.
-- Evaluation with the GenAI Evaluation Service.

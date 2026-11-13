@@ -187,3 +187,20 @@
   the standard library is `golang.org/x/oauth2` (ADC tokens).
 - TypeScript 5.9.3 through `npx`. No `package.json`, so no npm dependency tree in the repo.
   Frontend tests use the Node.js test runner on the compiled `dist/sse.js`.
+
+### 13 Nov 2026: evaluation (Track 4)
+
+- The evaluation SDK is `google-cloud-aiplatform[evaluation]` 2.9.0 (module `agentplatform`). It
+  needs `google-genai` >= 1.66 and < 3. The demo pins `google-genai` 3.2.0, so pip installed an old
+  `google-cloud-aiplatform` 1.91.0 without `agentplatform` when both were in one environment.
+  Thus the evaluation uses a second environment, `.venv-eval`, with `requirements-eval.txt`.
+- For a managed agent, the SDK accepts only `multi_turn_task_success_v1`,
+  `final_response_quality_v1`, and `safety_v1`. Other metrics raise `ValueError` before any call.
+- `final_response_quality_v1` failed: its default judge model
+  `projects/<number>/locations/global/publishers/google/models/gemini-2.5-pro` was "not found".
+  The demo uses task success and safety.
+- Recorded mode scored the analysis interaction: task success 1.0, safety 1.0 ("No policies were
+  violated"), in 93.8 s.
+- Generated mode imports the ADK user simulator (`google.adk.evaluation.simulation`), so
+  `requirements-eval.txt` also pins `google-adk` 2.14.1.
+- Generated mode (1 scenario, 1 turn) passed: task success 1.0, safety 1.0, in 58.9 s for the scoring step. The scenario generation and the simulated user run took about 5 minutes.

@@ -1,0 +1,12 @@
+# Evaluation only (scripts/08_evaluate.py). Install in a second virtual environment:
+#   python3 -m venv .venv-eval
+#   .venv-eval/bin/pip install -r requirements-eval.txt
+#   .venv-eval/bin/pip install --no-deps --no-build-isolation -e .
+# The evaluation SDK needs google-genai < 3, and the main demo uses google-genai 3.2.0.
+# Thus the two cannot share one environment.
+google-cloud-aiplatform[evaluation]==2.9.0
+# Generated mode uses the ADK user simulator.
+google-adk==2.14.1
+python-dotenv==1.2.4
+rich==15.0.0
+setuptools>=68
