@@ -88,7 +88,9 @@ while [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; do
   fi
   rm -f "${TMP_OUT}.err"
   
-  if ! grep -q -E "Model Armor:|Denied by IAP" "${TMP_OUT}" && \
+  # Do not retry an intended block: Model Armor on ingress ("Model Armor:"),
+  # Model Armor on egress ("Security Policy Violation"), or IAP ("Denied by IAP").
+  if ! grep -q -E "Model Armor:|Security Policy Violation|Denied by IAP" "${TMP_OUT}" && \
      grep -q -E "\[error\] MALFORMED_FUNCTION_CALL|RefreshError|401|403|The caller does not have permission" "${TMP_OUT}"; then
     if [[ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]]; then
       echo "[retry] Waiting 10s for IAM propagation..." >&2
