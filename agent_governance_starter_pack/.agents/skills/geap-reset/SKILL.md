@@ -9,7 +9,7 @@ Follow `runbooks/switch_policy_mode.md` to switch `iap_enforcement_mode` back to
 
 ## Steps
 
-1. Set `iap_enforcement_mode = "DRY_RUN"` in `terraform/terraform.tfvars`.
-2. Run `terraform plan -out=tfplan` in `terraform/` and show the single resource change (`google_iam_projects_policy_binding.agent_egress`) to the user for approval.
-3. After approval, run `terraform apply tfplan` and wait 3 minutes for the gateway policy to propagate.
+1. Run `scripts/configure.sh --set-mode DRY_RUN --dry-run`. Show the `CONFIGURE:` line word for word. Only `mode` must change. Then run `scripts/configure.sh --set-mode DRY_RUN`. Do not edit `terraform/terraform.tfvars` by hand.
+2. Run `terraform -chdir=terraform plan -out=tfplan` and show the single resource change (`google_network_services_authz_extension.iap[0]`) to the user for approval.
+3. After approval, run `terraform -chdir=terraform apply tfplan` and wait 3 minutes for the gateway policy to propagate.
 4. Reset any modified work item (`ITEM-001`, `ITEM-002`, or `ITEM-003`) via `scripts/ask_agent.sh`.

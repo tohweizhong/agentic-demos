@@ -27,12 +27,14 @@ environment.
 
 ## Steps
 
-1. Set the target enforcement mode in `terraform/terraform.tfvars`:
+1. Set the target enforcement mode with `scripts/configure.sh`. Do not edit
+   `terraform/terraform.tfvars` by hand. The script keeps the tier and every other value:
 
-   ```hcl
-   # Use "DRY_RUN" to observe traffic when you onboard a new agent or tool.
-   # Use "ENFORCE" to block denied tool calls at the egress gateway.
-   iap_enforcement_mode = "DRY_RUN"
+   ```bash
+   # Use DRY_RUN to observe traffic when you onboard a new agent or tool.
+   # Use ENFORCE to block denied tool calls at the egress gateway.
+   scripts/configure.sh --set-mode ENFORCE --dry-run   # check the CONFIGURE line: only mode changes
+   scripts/configure.sh --set-mode ENFORCE
    ```
 
 Before you set `ENFORCE`, run the read-only promotion readiness report. It lists the tools that

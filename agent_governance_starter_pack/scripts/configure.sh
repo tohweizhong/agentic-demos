@@ -8,6 +8,8 @@
 #     [--allow-google-managed-members true|false] [--mode DRY_RUN|ENFORCE] [--dry-run]
 # Move up one tier (keeps every other value):
 #   scripts/configure.sh --move-up [--allow-google-managed-members true|false] [--dry-run]
+# Change only the IAP policy mode (keeps the tier and every other value):
+#   scripts/configure.sh --set-mode DRY_RUN|ENFORCE [--dry-run]
 # Show the current values only:
 #   scripts/configure.sh --show
 set -euo pipefail
@@ -21,7 +23,7 @@ region_model_id()       { case "$1" in us-central1) echo "gemini-3.8-flash";; as
 region_model_location() { case "$1" in us-central1) echo "global";; asia-southeast1) echo "asia-southeast1";; *) echo "";; esac; }
 region_malicious_uri()  { case "$1" in us-central1) echo "ENABLED";; asia-southeast1) echo "DISABLED";; *) echo "";; esac; }
 
-PROJECT=""; REGION=""; PREFIX=""; TIER=""; GMM=""; MODE=""; MOVE_UP="false"; SHOW="false"; DRY="false"; FORCE="false"
+PROJECT=""; REGION=""; PREFIX=""; TIER=""; GMM=""; MODE=""; MOVE_UP="false"; SHOW="false"; DRY="false"; FORCE="false"; SET_MODE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2 ;;
@@ -31,6 +33,7 @@ while [[ $# -gt 0 ]]; do
     --allow-google-managed-members) GMM="$2"; shift 2 ;;
     --mode) MODE="$2"; shift 2 ;;
     --move-up) MOVE_UP="true"; shift ;;
+    --set-mode) SET_MODE="$2"; shift 2 ;;
     --show) SHOW="true"; shift ;;
     --dry-run) DRY="true"; shift ;;
     --force) FORCE="true"; shift ;;
@@ -45,12 +48,16 @@ current_tier() {
   if [[ "$i" == "true" ]]; then echo 5; elif [[ "$m" == "true" ]]; then echo 4; elif [[ "$e" == "true" ]]; then echo 3; elif [[ "$r" == "true" ]]; then echo 2; else echo 1; fi
 }
 
-if [[ "${SHOW}" == "true" || "${MOVE_UP}" == "true" ]]; then
+if [[ -n "${SET_MODE}" && "${MOVE_UP}" == "true" ]]; then
+  echo "ERROR: use --set-mode or --move-up, not both." >&2; exit 2
+fi
+if [[ "${SHOW}" == "true" || "${MOVE_UP}" == "true" || -n "${SET_MODE}" ]]; then
   [[ -f "${TFVARS}" ]] || { echo "ERROR: ${TFVARS} does not exist. Run a new configuration first." >&2; exit 1; }
   PROJECT="${PROJECT:-$(val project_id)}"; REGION="${REGION:-$(val region)}"; PREFIX="${PREFIX:-$(val name_prefix)}"
   MODE="${MODE:-$(val iap_enforcement_mode)}"; GMM="${GMM:-$(val allow_google_managed_members)}"
   CUR="$(current_tier)"
-  if [[ "${SHOW}" == "true" ]]; then TIER="${CUR}"; else
+  if [[ -n "${SET_MODE}" ]]; then MODE="${SET_MODE}"; fi
+  if [[ "${SHOW}" == "true" || -n "${SET_MODE}" ]]; then TIER="${CUR}"; else
     [[ "${CUR}" -lt 5 ]] || { echo "Already at Tier 5. Nothing to move up." ; exit 0; }
     TIER=$((CUR + 1))
   fi
