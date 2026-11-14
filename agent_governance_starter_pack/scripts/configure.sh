@@ -11,6 +11,10 @@
 #   scripts/configure.sh --move-up [--allow-google-managed-members true|false] [--dry-run]
 # Change only the IAP policy mode (keeps the tier and every other value):
 #   scripts/configure.sh --set-mode DRY_RUN|ENFORCE [--dry-run]
+# Change only the domain restricted sharing exception or the egress scope of an
+# existing file (keeps the tier, the mode, and every other value):
+#   scripts/configure.sh --allow-google-managed-members false [--dry-run]
+#   scripts/configure.sh --egress-scope auto|mcp_servers|all_egress [--dry-run]
 # Show the current values only:
 #   scripts/configure.sh --show
 set -euo pipefail
@@ -53,14 +57,18 @@ current_tier() {
 if [[ -n "${SET_MODE}" && "${MOVE_UP}" == "true" ]]; then
   echo "ERROR: use --set-mode or --move-up, not both." >&2; exit 2
 fi
-if [[ "${SHOW}" == "true" || "${MOVE_UP}" == "true" || -n "${SET_MODE}" ]]; then
+# Without --tier and --move-up, --allow-google-managed-members or --egress-scope
+# changes only that value in the existing file (do not reset the mode to DRY_RUN).
+KEEP="false"
+if [[ -z "${TIER}" && "${MOVE_UP}" != "true" && -f "${TFVARS}" && ( -n "${SET_MODE}" || -n "${GMM}" || -n "${SCOPE}" ) ]]; then KEEP="true"; fi
+if [[ "${SHOW}" == "true" || "${MOVE_UP}" == "true" || "${KEEP}" == "true" ]]; then
   [[ -f "${TFVARS}" ]] || { echo "ERROR: ${TFVARS} does not exist. Run a new configuration first." >&2; exit 1; }
   PROJECT="${PROJECT:-$(val project_id)}"; REGION="${REGION:-$(val region)}"; PREFIX="${PREFIX:-$(val name_prefix)}"
   MODE="${MODE:-$(val iap_enforcement_mode)}"; GMM="${GMM:-$(val allow_google_managed_members)}"
   SCOPE="${SCOPE:-$(val model_armor_egress_scope)}"
   CUR="$(current_tier)"
   if [[ -n "${SET_MODE}" ]]; then MODE="${SET_MODE}"; fi
-  if [[ "${SHOW}" == "true" || -n "${SET_MODE}" ]]; then TIER="${CUR}"; else
+  if [[ "${SHOW}" == "true" || "${KEEP}" == "true" ]]; then TIER="${CUR}"; else
     [[ "${CUR}" -lt 5 ]] || { echo "Already at Tier 5. Nothing to move up." ; exit 0; }
     TIER=$((CUR + 1))
   fi

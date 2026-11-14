@@ -257,7 +257,7 @@ The organization admin chooses one approach before the apply. The numbers match
 | Approach | How it works | Use |
 |---|---|---|
 | Approach 1: managed constraint | The organization replaces `iam.allowedPolicyMemberDomains` with `iam.managed.allowedPolicyMembers`, and the project names the service agent in `allowedMemberSubjects` | Production |
-| Approach 2: short-lived project exception | Set `allow_google_managed_members = true` and apply. Terraform creates a project-level exception (by default it keeps the parent allow list and adds `is:C02h8e9nw`), waits, and grants the 3 roles. Then set it to `false` and apply again. The grants stay | Sandbox projects |
+| Approach 2: short-lived project exception | Set `allow_google_managed_members = true` and apply. Terraform creates a project-level exception (by default it keeps the parent allow list and adds `is:C02h8e9nw`), waits, and grants the 3 roles. Then run `scripts/configure.sh --allow-google-managed-members false --dry-run`, the same command without `--dry-run`, and plan and apply again. The tier and the policy mode stay. The grants stay | Sandbox projects |
 | Approach 3: keep the exception | Keep `allow_google_managed_members = true` | Disposable sandbox projects only |
 
 With Approach 2, note two points:
