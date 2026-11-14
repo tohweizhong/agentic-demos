@@ -205,7 +205,7 @@ run "agent_trace_export_without_message_text" {
   }
 
   assert {
-    condition     = alltrue([for e in google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].env : e.value == "false" if contains(["ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS", "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"], e.name)])
+    condition     = alltrue([for e in google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].env : (e.name == "ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS" ? e.value == "false" : e.value == "NO_CONTENT") if contains(["ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS", "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"], e.name)])
     error_message = "By default the spans must not record message text."
   }
 }

@@ -94,7 +94,7 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
       }
       env {
         name  = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
-        value = var.trace_message_content ? "true" : "false"
+        value = var.trace_message_content ? "SPAN_ONLY" : "NO_CONTENT"
       }
       # The Dockerfile installs the gateway root CA and sets SSL_CERT_FILE,
       # REQUESTS_CA_BUNDLE, and GRPC_DEFAULT_SSL_ROOTS_FILE_PATH.
