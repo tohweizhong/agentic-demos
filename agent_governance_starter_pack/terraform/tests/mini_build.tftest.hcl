@@ -306,16 +306,22 @@ run "registry_has_the_tool_spec" {
   }
 }
 
-run "drs_exception_allow_all_by_default" {
+run "drs_exception_allow_all" {
   command = apply
 
   variables {
     allow_google_managed_members = true
+    drs_exception_mode           = "allow_all"
   }
 
   assert {
     condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].rules[0].allow_all == "TRUE"
-    error_message = "The default project exception must be allow_all (the tested mode)."
+    error_message = "The allow_all mode must allow all members on the project."
+  }
+
+  assert {
+    condition     = local.drs_effective_pattern == "\"allowAll\": true"
+    error_message = "The allow_all mode must wait for allowAll in the effective policy."
   }
 
   assert {
@@ -324,12 +330,16 @@ run "drs_exception_allow_all_by_default" {
   }
 }
 
-run "drs_exception_google_customer_id" {
+run "drs_exception_google_customer_id_by_default" {
   command = apply
 
   variables {
     allow_google_managed_members = true
-    drs_exception_mode           = "google_customer_id"
+  }
+
+  assert {
+    condition     = local.drs_effective_pattern == "\"C02h8e9nw\"" && var.drs_exception_mode == "google_customer_id"
+    error_message = "The default mode must be google_customer_id and must wait for C02h8e9nw in the effective policy."
   }
 
   assert {

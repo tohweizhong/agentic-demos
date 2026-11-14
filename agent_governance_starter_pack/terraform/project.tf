@@ -119,12 +119,12 @@ resource "google_org_policy_policy" "allow_google_managed_members" {
   parent = "projects/${var.project_id}"
 
   # Two modes (see GUIDE Section 3):
-  # - allow_all (default): tested live on 08 and 09 Nov 2026. Allow all members on
-  #   the project for the time of the grant.
-  # - google_customer_id: keep the parent allow list and add is:C02h8e9nw, the
-  #   Google customer ID that owns tenant-project service agents. This is the
-  #   go/argolis-tips guidance, but a live test on 08 Nov 2026 failed with
-  #   FAILED_PRECONDITION (possibly a propagation delay; not verified).
+  # - google_customer_id (default): keep the parent allow list and add
+  #   is:C02h8e9nw, the Google customer ID that owns tenant-project service
+  #   agents. This is the go/argolis-tips guidance. Live test on 14 Nov 2026:
+  #   IAM accepted the grants 66 to 85 s after the override (3 runs).
+  # - allow_all: allow all members on the project for the time of the grant.
+  #   Live test on 14 Nov 2026: IAM accepted the grants after 77 to 78 s (3 runs).
   # Set allow_google_managed_members back to false and apply again after the three
   # Model Armor roles exist.
   spec {
@@ -145,17 +145,23 @@ resource "google_org_policy_policy" "allow_google_managed_members" {
 
 # IAM can need minutes to use a new project exception. A fixed 30 s wait was not
 # enough on 12 Nov 2026 (rehearsal problem 40). First wait until the effective
-# policy shows allowAll (up to 10 minutes), then wait org_policy_wait_seconds more.
+# policy shows the exception (up to 10 minutes). The effective policy shows it
+# after 2 to 3 s, but IAM accepted the grants only after 66 to 85 s (14 Nov 2026),
+# so then wait org_policy_wait_seconds (default 120) more.
+locals {
+  drs_effective_pattern = var.drs_exception_mode == "allow_all" ? "\"allowAll\": true" : "\"${trimprefix(var.drs_exception_allowed_values[0], "is:")}\""
+}
+
 resource "terraform_data" "org_policy_effective" {
-  count = var.allow_google_managed_members && var.wait_for_org_policy && var.drs_exception_mode == "allow_all" ? 1 : 0
+  count = var.allow_google_managed_members && var.wait_for_org_policy ? 1 : 0
 
   triggers_replace = [google_org_policy_policy.allow_google_managed_members[0].etag]
 
   provisioner "local-exec" {
     command = join("", [
       "for i in $(seq 1 60); do ",
-      "if gcloud org-policies describe iam.allowedPolicyMemberDomains --project=${var.project_id} --effective --format=json 2>/dev/null | grep -q '\"allowAll\": true'; then ",
-      "echo 'Effective policy has allowAll.'; exit 0; fi; ",
+      "if gcloud org-policies describe iam.allowedPolicyMemberDomains --project=${var.project_id} --effective --format=json 2>/dev/null | grep -q '${local.drs_effective_pattern}'; then ",
+      "echo 'Effective policy has the project exception.'; exit 0; fi; ",
       "echo 'Waiting for the project exception to become effective...'; sleep 10; done; ",
       "echo 'The project exception is not effective after 10 minutes.' >&2; exit 1",
     ])

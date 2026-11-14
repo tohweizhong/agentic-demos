@@ -30,6 +30,6 @@ Deploy or update the agent governance starter pack mini build with a mandatory a
 8. If the apply fails on `google_project_iam_member.gateway_model_armor` with `not in permitted organization`
    after Terraform created the project exception, IAM has not used the exception yet. Do not change the
    settings. Run `gcloud org-policies describe iam.allowedPolicyMemberDomains --project=PROJECT_ID --effective`
-   and show the result. When it shows `allowAll: true`, wait 2 minutes, then make a new plan (it must show
+   and show the result. When it shows the exception (`allowAll: true`, or `C02h8e9nw` in `allowedValues`), wait 2 minutes, then make a new plan (it must show
    only the 3 grants to add) and ask the user to approve it. Terraform now polls the effective policy and
    waits `org_policy_wait_seconds` (default 120) before the grants, so this case is rare.

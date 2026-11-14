@@ -242,10 +242,14 @@ project: `roles/modelarmor.calloutUser`, `roles/modelarmor.user`, and
 traffic.
 
 If the organization enforces `iam.allowedPolicyMemberDomains`, IAM refuses the 3 grants with
-`not in permitted organization`. This constraint has no exception for one principal
+`User service-...@gcp-sa-dep.iam.gserviceaccount.com is not in permitted organization`. This
+constraint has no exception for one principal
 ([Domain-restricted sharing](https://docs.cloud.google.com/organization-policy/domain-restricted-sharing)).
-An allowed value such as a Google customer ID does not cover the service agent. A project-level
-`iam.allowedPolicyMemberDomains` exception is necessary while the organization uses this constraint.
+A project-level `iam.allowedPolicyMemberDomains` exception is necessary while the organization uses
+this constraint. The exception can add only the Google customer ID `is:C02h8e9nw`, which owns the
+tenant service agents. It does not need `allowAll`. A project-level
+`iam.managed.allowedPolicyMembers` policy does not help while the organization uses the legacy
+constraint, because IAM checks both constraints.
 
 The organization admin chooses one approach before the apply. The numbers match
 [GUIDE.md](GUIDE.md) Section 3:
@@ -253,15 +257,17 @@ The organization admin chooses one approach before the apply. The numbers match
 | Approach | How it works | Use |
 |---|---|---|
 | Approach 1: managed constraint | The organization replaces `iam.allowedPolicyMemberDomains` with `iam.managed.allowedPolicyMembers`, and the project names the service agent in `allowedMemberSubjects` | Production |
-| Approach 2: short-lived project exception | Set `allow_google_managed_members = true` and apply. Terraform creates a project-level exception, waits, and grants the 3 roles. Then set it to `false` and apply again. The grants stay | Sandbox projects |
+| Approach 2: short-lived project exception | Set `allow_google_managed_members = true` and apply. Terraform creates a project-level exception (by default it keeps the parent allow list and adds `is:C02h8e9nw`), waits, and grants the 3 roles. Then set it to `false` and apply again. The grants stay | Sandbox projects |
 | Approach 3: keep the exception | Keep `allow_google_managed_members = true` | Disposable sandbox projects only |
 
 With Approach 2, note two points:
 
-- If the grants fail with `not in permitted organization` just after Terraform created the
-  exception, IAM has not used it yet. Run
-  `gcloud org-policies describe iam.allowedPolicyMemberDomains --project=PROJECT_ID --effective`.
-  When it shows `allowAll: true`, plan and apply again.
+- IAM uses a new exception about 80 seconds after Terraform creates it. The effective policy shows
+  the exception after a few seconds, so Terraform waits `org_policy_wait_seconds` (default 120)
+  more before the grants. If the grants still fail with `not in permitted organization`, wait 2
+  minutes, then plan and apply again.
+- `drs_exception_mode = "allow_all"` is the alternative. It allows all members on the project for the
+  time of the grant.
 - Each gateway has its own tenant service agent. Keep the exception until each gateway with Model
   Armor has its grants.
 
