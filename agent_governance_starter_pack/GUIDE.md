@@ -148,7 +148,7 @@ Start `agy` in this folder and give these prompts in this order. You do not need
 | 2 | "Run geap-deploy" | The agent shows the tier, packages the code, runs the tests and `terraform plan`, then stops and asks for approval before `terraform apply` |
 | 3 | "Run geap-verify" | The agent runs the checks for the current tier and reports pass or fail |
 | 4 | "Run geap-configure to move up one tier" | The agent shows what the next tier adds and what it needs, then changes one `enable_*` value. Repeat steps 2 to 4 until Tier 5 |
-| 5 | "Switch to ENFORCE with runbooks/switch_policy_mode.md" (Tier 3 or higher) | After about 3 minutes, `update_status` fails and `get_status` still works |
+| 5 | "Switch to ENFORCE with runbooks/switch_policy_mode.md" (Tier 3 or higher) | After about 3 minutes, `update_status` fails with an ADK error ("MCP tool execution failed: Server returned an error response" or "MCP session connection lost"), and `get_status` still works |
 | 6 | "Run geap-reset" | `iap_enforcement_mode` is `DRY_RUN` again |
 | 7 | "Run geap-teardown" | The agent asks you to confirm, then removes the starter pack resources |
 
@@ -424,8 +424,9 @@ First, verify the deployed resources, Model Armor screening, and shadow-mode (`D
 Next, promote the IAP gateway policy from `DRY_RUN` to `ENFORCE` and verify that the gateway blocks `update_status`:
 
 ```bash
-# 1. Set iap_enforcement_mode = "ENFORCE" in terraform/terraform.tfvars
-sed -i 's/iap_enforcement_mode[[:space:]]*=[[:space:]]*"DRY_RUN"/iap_enforcement_mode = "ENFORCE"/' terraform/terraform.tfvars
+# 1. Set iap_enforcement_mode = "ENFORCE" (keeps the tier and every other value)
+scripts/configure.sh --set-mode ENFORCE --dry-run
+scripts/configure.sh --set-mode ENFORCE
 
 # 2. Apply the single extension update and wait 3 minutes for data-plane propagation
 terraform -chdir=terraform apply

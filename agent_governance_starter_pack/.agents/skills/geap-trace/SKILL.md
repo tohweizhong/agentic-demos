@@ -32,7 +32,7 @@ API v1 in the project from `terraform output project_id`.
    | Row | Result | Meaning |
    |---|---|---|
    | `TOOL` | `OK` | The tool returned a result |
-   | `TOOL` | `NO_DOWNSTREAM` | The tool call failed, and no gateway or MCP span is below it. The egress gateway probably denied the call (for example an IAP policy denial). ADK reports this as "MCP session connection lost" |
+   | `TOOL` | `NO_DOWNSTREAM` | The tool call failed, and no gateway or MCP span is below it. The egress gateway probably denied the call (for example an IAP policy denial). ADK reports this as "MCP tool execution failed: Server returned an error response" or "MCP session connection lost" |
    | `TOOL` | `ERROR` | The tool call reached the gateway or the MCP server, and then failed |
    | `MODEL_ARMOR` | `ALLOW 200` | Model Armor found no problem in the prompt or the response |
    | `MODEL_ARMOR` | `MODIFY` or `BLOCK` | Model Armor changed or blocked the content. The detail column names the template and the finding |
