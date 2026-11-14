@@ -118,6 +118,20 @@ The pyramid shows two paths. The vertical path adds one control for each tier. T
 | **Tier 4** | **Content Safety (Model Armor)** | Model Armor templates, `CONTENT_AUTHZ` extension, and 3 `gcp-sa-dep` IAM grants | `enable_model_armor` (default `true`) | Screens prompts and tool outputs for prompt injection, jailbreaks, and sensitive data on active gateways. **Only Tier 4 can need the domain restriction setup, when the organization enforces it** |
 | **Tier 5** | **Inbound Client Control (Ingress Gateway)** | Ingress Agent Gateway (`CLIENT_TO_AGENT`) and `clientToAgentConfig` (attaches Model Armor when `enable_model_armor = true`) | `enable_ingress_gateway` (default `false`) | Controls inbound client traffic to the agent |
 
+### Egress Model Armor scope
+
+The variable `model_armor_egress_scope` decides which egress traffic goes to Model Armor:
+
+| Value | Egress Model Armor screens | Use |
+|---|---|---|
+| `auto` (default) | `mcp_servers` when `enable_ingress_gateway = true`, else `all_egress` | At Tier 5, the ingress gateway screens user prompts and agent replies, so egress screens only tool traffic. At Tier 4, egress screens everything |
+| `mcp_servers` | Only the MCP server hosts: the starter pack MCP server and `existing_mcp_servers` | Tool calls and tool results only. The agent's model calls are not screened on egress |
+| `all_egress` | All egress traffic, including each model call with its full context | The most coverage. Each model call adds a Model Armor check, and a false positive stops the reply |
+
+`terraform output model_armor_egress_scope` shows the value after `auto` is resolved. The sample
+MCP server has a test item, `ITEM-099`, whose title is a prompt injection. `geap-verify` uses it to
+check that Model Armor screens tool results.
+
 The request flow below is in `ENFORCE` mode. The denied call never gets to Cloud Run.
 
 ```mermaid

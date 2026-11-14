@@ -390,3 +390,63 @@ run "model_armor_template_loads_yaml" {
     error_message = "The template must load the rai_filters from the YAML."
   }
 }
+
+run "egress_scope_auto_at_tier_4_screens_all_egress" {
+  command = plan
+
+  variables {
+    enable_ingress_gateway = false
+  }
+
+  assert {
+    condition     = output.model_armor_egress_scope == "all_egress"
+    error_message = "At Tier 4, auto must resolve to all_egress."
+  }
+
+  assert {
+    condition     = length(google_network_security_authz_policy.model_armor[0].http_rules) == 0
+    error_message = "all_egress must have no host rule, so all egress traffic goes to Model Armor."
+  }
+}
+
+run "egress_scope_auto_at_tier_5_screens_mcp_servers" {
+  command = apply
+
+  variables {
+    enable_ingress_gateway = true
+  }
+
+  assert {
+    condition     = output.model_armor_egress_scope == "mcp_servers"
+    error_message = "At Tier 5, auto must resolve to mcp_servers."
+  }
+
+  assert {
+    condition     = contains(google_network_security_authz_policy.model_armor[0].http_rules[0].to[0].operations[0].hosts[*].exact, "geap-work-items-example.a.run.app")
+    error_message = "mcp_servers must list the starter pack MCP server host."
+  }
+}
+
+run "egress_scope_all_egress_at_tier_5" {
+  command = plan
+
+  variables {
+    enable_ingress_gateway   = true
+    model_armor_egress_scope = "all_egress"
+  }
+
+  assert {
+    condition     = length(google_network_security_authz_policy.model_armor[0].http_rules) == 0
+    error_message = "An explicit all_egress must have no host rule."
+  }
+}
+
+run "egress_scope_rejects_unknown_value" {
+  command = plan
+
+  variables {
+    model_armor_egress_scope = "everything"
+  }
+
+  expect_failures = [var.model_armor_egress_scope]
+}

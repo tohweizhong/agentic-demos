@@ -89,7 +89,11 @@ Use this part when `terraform/terraform.tfvars` exists and the user asks to move
    - Tier 2: nothing more.
    - Tier 3: nothing more. Ask question 6 (IAP mode). Recommend `DRY_RUN`.
    - Tier 4: ask question 5 (domain restricted sharing).
-   - Tier 5: nothing more.
+   - Tier 5: nothing more. If `model_armor_egress_scope` is `auto` (the default), tell the user: at
+     Tier 5, egress Model Armor changes from `all_egress` to `mcp_servers`. The ingress gateway then
+     screens user prompts and agent replies, and egress screens only the MCP server traffic. The plan
+     shows one change on the egress Model Armor policy (host rules). `configure.sh` prints a `NOTE:`
+     line about this. Show it word for word.
 3. Ask the user to confirm. Then run `scripts/configure.sh --move-up` (add
    `--allow-google-managed-members` or `--mode` only for the answers to questions 5 or 6). The script
    changes only the tier values and keeps the project, region, and prefix.

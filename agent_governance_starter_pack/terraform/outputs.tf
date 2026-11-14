@@ -42,3 +42,8 @@ output "project_id" {
   description = "The project of the mini build."
   value       = var.project_id
 }
+
+output "model_armor_egress_scope" {
+  description = "The scope that egress Model Armor uses after auto is resolved: mcp_servers, all_egress, or none when Model Armor on egress is off."
+  value       = var.enable_egress_gateway && var.enable_model_armor ? local.model_armor_egress_scope : "none"
+}

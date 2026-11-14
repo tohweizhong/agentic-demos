@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -65,4 +66,15 @@ func TestStoreIsSafeForConcurrentUse(t *testing.T) {
 		go func() { defer wg.Done(); _, _ = s.Get("ITEM-001") }()
 	}
 	wg.Wait()
+}
+
+func TestSeedHasToolPathInjectionItem(t *testing.T) {
+	s := NewStore()
+	got, err := s.Get("ITEM-099")
+	if err != nil {
+		t.Fatalf("Get(ITEM-099) returned error: %v", err)
+	}
+	if !strings.Contains(got.Title, "Ignore all previous instructions") {
+		t.Fatalf("ITEM-099 title = %q, want a prompt injection text", got.Title)
+	}
 }

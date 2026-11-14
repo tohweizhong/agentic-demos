@@ -5,7 +5,8 @@
 #
 # New file:
 #   scripts/configure.sh --project PROJECT_ID --region REGION --prefix PREFIX --tier N \
-#     [--allow-google-managed-members true|false] [--mode DRY_RUN|ENFORCE] [--dry-run]
+#     [--allow-google-managed-members true|false] [--mode DRY_RUN|ENFORCE]
+#     [--egress-scope auto|mcp_servers|all_egress] [--dry-run]
 # Move up one tier (keeps every other value):
 #   scripts/configure.sh --move-up [--allow-google-managed-members true|false] [--dry-run]
 # Change only the IAP policy mode (keeps the tier and every other value):
@@ -23,7 +24,7 @@ region_model_id()       { case "$1" in us-central1) echo "gemini-3.8-flash";; as
 region_model_location() { case "$1" in us-central1) echo "global";; asia-southeast1) echo "asia-southeast1";; *) echo "";; esac; }
 region_malicious_uri()  { case "$1" in us-central1) echo "ENABLED";; asia-southeast1) echo "DISABLED";; *) echo "";; esac; }
 
-PROJECT=""; REGION=""; PREFIX=""; TIER=""; GMM=""; MODE=""; MOVE_UP="false"; SHOW="false"; DRY="false"; FORCE="false"; SET_MODE=""
+PROJECT=""; REGION=""; PREFIX=""; TIER=""; GMM=""; MODE=""; MOVE_UP="false"; SHOW="false"; DRY="false"; FORCE="false"; SET_MODE=""; SCOPE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2 ;;
@@ -34,6 +35,7 @@ while [[ $# -gt 0 ]]; do
     --mode) MODE="$2"; shift 2 ;;
     --move-up) MOVE_UP="true"; shift ;;
     --set-mode) SET_MODE="$2"; shift 2 ;;
+    --egress-scope) SCOPE="$2"; shift 2 ;;
     --show) SHOW="true"; shift ;;
     --dry-run) DRY="true"; shift ;;
     --force) FORCE="true"; shift ;;
@@ -55,6 +57,7 @@ if [[ "${SHOW}" == "true" || "${MOVE_UP}" == "true" || -n "${SET_MODE}" ]]; then
   [[ -f "${TFVARS}" ]] || { echo "ERROR: ${TFVARS} does not exist. Run a new configuration first." >&2; exit 1; }
   PROJECT="${PROJECT:-$(val project_id)}"; REGION="${REGION:-$(val region)}"; PREFIX="${PREFIX:-$(val name_prefix)}"
   MODE="${MODE:-$(val iap_enforcement_mode)}"; GMM="${GMM:-$(val allow_google_managed_members)}"
+  SCOPE="${SCOPE:-$(val model_armor_egress_scope)}"
   CUR="$(current_tier)"
   if [[ -n "${SET_MODE}" ]]; then MODE="${SET_MODE}"; fi
   if [[ "${SHOW}" == "true" || -n "${SET_MODE}" ]]; then TIER="${CUR}"; else
@@ -64,10 +67,11 @@ if [[ "${SHOW}" == "true" || "${MOVE_UP}" == "true" || -n "${SET_MODE}" ]]; then
 fi
 
 [[ -n "${PROJECT}" && -n "${REGION}" && -n "${TIER}" ]] || { echo "ERROR: --project, --region, and --tier are required for a new configuration." >&2; exit 2; }
-PREFIX="${PREFIX:-geap}"; MODE="${MODE:-DRY_RUN}"; GMM="${GMM:-false}"
+PREFIX="${PREFIX:-geap}"; MODE="${MODE:-DRY_RUN}"; GMM="${GMM:-false}"; SCOPE="${SCOPE:-auto}"
 [[ "${PREFIX}" =~ ^[a-z][a-z0-9-]{1,14}$ ]] || { echo "ERROR: prefix must match ^[a-z][a-z0-9-]{1,14}\$" >&2; exit 2; }
 [[ "${TIER}" =~ ^[1-5]$ ]] || { echo "ERROR: tier must be 1 to 5" >&2; exit 2; }
 [[ "${MODE}" == "DRY_RUN" || "${MODE}" == "ENFORCE" ]] || { echo "ERROR: mode must be DRY_RUN or ENFORCE" >&2; exit 2; }
+[[ "${SCOPE}" =~ ^(auto|mcp_servers|all_egress)$ ]] || { echo "ERROR: egress scope must be auto, mcp_servers, or all_egress" >&2; exit 2; }
 MODEL_ID="$(region_model_id "${REGION}")"; MODEL_LOC="$(region_model_location "${REGION}")"; MURI="$(region_malicious_uri "${REGION}")"
 [[ -n "${MODEL_ID}" ]] || { echo "ERROR: region ${REGION} is not tested. Tested regions: us-central1, asia-southeast1." >&2; exit 2; }
 
@@ -82,6 +86,10 @@ fi
 
 b() { [[ "$1" -ge "$2" ]] && echo true || echo false; }
 REG="$(b "${TIER}" 2)"; EGR="$(b "${TIER}" 3)"; MAR="$(b "${TIER}" 4)"; ING="$(b "${TIER}" 5)"
+# The scope that Terraform uses after auto is resolved (see terraform/gateway.tf).
+if [[ "${MAR}" != "true" ]]; then EFF_SCOPE="none"
+elif [[ "${SCOPE}" != "auto" ]]; then EFF_SCOPE="${SCOPE}"
+elif [[ "${ING}" == "true" ]]; then EFF_SCOPE="mcp_servers"; else EFF_SCOPE="all_egress"; fi
 
 CONTENT="# Written by scripts/configure.sh. terraform.tfvars is gitignored. Never commit real IDs.
 
@@ -103,13 +111,20 @@ iap_enforcement_mode = \"${MODE}\"
 # Approach 2 for domain restricted sharing (Tier 4 and Tier 5). See GUIDE Section 3.
 allow_google_managed_members = ${GMM}
 
+# Egress Model Armor scope: auto (mcp_servers at Tier 5, all_egress at Tier 4),
+# mcp_servers, or all_egress. See README: Governance tiers.
+model_armor_egress_scope = \"${SCOPE}\"
+
 # Fixed values for ${REGION} (from the region table in scripts/configure.sh).
 model_id       = \"${MODEL_ID}\"
 model_location = \"${MODEL_LOC}\"
 "
 
-COMPUTED_CONFIG="CONFIGURE: project=${PROJECT} number=${PROJECT_NUMBER} org=${ORG_ID} region=${REGION} prefix=${PREFIX} tier=${TIER} registry=${REG} egress=${EGR} model_armor=${MAR} ingress=${ING} mode=${MODE} allow_google_managed_members=${GMM} model_id=${MODEL_ID} model_location=${MODEL_LOC} malicious_uri=${MURI}"
+COMPUTED_CONFIG="CONFIGURE: project=${PROJECT} number=${PROJECT_NUMBER} org=${ORG_ID} region=${REGION} prefix=${PREFIX} tier=${TIER} registry=${REG} egress=${EGR} model_armor=${MAR} ingress=${ING} mode=${MODE} allow_google_managed_members=${GMM} egress_scope=${SCOPE}(${EFF_SCOPE}) model_id=${MODEL_ID} model_location=${MODEL_LOC} malicious_uri=${MURI}"
 echo "${COMPUTED_CONFIG}"
+if [[ "${MOVE_UP}" == "true" && "${TIER}" == "5" && "${SCOPE}" == "auto" ]]; then
+  echo "NOTE: at Tier 5, egress_scope auto changes from all_egress to mcp_servers. The plan changes the egress Model Armor policy (host rules added). The ingress gateway then screens user prompts and agent replies."
+fi
 if [[ "${SHOW}" == "true" ]]; then exit 0; fi
 
 DRY_RUN_FILE="${TF_DIR}/.configure_dry_run"

@@ -8,6 +8,18 @@ locals {
   any_gateway_enabled  = var.enable_egress_gateway || var.enable_ingress_gateway
   model_armor_enabled  = var.enable_model_armor && local.any_gateway_enabled
 
+  # Scope of egress Model Armor (backlog item 37). auto: at Tier 5 the ingress
+  # gateway screens user prompts and agent replies, so egress screens only the
+  # MCP servers. At Tier 4 nothing else screens prompts, so egress screens all
+  # egress traffic, including model calls.
+  model_armor_egress_scope = var.model_armor_egress_scope != "auto" ? var.model_armor_egress_scope : (
+    var.enable_ingress_gateway ? "mcp_servers" : "all_egress"
+  )
+  mcp_server_hosts = distinct(concat(
+    [for u in concat([google_cloud_run_v2_service.mcp.uri], coalesce(google_cloud_run_v2_service.mcp.urls, [])) : trimprefix(u, "https://")],
+    [for k, v in var.existing_mcp_servers : regex("^https://([^/:]+)", v.url)[0]],
+  ))
+
   iap_policy = yamldecode(templatefile("${path.module}/../policies/iap_access_policy.yaml", {
     region      = var.region
     name_prefix = var.name_prefix
@@ -257,6 +269,24 @@ resource "google_network_security_authz_policy" "model_armor" {
 
   target {
     resources = [google_network_services_agent_gateway.egress[0].id]
+  }
+
+  # mcp_servers scope: only traffic to the MCP server hosts goes to Model Armor.
+  # all_egress scope: no rule, so all egress traffic goes to Model Armor.
+  dynamic "http_rules" {
+    for_each = local.model_armor_egress_scope == "mcp_servers" ? [1] : []
+    content {
+      to {
+        operations {
+          dynamic "hosts" {
+            for_each = local.mcp_server_hosts
+            content {
+              exact = hosts.value
+            }
+          }
+        }
+      }
+    }
   }
 
   custom_provider {
