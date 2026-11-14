@@ -30,4 +30,8 @@ EXPOSE 8080
 # On Agent Runtime, GOOGLE_CLOUD_AGENT_ENGINE_ID is set, so `adk api_server`
 # uses Agent Runtime Sessions. --gemini_enterprise_app_name turns on the Agent
 # Runtime query routes (/api/reasoning_engine) for this app.
-CMD ["adk", "api_server", "--port=8080", "--host=0.0.0.0", "--trace_to_cloud", "--gemini_enterprise_app_name=work_items", "/app/agents"]
+# --otel_to_cloud sends spans to Cloud Trace (telemetry.googleapis.com) for the
+# project of the agent. The older --trace_to_cloud used GOOGLE_CLOUD_PROJECT,
+# which Agent Runtime sets, and every export failed with INVALID_ARGUMENT
+# "Invalid project id in name!" (rehearsal problem 38, 12 Nov 2026).
+CMD ["adk", "api_server", "--port=8080", "--host=0.0.0.0", "--otel_to_cloud", "--gemini_enterprise_app_name=work_items", "/app/agents"]

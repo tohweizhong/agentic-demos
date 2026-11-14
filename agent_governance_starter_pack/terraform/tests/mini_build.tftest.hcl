@@ -195,8 +195,13 @@ run "agent_trace_export_without_message_text" {
   command = plan
 
   assert {
-    condition     = contains([for e in google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].env : e.value if e.name == "GOOGLE_CLOUD_PROJECT"], "example-project")
-    error_message = "The agent must set GOOGLE_CLOUD_PROJECT so that the Cloud Trace export has a valid project."
+    condition     = length([for e in google_vertex_ai_reasoning_engine.agent.spec[0].deployment_spec[0].env : e if e.name == "GOOGLE_CLOUD_PROJECT"]) == 0
+    error_message = "GOOGLE_CLOUD_PROJECT is reserved by Agent Runtime. Do not set it in the agent env."
+  }
+
+  assert {
+    condition     = strcontains(file("../agent-template/Dockerfile"), "--otel_to_cloud") && google_vertex_ai_reasoning_engine.agent.spec[0].source_code_spec[0].image_spec != null
+    error_message = "The agent must export spans with adk api_server --otel_to_cloud."
   }
 
   assert {

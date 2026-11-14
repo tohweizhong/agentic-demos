@@ -1,4 +1,4 @@
-google-adk[agent-identity,gcp,mcp]>=2.5.0,<3.0.0
+google-adk[agent-identity,gcp,mcp,otel]>=2.5.0,<3.0.0
 # AdkApp imports google.cloud.aiplatform when tracing is on. The
 # google-cloud-agentplatform package alone does not supply that module.
 google-cloud-aiplatform[adk,agent_engines]>=2.2,<3

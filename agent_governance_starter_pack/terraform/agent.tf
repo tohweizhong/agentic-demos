@@ -83,13 +83,9 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
         name  = "MODEL_LOCATION"
         value = var.model_location
       }
-      # Cloud Trace export (adk api_server --trace_to_cloud). Without an explicit
-      # project, the export failed with INVALID_ARGUMENT "Invalid project id in
-      # name!" (rehearsal problem 38, 12 Nov 2026).
-      env {
-        name  = "GOOGLE_CLOUD_PROJECT"
-        value = var.project_id
-      }
+      # Spans go to Cloud Trace through adk api_server --otel_to_cloud (see the
+      # Dockerfile). GOOGLE_CLOUD_PROJECT is reserved by Agent Runtime, so it
+      # cannot be set here (Error 400 on 14 Nov 2026).
       # Do not put prompt, response, or tool argument text in the spans unless the
       # owner turns it on. ADK records the text by default.
       env {
