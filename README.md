@@ -33,4 +33,5 @@
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT)
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming using Gemini Multimodal Live API
 * [managed_agents_api](./managed_agents_api/): Managed Agents API demo on Gemini Enterprise Agent Platform: agent lifecycle, a data analyst agent in a managed sandbox with a Cloud Storage mount, sessions, tool overrides, the BigQuery MCP server, a Skill Registry skill, evaluation, and a Go and TypeScript web UI
+* [okf_context_sets](./okf_context_sets/): Push an Open Knowledge Format (OKF) bundle into a Knowledge Catalog context set with kcmd, pull it back, load a matching BigQuery table, and test it in a Gemini Enterprise app
 * [vertex_ai_custom_ml_models](./vertex_ai_custom_ml_models/): Training and deploying custom Machine Learning models on Vertex AI

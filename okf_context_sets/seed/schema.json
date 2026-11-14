@@ -1,0 +1,11 @@
+[
+  {"name": "project_id", "type": "STRING", "mode": "REQUIRED", "description": "Project ID. Same as the entry ID in the context set."},
+  {"name": "title", "type": "STRING", "mode": "REQUIRED", "description": "Project title."},
+  {"name": "description", "type": "STRING", "mode": "NULLABLE", "description": "Short sanitized abstract."},
+  {"name": "topic_tags", "type": "STRING", "mode": "NULLABLE", "description": "Topic tags, separated by semicolons."},
+  {"name": "owner_name", "type": "STRING", "mode": "NULLABLE", "description": "Name of the project site owner."},
+  {"name": "owner_email", "type": "STRING", "mode": "NULLABLE", "description": "Email of the project site owner."},
+  {"name": "status", "type": "STRING", "mode": "REQUIRED", "description": "Project status: active, deprecated, or stale."},
+  {"name": "stale_after", "type": "DATE", "mode": "NULLABLE", "description": "Date after which the abstract needs a review."},
+  {"name": "site_url", "type": "STRING", "mode": "NULLABLE", "description": "URL of the project site."}
+]

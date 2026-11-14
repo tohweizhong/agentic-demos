@@ -1,0 +1,6 @@
+project_id,title,description,topic_tags,owner_name,owner_email,status,stale_after,site_url
+project-borealis,Project Borealis,Fictional battery thermal management research programme.,battery;thermal;research;confidential,Alex Fictional,alex.fictional@example.com,active,,https://example.com/sites/project-borealis
+project-kestrel,Project Kestrel,Fictional motor acoustics study.,motor;acoustics;confidential,Sam Placeholder,sam.placeholder@example.com,active,,https://example.com/sites/project-kestrel
+project-lumen,Project Lumen,Fictional lighting optics prototype. Closed in 2025.,optics;lighting;archived,Jordan Example,jordan.example@example.com,deprecated,,https://example.com/sites/project-lumen
+project-quartzfield,Project Quartzfield,Fictional sensor supply chain review.,sensors;supply-chain;confidential,Riley Mock,riley.mock@example.com,active,,https://example.com/sites/project-quartzfield
+project-tidewater,Project Tidewater,Fictional water filtration pilot.,filtration;pilot;confidential,Casey Sample,casey.sample@example.com,stale,2026-06-30,https://example.com/sites/project-tidewater

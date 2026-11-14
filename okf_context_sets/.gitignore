@@ -1,0 +1,5 @@
+.env
+.tools/
+workspace/
+pulled/
+node_modules/

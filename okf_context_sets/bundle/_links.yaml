@@ -1,0 +1,7 @@
+links:
+  - type: related
+    entries: [project-borealis, project-kestrel]
+  - type: related
+    entries: [project-borealis, project-quartzfield]
+  - type: reference
+    entries: [project-quartzfield, project-lumen]
