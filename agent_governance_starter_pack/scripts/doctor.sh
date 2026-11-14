@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Read-only posture check (backlog item 12). Finds stale grants and missing gateway bindings.
+# Sources: the project allow policy, IAP policy V2 access policies, service
+# account policies, and IAP policy V1 bindings on Agent Registry entries.
 # A stale grant names the principal of an agent that no longer exists.
 #
 #   scripts/doctor.sh --project PROJECT_ID --region REGION
@@ -41,9 +43,27 @@ for sa in $(gcloud iam service-accounts list --project="${PROJECT}" --format="va
   fi
 done
 
+# IAP policy V1 keeps its rules as IAM bindings (roles/iap.egressor) on the IAP
+# resource of each Agent Registry entry (item 19). Read them for mcpServers,
+# endpoints, and agents in the region.
+V1_PRINCIPALS=""
+for kind in mcp-servers endpoints agents; do
+  case "${kind}" in mcp-servers) iap_type="mcpServers" ;; *) iap_type="${kind}" ;; esac
+  for id in $(gcloud agent-registry "${kind}" list --location="${REGION}" --project="${PROJECT}" --format="value(name.basename())" 2>/dev/null); do
+    pol=$(curl "${H[@]}" -X POST -H "Content-Type: application/json" -d '{"options":{"requestedPolicyVersion":3}}' \
+      "https://iap.googleapis.com/v1/projects/${PROJECT}/locations/${REGION}/iap_web/agentRegistry/${iap_type}/${id}:getIamPolicy")
+    p=$(jq -r --arg t "${iap_type}/${id}" '.bindings[]? | .role as $r | .members[]? | select(startswith("principal://") and test("reasoningEngines/")) | "\(.)\tIAP V1 \($r) on \($t)"' <<<"${pol}" 2>/dev/null)
+    if [[ -n "${p}" ]]; then
+      V1_PRINCIPALS+="${p}
+"
+    fi
+  done
+done
+
 PRINCIPALS="$( { jq -r '.bindings[]? | .role as $r | .members[]? | select(test("reasoningEngines/")) | "\(.)\t\($r)"' <<<"${IAM}";
   jq -r '.accessPolicies[]? | (.name | split("/") | last) as $p | .details.rules[]? | .principals[]? | select(test("reasoningEngines/")) | "\(.)\taccess policy \($p)"' <<<"${APOL}";
   [[ -n "${SA_PRINCIPALS}" ]] && echo "${SA_PRINCIPALS}";
+  [[ -n "${V1_PRINCIPALS}" ]] && echo "${V1_PRINCIPALS}";
   } | grep -v '^$' | sort -u || true)"
 
 HAS_GATEWAYS="false"
@@ -64,7 +84,9 @@ while IFS=$'\t' read -r member where; do
 
   if [[ "${code}" == "404" ]]; then
     STALE=$((STALE + 1)); echo "STALE  ${path##*/}  ${where}"
-    if [[ "${where}" == roles/* ]]; then
+    if [[ "${where}" == "IAP V1 "* ]]; then
+      echo "       remove with: getIamPolicy and setIamPolicy on the IAP resource iap_web/agentRegistry/${where##* on } (remove the member)"
+    elif [[ "${where}" == roles/* ]]; then
       echo "       remove with: gcloud projects remove-iam-policy-binding ${PROJECT} --member='${member}' --role='${where}' --condition=None"
     fi
   elif [[ "${code}" == "200" ]]; then
