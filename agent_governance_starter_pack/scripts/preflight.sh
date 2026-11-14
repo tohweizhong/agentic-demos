@@ -127,15 +127,31 @@ CALLER_ROLES="$(echo "${IAM_JSON}" | jq -c --arg caller "${CALLER}" '
 ')"
 HAS_ADMIN_ROLE="$(echo "${CALLER_ROLES}" | jq 'any(. == "roles/owner" or . == "roles/editor")')"
 
-# Check whether the 3 Model Armor roles on any gcp-sa-dep service agent already exist
-EXISTING_MA_ROLES="$(echo "${IAM_JSON}" | jq -c '
+# Check the 3 Model Armor roles on the service agent of THIS egress gateway. Each
+# gateway has its own tenant service agent (service-<TENANT_NUMBER>@gcp-sa-dep).
+# Roles on another gcp-sa-dep service agent (for example from an earlier gateway)
+# do not count (rehearsal problem 39, 12 Nov 2026). Before the gateway exists,
+# the script cannot tell which service agent the gateway will get.
+MA_SERVICE_AGENT="$(gcloud network-services agent-gateways describe "${PREFIX}-egress" --location="${REGION}" --project="${PROJECT}" \
+  --format='value(agentGatewayCard.serviceExtensionsServiceAccount)' 2>/dev/null || true)"
+if [[ -n "${MA_SERVICE_AGENT}" ]]; then
+  EXISTING_MA_ROLES="$(echo "${IAM_JSON}" | jq -c --arg m "serviceAccount:${MA_SERVICE_AGENT}" '
+    [ .bindings[]?
+      | select(.role == "roles/modelarmor.calloutUser" or .role == "roles/modelarmor.user" or .role == "roles/serviceusage.serviceUsageConsumer")
+      | select(.members | index($m))
+      | .role
+    ] | unique
+  ')"
+else
+  EXISTING_MA_ROLES="[]"
+fi
+MA_ROLES_COUNT="$(echo "${EXISTING_MA_ROLES}" | jq 'length')"
+OTHER_SA_DEP_ROLES="$(echo "${IAM_JSON}" | jq -c --arg m "serviceAccount:${MA_SERVICE_AGENT:-none}" '
   [ .bindings[]?
     | select(.role == "roles/modelarmor.calloutUser" or .role == "roles/modelarmor.user" or .role == "roles/serviceusage.serviceUsageConsumer")
-    | select(.members[]? | contains("@gcp-sa-dep.iam.gserviceaccount.com"))
-    | .role
+    | .members[]? | select(contains("@gcp-sa-dep.iam.gserviceaccount.com") and . != $m)
   ] | unique
 ')"
-MA_ROLES_COUNT="$(echo "${EXISTING_MA_ROLES}" | jq 'length')"
 
 # 4. Enabled APIs
 REQUIRED_APIS=(
@@ -283,6 +299,8 @@ REPORT="$(jq -n \
   --argjson drs_legacy_allow_all "${DRS_LEGACY_ALLOW_ALL}" \
   --argjson drs_managed_enforced "${DRS_MANAGED_ENFORCED}" \
   --argjson existing_ma_roles "${EXISTING_MA_ROLES}" \
+  --arg ma_service_agent "${MA_SERVICE_AGENT}" \
+  --argjson other_sa_dep_members "${OTHER_SA_DEP_ROLES}" \
   --argjson ma_roles_count "${MA_ROLES_COUNT}" \
   --argjson needs_ma_roles "${NEEDS_MA_ROLES}" \
   --argjson allow_gmm "${ALLOW_GMM}" \
@@ -317,7 +335,7 @@ REPORT="$(jq -n \
         "Terraform cannot find the ADC file. It is only in $CLOUDSDK_CONFIG (Cloud Shell). Run this in the same shell before terraform or agy: " + $tf_adc_fix
        else empty end),
       (if ($needs_ma_roles and $drs_legacy_restricted and ($ma_roles_count < 3) and ($allow_gmm | not)) then
-        "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent are not all present yet. Choose Approach 1, 2, or 3 in GUIDE Section 3 before terraform apply, or set enable_model_armor = false."
+        "iam.allowedPolicyMemberDomains restricts members and the 3 Model Armor roles on the gcp-sa-dep service agent of the egress gateway are not all present yet (or the gateway does not exist yet). Choose Approach 1, 2, or 3 in GUIDE Section 3 before terraform apply, or set enable_model_armor = false."
        else empty end)
     ];
   def warnings:
@@ -335,7 +353,13 @@ REPORT="$(jq -n \
         (($missing_apis | length | tostring) + " required APIs are not enabled yet. Terraform will enable them during apply.")
        else empty end),
       (if ($drs_legacy_restricted and ($ma_roles_count == 3)) then
-        "iam.allowedPolicyMemberDomains is active, but all 3 Model Armor roles on the gcp-sa-dep service agent are already present."
+        "iam.allowedPolicyMemberDomains is active, but all 3 Model Armor roles on the service agent of the egress gateway (" + $ma_service_agent + ") are already present."
+       else empty end),
+      (if ($needs_ma_roles and ($ma_service_agent == "")) then
+        "The egress gateway does not exist yet, so the script cannot tell which gcp-sa-dep service agent it will use. Roles on other gcp-sa-dep service agents do not count."
+       else empty end),
+      (if ($needs_ma_roles and (($other_sa_dep_members | length) > 0)) then
+        "Model Armor roles exist on other gcp-sa-dep service agents (" + ($other_sa_dep_members | join(", ")) + "). They are not the service agent of this gateway."
        else empty end),
       (if ($tf_state_count == 0 and $log_bucket_state == "ACTIVE") then
         "Log bucket " + $log_bucket_id + " already exists (ACTIVE) while terraform.tfstate is empty. Import it before apply: terraform -chdir=terraform import google_logging_project_bucket_config.audit projects/" + $project + "/locations/" + $region + "/buckets/" + $log_bucket_id
@@ -373,7 +397,9 @@ REPORT="$(jq -n \
       iam_allowedPolicyMemberDomains_restricted: $drs_legacy_restricted,
       iam_allowedPolicyMemberDomains_allow_all: $drs_legacy_allow_all,
       iam_managed_allowedPolicyMembers_enforced: $drs_managed_enforced,
-      existing_model_armor_roles_on_gcp_sa_dep: $existing_ma_roles
+      existing_model_armor_roles_on_gcp_sa_dep: $existing_ma_roles,
+      model_armor_service_agent: (if $ma_service_agent == "" then "unknown (no egress gateway yet)" else $ma_service_agent end),
+      model_armor_roles_on_other_gcp_sa_dep: $other_sa_dep_members
     },
     existing_resources: {
       terraform_state_resource_count: $tf_state_count,
