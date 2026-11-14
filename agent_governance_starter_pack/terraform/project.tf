@@ -143,8 +143,27 @@ resource "google_org_policy_policy" "allow_google_managed_members" {
   depends_on = [google_project_service.this]
 }
 
+# IAM can need minutes to use a new project exception. A fixed 30 s wait was not
+# enough on 12 Nov 2026 (rehearsal problem 40). First wait until the effective
+# policy shows allowAll (up to 10 minutes), then wait org_policy_wait_seconds more.
+resource "terraform_data" "org_policy_effective" {
+  count = var.allow_google_managed_members && var.wait_for_org_policy && var.drs_exception_mode == "allow_all" ? 1 : 0
+
+  triggers_replace = [google_org_policy_policy.allow_google_managed_members[0].etag]
+
+  provisioner "local-exec" {
+    command = join("", [
+      "for i in $(seq 1 60); do ",
+      "if gcloud org-policies describe iam.allowedPolicyMemberDomains --project=${var.project_id} --effective --format=json 2>/dev/null | grep -q '\"allowAll\": true'; then ",
+      "echo 'Effective policy has allowAll.'; exit 0; fi; ",
+      "echo 'Waiting for the project exception to become effective...'; sleep 10; done; ",
+      "echo 'The project exception is not effective after 10 minutes.' >&2; exit 1",
+    ])
+  }
+}
+
 resource "time_sleep" "org_policy_ready" {
   count           = var.allow_google_managed_members ? 1 : 0
-  create_duration = "30s"
-  depends_on      = [google_org_policy_policy.allow_google_managed_members]
+  create_duration = "${var.org_policy_wait_seconds}s"
+  depends_on      = [google_org_policy_policy.allow_google_managed_members, terraform_data.org_policy_effective]
 }

@@ -55,6 +55,8 @@ variables {
   iap_enforcement_mode         = "DRY_RUN"
   allow_google_managed_members = false
   authz_fail_open              = false
+  # Never call gcloud from a test.
+  wait_for_org_policy = false
 }
 
 run "dry_run_mode_sets_the_dry_run_field" {
@@ -309,6 +311,11 @@ run "drs_exception_allow_all_by_default" {
   assert {
     condition     = google_org_policy_policy.allow_google_managed_members[0].spec[0].rules[0].allow_all == "TRUE"
     error_message = "The default project exception must be allow_all (the tested mode)."
+  }
+
+  assert {
+    condition     = time_sleep.org_policy_ready[0].create_duration == "120s"
+    error_message = "The wait after the project exception must be 120 s by default (30 s was not enough on 12 Nov 2026)."
   }
 }
 

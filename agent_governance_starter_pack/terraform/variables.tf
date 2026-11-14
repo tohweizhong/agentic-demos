@@ -121,6 +121,18 @@ variable "model_armor_egress_scope" {
   }
 }
 
+variable "org_policy_wait_seconds" {
+  description = "Seconds to wait after the project exception to domain restricted sharing is effective, before Terraform grants the 3 Model Armor roles."
+  type        = number
+  default     = 120
+}
+
+variable "wait_for_org_policy" {
+  description = "Poll gcloud until the project exception shows allowAll in the effective policy. Tests set false."
+  type        = bool
+  default     = true
+}
+
 variable "model_armor_policy_file" {
   description = "Path to the Model Armor settings file. Empty means ../policies/model_armor.yaml. Tests use another file."
   type        = string
