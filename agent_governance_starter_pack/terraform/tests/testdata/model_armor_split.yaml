@@ -1,0 +1,28 @@
+# Test file for separate request and response settings (backlog item 38).
+enforcement_type: INSPECT_AND_BLOCK
+
+prompt_injection_and_jailbreak:
+  enforcement: ENABLED
+  confidence_level: MEDIUM_AND_ABOVE
+
+malicious_uri:
+  enforcement: ENABLED
+
+sensitive_data_protection_basic:
+  enforcement: ENABLED
+
+responsible_ai:
+  - filter_type: DANGEROUS
+    confidence_level: MEDIUM_AND_ABOVE
+
+request:
+  prompt_injection_and_jailbreak:
+    enforcement: ENABLED
+    confidence_level: HIGH
+  sensitive_data_protection_basic:
+    enforcement: DISABLED
+
+response:
+  responsible_ai:
+    - filter_type: HARASSMENT
+      confidence_level: LOW_AND_ABOVE

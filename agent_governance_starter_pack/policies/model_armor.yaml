@@ -6,7 +6,16 @@
 # Mode:   enforcement_type. INSPECT_ONLY logs the finding and does not block.
 #
 # Terraform uses these settings for two templates: one for requests and one for
-# responses.
+# responses. To give one side different settings, add an optional request: or
+# response: section with the keys to change. A missing section uses the shared
+# settings. malicious_uri is shared only. Example:
+#
+# response:
+#   sensitive_data_protection_basic:
+#     enforcement: ENABLED
+# request:
+#   sensitive_data_protection_basic:
+#     enforcement: DISABLED
 
 enforcement_type: INSPECT_AND_BLOCK
 

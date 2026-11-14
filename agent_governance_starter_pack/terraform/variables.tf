@@ -121,6 +121,12 @@ variable "model_armor_egress_scope" {
   }
 }
 
+variable "model_armor_policy_file" {
+  description = "Path to the Model Armor settings file. Empty means ../policies/model_armor.yaml. Tests use another file."
+  type        = string
+  default     = ""
+}
+
 variable "trace_message_content" {
   description = "Record the prompt, response, and tool argument text in the agent spans in Cloud Trace. Off by default, because the text can hold personal data."
   type        = bool

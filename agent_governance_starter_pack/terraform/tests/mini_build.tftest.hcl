@@ -450,3 +450,31 @@ run "egress_scope_rejects_unknown_value" {
 
   expect_failures = [var.model_armor_egress_scope]
 }
+
+run "model_armor_request_and_response_sections" {
+  command = apply
+
+  variables {
+    model_armor_policy_file = "tests/testdata/model_armor_split.yaml"
+  }
+
+  assert {
+    condition     = google_model_armor_template.this["request"].filter_config[0].pi_and_jailbreak_filter_settings[0].confidence_level == "HIGH"
+    error_message = "The request section must override the prompt injection confidence level."
+  }
+
+  assert {
+    condition     = google_model_armor_template.this["response"].filter_config[0].pi_and_jailbreak_filter_settings[0].confidence_level == "MEDIUM_AND_ABOVE"
+    error_message = "The response template must keep the shared prompt injection settings."
+  }
+
+  assert {
+    condition     = google_model_armor_template.this["request"].filter_config[0].sdp_settings[0].basic_config[0].filter_enforcement == "DISABLED" && google_model_armor_template.this["response"].filter_config[0].sdp_settings[0].basic_config[0].filter_enforcement == "ENABLED"
+    error_message = "Sensitive data protection must be off for requests and on for responses in the test file."
+  }
+
+  assert {
+    condition     = google_model_armor_template.this["response"].filter_config[0].rai_settings[0].rai_filters[0].filter_type == "HARASSMENT" && google_model_armor_template.this["request"].filter_config[0].rai_settings[0].rai_filters[0].filter_type == "DANGEROUS"
+    error_message = "The response section must replace the responsible AI filters only for responses."
+  }
+}

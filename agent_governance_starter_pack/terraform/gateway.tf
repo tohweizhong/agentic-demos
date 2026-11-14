@@ -25,7 +25,15 @@ locals {
     name_prefix = var.name_prefix
   }))
 
-  model_armor = yamldecode(file("${path.module}/../policies/model_armor.yaml"))
+  model_armor = yamldecode(file(var.model_armor_policy_file != "" ? var.model_armor_policy_file : "${path.module}/../policies/model_armor.yaml"))
+  # Optional request: and response: sections override the shared settings for one
+  # template (backlog item 38). A missing section uses the shared settings.
+  # malicious_uri is shared only, because the region decides if it is supported.
+  model_armor_shared = { for k, v in local.model_armor : k => v if !contains(["request", "response"], k) }
+  model_armor_side = {
+    request  = merge(local.model_armor_shared, try(local.model_armor.request, {}))
+    response = merge(local.model_armor_shared, try(local.model_armor.response, {}))
+  }
 
   # IAP enforces when iamEnforcementMode is not set. Only DRY_RUN changes it.
   iap_extension_metadata = merge(
@@ -192,8 +200,8 @@ resource "google_model_armor_template" "this" {
 
   filter_config {
     pi_and_jailbreak_filter_settings {
-      filter_enforcement = local.model_armor.prompt_injection_and_jailbreak.enforcement
-      confidence_level   = local.model_armor.prompt_injection_and_jailbreak.confidence_level
+      filter_enforcement = local.model_armor_side[each.key].prompt_injection_and_jailbreak.enforcement
+      confidence_level   = local.model_armor_side[each.key].prompt_injection_and_jailbreak.confidence_level
     }
 
     # Some regions (for example asia-southeast1) reject this field, also with
@@ -207,13 +215,13 @@ resource "google_model_armor_template" "this" {
 
     sdp_settings {
       basic_config {
-        filter_enforcement = local.model_armor.sensitive_data_protection_basic.enforcement
+        filter_enforcement = local.model_armor_side[each.key].sensitive_data_protection_basic.enforcement
       }
     }
 
     rai_settings {
       dynamic "rai_filters" {
-        for_each = local.model_armor.responsible_ai
+        for_each = local.model_armor_side[each.key].responsible_ai
         content {
           filter_type      = rai_filters.value.filter_type
           confidence_level = rai_filters.value.confidence_level
@@ -223,7 +231,7 @@ resource "google_model_armor_template" "this" {
   }
 
   template_metadata {
-    enforcement_type = local.model_armor.enforcement_type
+    enforcement_type = local.model_armor_side[each.key].enforcement_type
   }
 
   depends_on = [google_project_service.this]
