@@ -169,9 +169,14 @@ def rows_for_trace(tid):
         elif name.startswith("execute_tool"):
             tool = lab.get("gen_ai.tool.name", name.split(" ", 1)[-1])
             resp = lab.get("gcp.vertex.agent.tool_response", "")
-            failed = '"error"' in resp
             below = descendants(s["spanId"])
             reached = any(d["name"] in ("Request Path", "/mcp") or d["name"].startswith("tools/call") for d in below)
+            # With trace_message_content = false (default), the span has no tool
+            # response. Then a client "MCP send tools/call" span with no gateway or
+            # MCP server span below it shows that the call did not reach the server
+            # (live, 14 Nov 2026: an IAP ENFORCE denial).
+            sent = any(d["name"].startswith("MCP send tools/call") for d in below)
+            failed = '"error"' in resp or (not resp and sent and not reached)
             if failed and not reached:
                 result = "NO_DOWNSTREAM"
                 detail = "Error, and no gateway or MCP span below it. Check the gateway log for a 403. " + short(resp, 60)
