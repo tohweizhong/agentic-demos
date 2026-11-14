@@ -83,6 +83,23 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
         name  = "MODEL_LOCATION"
         value = var.model_location
       }
+      # Cloud Trace export (adk api_server --trace_to_cloud). Without an explicit
+      # project, the export failed with INVALID_ARGUMENT "Invalid project id in
+      # name!" (rehearsal problem 38, 12 Nov 2026).
+      env {
+        name  = "GOOGLE_CLOUD_PROJECT"
+        value = var.project_id
+      }
+      # Do not put prompt, response, or tool argument text in the spans unless the
+      # owner turns it on. ADK records the text by default.
+      env {
+        name  = "ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS"
+        value = var.trace_message_content ? "true" : "false"
+      }
+      env {
+        name  = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
+        value = var.trace_message_content ? "true" : "false"
+      }
       # The Dockerfile installs the gateway root CA and sets SSL_CERT_FILE,
       # REQUESTS_CA_BUNDLE, and GRPC_DEFAULT_SSL_ROOTS_FILE_PATH.
     }
