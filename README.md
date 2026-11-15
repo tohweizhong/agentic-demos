@@ -44,8 +44,6 @@ Self-contained demos, starter packs, utilities, and codelabs for Gemini Enterpri
 ## Earlier Samples and Notebooks
 
 * [adk_101](./adk_101/): ADK 101 training notebook for Vertex AI Workbench.
-* [adk_cloud_run](./adk_cloud_run/): Quickstart notes for deploying an ADK agent to Google Cloud Run.
-* [deep_research](./deep_research/): Prototyping the Gemini Deep Research and Interactions API.
 * [doc_ai](./doc_ai/): Sample notebook and test PDFs for Vertex AI Document AI.
 * [gemini_supervised_fine_tuning](./gemini_supervised_fine_tuning/): Jupyter Notebook for Gemini Supervised Fine-Tuning (SFT).
 * [gemini_transcription](./gemini_transcription/): Real-time audio transcription and streaming with the Gemini Multimodal Live API.
