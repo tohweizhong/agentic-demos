@@ -247,7 +247,9 @@ constraint has no exception for one principal
 ([Domain-restricted sharing](https://docs.cloud.google.com/organization-policy/domain-restricted-sharing)).
 A project-level `iam.allowedPolicyMemberDomains` exception is necessary while the organization uses
 this constraint. The exception can add only the Google customer ID `is:C02h8e9nw`, which owns the
-tenant service agents. It does not need `allowAll`. A project-level
+tenant service agents. It does not need `allowAll`. While the exception is active, it admits
+all `google.com` identities to IAM grants on the project, not only the service agent. Remove it
+as soon as the 3 grants exist. A project-level
 `iam.managed.allowedPolicyMembers` policy does not help while the organization uses the legacy
 constraint, because IAM checks both constraints.
 
