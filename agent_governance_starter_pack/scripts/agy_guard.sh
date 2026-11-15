@@ -3,13 +3,11 @@
 # run_command call, sends the tool call as JSON on stdin, and reads one JSON
 # decision from stdout: {"decision":"deny|ask|auto_approve|force_ask","reason":"..."}.
 # agy runs the hook from the folder that holds hooks.json (.agents/), through sh -c.
-# "allow" is a no-op in agy; "auto_approve" skips a default prompt only
-# (hooks_pb/hooks.proto:205 and :223, checked 09 Nov 2026).
+# "allow" is a no-op in agy; "auto_approve" skips a default prompt only.
 #
 # Why a hook: agy reads permission rules only from user-level files
 # (~/.gemini/antigravity-cli/settings.json and ~/.gemini/config/). A workspace
-# cannot ship permission rules, but it can ship .agents/hooks.json. Source:
-# third_party/jetski/cortex/customization/hooks/jsonhook/SPEC.md (checked 09 Nov 2026).
+# cannot ship permission rules, but it can ship .agents/hooks.json.
 #
 # The hook checks the full command line, so it also catches commands behind
 # "cd ... &&", pipes, "bash -c", "eval", and "sudo".

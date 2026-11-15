@@ -4,12 +4,12 @@ This repository contains the code and configuration for building a secure MCP se
 
 ## Project Structure
 
-*   **[mcp-on-cloudrun/](file:///usr/local/google/home/weizhongt/coding/agentic-demos/adk_mcp_explainer/mcp-on-cloudrun/)**: The secure MCP Server components.
+*   **[mcp-on-cloudrun/](mcp-on-cloudrun/)**: The secure MCP Server components.
     *   `server.py`: FastMCP server exposing tools and prompts.
     *   `pyproject.toml`: Toml config with `fastmcp` dependencies.
     *   `Dockerfile`: Multi-stage Docker config for Cloud Run deployment.
-*   **[agent.py](file:///usr/local/google/home/weizhongt/coding/agentic-demos/adk_mcp_explainer/agent.py)**: The ADK Client Agent script, implementing a Zoo Tour Guide.
-*   **[EXPLAINER.md](file:///usr/local/google/home/weizhongt/coding/agentic-demos/adk_mcp_explainer/EXPLAINER.md)**: A comprehensive guide detailing the low-level mechanics of all components, written with both deep technical details and simple ELI5 explanations.
+*   **[agent.py](agent.py)**: The ADK Client Agent script, implementing a Zoo Tour Guide.
+*   **[EXPLAINER.md](EXPLAINER.md)**: A comprehensive guide detailing the low-level mechanics of all components, written with both deep technical details and simple ELI5 explanations.
 
 ## Reference Codelabs
 

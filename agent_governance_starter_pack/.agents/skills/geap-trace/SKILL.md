@@ -24,8 +24,7 @@ API v1 in the project from `terraform output project_id`.
    | A request for machine-readable output | Add `--json` |
 
 3. If the script prints `TRACE: NOT_APPLICABLE` (exit 3), stop. Tell the user that the agent does not
-   send spans to Cloud Trace, so no trace evidence exists. For the starter pack agent, the span export
-   fails today (backlog item 36). Use `scripts/read_audit_log.sh` for the gateway evidence. If the script prints
+   send spans to Cloud Trace, so no trace evidence exists. Use `scripts/read_audit_log.sh` for the gateway evidence. If the script prints
    `TRACE: NOT_FOUND`, check the session ID with the user, or wait 1 to 2 minutes and run it again.
 4. Read the rows and the summary line. Use this table:
 
@@ -41,7 +40,7 @@ API v1 in the project from `terraform output project_id`.
 5. For each `NO_DOWNSTREAM` row, confirm the denial. Run `scripts/read_audit_log.sh 1h`, or a
    longer window that covers the row time. Look for a gateway row with status `403`.
    - IAP policy V1 writes the `403 DENIED` row to the gateway request log.
-   - IAP policy V2 does not write this row (b/583376130). If there is no row, say that the denial
+   - IAP policy V2 does not write this row (known product limitation). If there is no row, say that the denial
      is probable but not confirmed in the logs.
 6. Report to the user:
    - The number of traces and tool calls.

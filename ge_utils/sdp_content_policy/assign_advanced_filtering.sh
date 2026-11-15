@@ -24,7 +24,7 @@ curl -X PATCH \
   "name": "projects/${PROJECT_ID}/locations/${LOCATION}/collections/${COLLECTION_ID}/dataConnector",
   "params": {
     "structured_search_filter": {
-      "Path": ["https://weizhongt.sharepoint.com/sites/sharepoint-site-demo1"],
+      "Path": ["https://contoso.sharepoint.com/sites/sharepoint-site-demo1"],
       "IsDocument": ["1"],
       "-InformationProtectionLabelId": ["${MSIP_LABEL_GUID}"]
     }

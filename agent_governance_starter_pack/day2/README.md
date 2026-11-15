@@ -17,22 +17,20 @@ over. The Day-2 pack covers the weeks after the handover.
 - Its skills go in the existing [`.agents/skills/`](../.agents/skills/) folder. The same
   [`AGENTS.md`](../AGENTS.md) safety rules apply.
 - It has the same version as the starter pack.
-- The plan for each tool is a backlog item in the one conductor product
-  ([`conductor/product.md`](../conductor/product.md#backlog)). There is no second product.
 
 ## Day-2 tools
 
 | Tool | Question that the tool answers | Backlog item | Status |
 |---|---|---|---|
-| Posture check | Does each live agent have its gateway bindings, IAM grants, and IAP rules? Do IAM grants remain for agents that are deleted? | [#12](../conductor/product.md#backlog) | Built (`scripts/doctor.sh`, `.agents/skills/geap-doctor/SKILL.md`) |
-| Promotion readiness | Which agent principals and tools will the IAP policy block when the mode changes from `DRY_RUN` to `ENFORCE`? | [#13](../conductor/product.md#backlog) | Built (`scripts/check_promotion.sh`) |
-| Agent onboarding | What Terraform block, IAM grants, and `DRY_RUN` IAP rule does a new agent need? | [#14](../conductor/product.md#backlog) | Built (`scripts/onboard_agent.sh`, `.agents/skills/geap-onboard-agent/SKILL.md`) |
-| Tool policy check | Does each MCP tool that is not read-only have an explicit rule in the IAP access policy? | [#15](../conductor/product.md#backlog) | Built (`scripts/check_tool_policy.sh`) |
-| Emergency quarantine | How do I stop one agent now, without a change to the shared gateways or to other agents? | [#16](../conductor/product.md#backlog) | Built (`scripts/quarantine_agent.sh`) |
-| Principal access boundary for agents | Which resources can the agents of one project get access to, whatever their IAM grants are? | [#24](../conductor/product.md#backlog) | Built (`policies/principal_access_boundary.example.yaml`, `runbooks/principal_access_boundary.md`). Not tested live at org level |
-| Governance dashboard | How many calls did Model Armor block, which gateway status codes occur, and what is the MCP server latency? | [#21](../conductor/product.md#backlog) | Built (`policies/geap_dashboard.json`) |
-| CI checks | Does a pull request pass format, validation, tests, and the tool policy check? | [#19](../conductor/product.md#backlog) | Built (`pipelines/github-actions-pr-check.yaml`, `pipelines/cloudbuild-pr-check.yaml`) |
-| Remote Terraform state | Is the Terraform state in a versioned bucket that the whole team can use? | [#20](../conductor/product.md#backlog) | Built (`scripts/init_remote_state.sh`) |
+| Posture check | Does each live agent have its gateway bindings, IAM grants, and IAP rules? Do IAM grants remain for agents that are deleted? | #12 | Built (`scripts/doctor.sh`, `.agents/skills/geap-doctor/SKILL.md`) |
+| Promotion readiness | Which agent principals and tools will the IAP policy block when the mode changes from `DRY_RUN` to `ENFORCE`? | #13 | Built (`scripts/check_promotion.sh`) |
+| Agent onboarding | What Terraform block, IAM grants, and `DRY_RUN` IAP rule does a new agent need? | #14 | Built (`scripts/onboard_agent.sh`, `.agents/skills/geap-onboard-agent/SKILL.md`) |
+| Tool policy check | Does each MCP tool that is not read-only have an explicit rule in the IAP access policy? | #15 | Built (`scripts/check_tool_policy.sh`) |
+| Emergency quarantine | How do I stop one agent now, without a change to the shared gateways or to other agents? | #16 | Built (`scripts/quarantine_agent.sh`) |
+| Principal access boundary for agents | Which resources can the agents of one project get access to, whatever their IAM grants are? | #24 | Built (`policies/principal_access_boundary.example.yaml`, `runbooks/principal_access_boundary.md`). Not tested live at org level |
+| Governance dashboard | How many calls did Model Armor block, which gateway status codes occur, and what is the MCP server latency? | #21 | Built (`policies/geap_dashboard.json`) |
+| CI checks | Does a pull request pass format, validation, tests, and the tool policy check? | #19 | Built (`pipelines/github-actions-pr-check.yaml`, `pipelines/cloudbuild-pr-check.yaml`) |
+| Remote Terraform state | Is the Terraform state in a versioned bucket that the whole team can use? | #20 | Built (`scripts/init_remote_state.sh`) |
 
 ### Principal access boundary for agents
 

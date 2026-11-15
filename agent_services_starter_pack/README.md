@@ -1,10 +1,5 @@
 # Agent services starter pack
 
-> [!NOTE]
-> Draft. The scope is a proposal. It is not agreed. All three samples passed a live test on Agent
-> Runtime in `asia-southeast1` on 10 Nov 2026. The results are in
-> [conductor/product.md](conductor/product.md#check-results-step-6-10-nov-2026).
-
 The agent services starter pack is a set of ADK sample code for three Gemini Enterprise Agent
 Platform services: **Sessions**, **Memory Bank**, and **observability** (ADK with OpenTelemetry).
 One small ADK agent runs on Agent Runtime in `asia-southeast1`. Three sample scripts show each
@@ -114,7 +109,3 @@ requirements").
 .venv/bin/pip install -r requirements-dev.txt
 .venv/bin/python -m pytest
 ```
-
-## More detail
-
-The decisions, the sources, and the open items are in [conductor/product.md](conductor/product.md).

@@ -247,3 +247,6 @@ ge_utils/sdp_content_policy/*.pdf
 
 # Remote state backend written by scripts/init_remote_state.sh (names the project)
 agent_governance_starter_pack/terraform/backend.tf
+
+# Local agent planning scaffolding (keep on disk, do not publish on GitHub)
+**/conductor/

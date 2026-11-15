@@ -343,8 +343,7 @@ managed_agents_api/
 ├── src/managed_agents_demo/ # The code that the scripts and the notebook use.
 ├── tests/                   # Unit tests. They do not call the network.
 ├── webui/                   # Go backend and TypeScript frontend for a local web UI.
-├── notebook.ipynb
-└── conductor/               # The spec, the plan, and the decision log for this demo.
+└── notebook.ipynb
 ```
 
 ## Tests

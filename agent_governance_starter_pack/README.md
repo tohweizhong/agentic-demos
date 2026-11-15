@@ -1,15 +1,11 @@
 # Agent governance starter pack
 
-> [!NOTE]
-> Draft. The scope is a proposal. It is not agreed.
-
 The agent governance starter pack is the governed platform on Gemini Enterprise Agent Platform
 (GEAP) that a customer receives on handover day. Agents
 from an agent factory run on it with the controls on: Agent Identity, Agent Registry, an egress
 Agent Gateway, and audit logs.
 
-This folder holds the **mini build**. The mini build proves the pattern in one new or existing
-project. The product definition is in [conductor/product.md](conductor/product.md).
+This folder holds the reference build. It proves the pattern in one new or existing project.
 
 ## What is in the starter pack
 
@@ -107,7 +103,7 @@ variable values for each tier.
 
 ![Agent governance starter pack tiers](images/governance_tiers.svg)
 
-The pyramid shows two paths. The vertical path adds one control for each tier. The lateral path (left, built with `geap-discover`, `geap-adopt`, `existing_mcp_servers`, `existing_agent_principals`, and `scripts/bind_existing_agent.sh`) brings the agents, MCP servers, and clients that already exist in the project under the same control. See the [lateral paths track](conductor/tracks/existing_project_adoption_20261109/index.md).
+The pyramid shows two paths. The vertical path adds one control for each tier. The lateral path (left, built with `geap-discover`, `geap-adopt`, `existing_mcp_servers`, `existing_agent_principals`, and `scripts/bind_existing_agent.sh`) brings the agents, MCP servers, and clients that already exist in the project under the same control. See [GUIDE.md](GUIDE.md) Section 4.
 
 
 | Tier | Name | GEAP Services | Terraform Variable | Key Behavior |

@@ -121,11 +121,10 @@ resource "google_org_policy_policy" "allow_google_managed_members" {
   # Two modes (see GUIDE Section 3):
   # - google_customer_id (default): keep the parent allow list and add
   #   is:C02h8e9nw, the Google customer ID that owns tenant-project service
-  #   agents. This is the go/argolis-tips guidance. Live test on 14 Nov 2026:
-  #   IAM accepted the grants 55 to 85 s after the override (4 runs). A made-up
-  #   customer ID did not let them through in 300 s.
+  #   agents. IAM accepts the grants 55 to 85 s after the override. A made-up
+  #   customer ID does not let them through.
   # - allow_all: allow all members on the project for the time of the grant.
-  #   Live test on 14 Nov 2026: IAM accepted the grants after 77 to 78 s (3 runs).
+  #   IAM accepts the grants about 80 s after the override.
   # Set allow_google_managed_members back to false and apply again after the three
   # Model Armor roles exist.
   spec {

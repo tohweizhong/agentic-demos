@@ -164,7 +164,7 @@ variable "allow_google_managed_members" {
 }
 
 variable "drs_exception_mode" {
-  description = "How the project exception to iam.allowedPolicyMemberDomains works when allow_google_managed_members is true. google_customer_id (default): keep the parent allow list and add drs_exception_allowed_values (is:C02h8e9nw). allow_all: allow all members on the project. Both modes let the grants through after about 80 s (live test, 14 Nov 2026)."
+  description = "How the project exception to iam.allowedPolicyMemberDomains works when allow_google_managed_members is true. google_customer_id (default): keep the parent allow list and add drs_exception_allowed_values (is:C02h8e9nw). allow_all: allow all members on the project. Both modes let the grants through after about 80 s."
   type        = string
   default     = "google_customer_id"
 
