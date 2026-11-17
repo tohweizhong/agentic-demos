@@ -30,6 +30,7 @@ Self-contained demos, starter packs, utilities, and codelabs for Gemini Enterpri
   * [ge_list_agents](./ge_utils/ge_list_agents/): Gemini Enterprise agent lister and identity resolver.
   * [sdp_content_policy](./ge_utils/sdp_content_policy/): Scripts for managing Sensitive Data Protection content policies on data stores.
   * [ge_wif_scim_check](./ge_utils/ge_wif_scim_check/): Script to check a Workforce Identity Federation pool for SCIM tenants and provider attribute mappings.
+  * [ge_connector_iam_test](./ge_utils/ge_connector_iam_test/): Repeatable test of connector-level IAM for a Custom MCP connector in classic Gemini Enterprise, with a Go MCP server.
 
 ## Codelabs
 

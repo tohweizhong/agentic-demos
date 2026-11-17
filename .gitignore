@@ -237,6 +237,7 @@ Thumbs.db
 
 # Go binaries and local prober artifacts
 ge_utils/ge-prober/ge-prober
+ge_utils/ge_connector_iam_test/mcp_server/iamtest-mcp
 smoke_prober_results.json
 .agents/
 !agent_governance_starter_pack/.agents/
