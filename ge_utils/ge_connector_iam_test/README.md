@@ -62,7 +62,7 @@ The order is important. Give all grants first. Swap the project role last.
 
 | Step | Action | Effect for users |
 |---|---|---|
-| a | List every app and every connector in the location. The toggle applies to all apps and data stores in one location of the project. Use Google groups, not single users. | None |
+| a | List every app and every connector in the project. The console toggle applies to every multi-region where the project is configured. The REST call applies to one multi-region for each call. Use Google groups, not single users. | None **[Documented]** |
 | b | Do this test in a separate project first, with the scripts in this folder. | None |
 | c | Create the custom role `customRestrictedEndUser` with the two permissions in [section 1](#1-answer). | None |
 | d | Give `agentspaceUser` to the all-users group on the app and on every existing connector. For a connector with entities, give the role on the collection and on every entity data store. | None |
@@ -73,8 +73,8 @@ The order is important. Give all grants first. Swap the project role last.
 | i | Rollback: swap the project role back to `agentspaceRestrictedUser`. | Expected to restore access to all connectors **[Inference, not timed]** |
 
 > [!NOTE]
-> The test gave roles to one user directly. Grants to Google groups are expected to work the same
-> way, because IAM treats group membership as a member of the binding. **[Inference]**
+> The documentation lets you add a user or a group on the app and on the data store.
+> **[Documented]** The test gave roles to one user directly. It did not test a group.
 
 ### 2.3 Things that cancel the control
 
@@ -82,19 +82,24 @@ The control does not hide a connector from a user who holds one of these roles a
 This applies to a direct grant and to a grant to a group that the user is in.
 
 - [ ] Any predefined Discovery Engine role, for example `agentspaceRestrictedUser`,
-  `agentspaceUser`, or `agentspaceAdmin`.
-- [ ] Owner (`roles/owner`).
-- [ ] Editor (`roles/editor`).
+  `agentspaceUser`, or `agentspaceAdmin`. **[Documented]**
+- [ ] Owner (`roles/owner`), Editor (`roles/editor`), or Viewer (`roles/viewer`). These basic
+  roles include `discoveryengine.dataStores.get` and `discoveryengine.collections.get`, so the
+  resource-level check passes. **[Verified from the role permissions, not tested in the web app]**
 
-Admins keep full access, because they hold one of these roles. **[Documented]** The test showed
-this for `agentspaceRestrictedUser` only. **[Tested]**
+The test showed the effect for `agentspaceRestrictedUser` only. **[Tested]** Admins with one of
+these roles keep access to all connectors.
 
 ### 2.4 Reminders
 
 - Enable the MCP tools after setup. Open the data store, then **Actions** > **Reload custom
   actions**, then enable each tool. The API does not do this. **[Tested]**
 - Refresh the web app page after a change. An open page can show an old connector list.
-  **[Tested]**
+  **[Tested]** The documentation also says to sign out and sign in again, or to use a private
+  window, after an IAM change. **[Documented]**
+- Wait about 5 minutes after you turn on the toggle or swap the role. The documentation gives
+  about 5 minutes for the toggle. The role swap took about 5 minutes in the test. **[Documented,
+  Tested]**
 - The managed organization policy constraint
   `discoveryengine.managed.disableCustomMcpServerConnector` can block Custom MCP connectors.
   Check it before you start. **[Tested]**
@@ -126,9 +131,10 @@ it took effect. So the toggle was active in round 1, and the predefined role cau
 
 - After the role swap, a user loses every connector that has no grant for that user. Plan the
   grants for all existing connectors before the swap. See [section 2.2](#22-safe-order-of-steps).
-- Project-level predefined Discovery Engine roles, Owner, and Editor cancel the control. A user
-  with one of these roles sees all connectors.
-- The toggle applies to all apps and data stores in one location of the project.
+- Project-level predefined Discovery Engine roles, and the basic roles Owner, Editor, and Viewer,
+  cancel the control. A user with one of these roles sees all connectors.
+- The console toggle applies to every multi-region where the project is configured. The REST
+  call applies to one multi-region for each call.
 
 ## 5. Steps
 
