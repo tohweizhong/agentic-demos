@@ -46,23 +46,35 @@ connector.
 
 ### 1.3 Who sees what
 
+Each arrow is a role that you give to a group. A solid arrow is a role on one resource. A dotted
+arrow shows what a project role already covers.
+
+**Today, with the switch on or off**
+
 ```mermaid
 flowchart LR
-  subgraph Today["Today: Restricted User role"]
-    U1["All users"] --> A1["App"]
-    A1 --> D1["Existing connectors"]
-    A1 --> M1["MCP connector"]
-  end
-  subgraph After["After the change"]
-    U2["All users"] --> A2["App"]
-    A2 --> D2["Existing connectors"]
-    G2["Restricted group"] --> M2["MCP connector"]
-  end
+  AU["All users group"] -->|"Project role: agentspaceRestrictedUser"| PROJ["Project"]
+  AU -->|"agentspaceUser"| APP["App"]
+  PROJ -.->|"Role covers every connector"| EX["Existing connectors: visible to all users"]
+  PROJ -.->|"Role covers every connector"| MCP["MCP connector: visible to all users"]
 ```
 
-- **Today:** all users see all connectors, also after you turn on the access control switch.
-- **After the change:** all users still see the existing connectors. Only the restricted group
-  sees the MCP connector.
+**After the change, with the switch on**
+
+```mermaid
+flowchart LR
+  AU["All users group"] -->|"Project role: customRestrictedEndUser (sign-in only)"| PROJ["Project"]
+  AU -->|"agentspaceUser"| APP["App"]
+  AU -->|"agentspaceUser"| EX["Existing connectors: visible to all users"]
+  RG["Restricted group"] -->|"agentspaceUser"| MCP["MCP connector: visible to the restricted group only"]
+```
+
+- **Today:** `agentspaceRestrictedUser` gives read access to every connector in the project. So
+  all users see all connectors, also after you turn on the access control switch.
+- **After the change:** `customRestrictedEndUser` gives no connector access. Each user sees only
+  the connectors where the user's group has `agentspaceUser`.
+- The members of the restricted group are also in the all users group. So they get the app and
+  the existing connectors from that group.
 
 ### 1.4 Does the switch affect my other connectors?
 
