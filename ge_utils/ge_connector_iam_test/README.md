@@ -250,6 +250,51 @@ The organization policy for MCP connectors, set to **Not enforced** for one proj
 
 ![Organization policy for MCP connectors, not enforced](assets/14_org_policy_custom_mcp_not_enforced.png)
 
+### 2.5 Check the roles that your connectors have today
+
+Do this check before step 4. With app-level access control only, your connectors probably have no
+roles yet. Then the result shows only an `etag`.
+
+**In the console:** Gemini Enterprise > **Data stores** > open a connector > **User permissions**.
+The tab lists the roles given directly on that connector. It does not show roles from the project
+IAM policy. **[Tested]**
+
+**With commands:**
+
+| To see | Command |
+|---|---|
+| The connectors (data stores) of an app | `GET .../engines/APP_ID`, field `dataStoreIds` |
+| The roles on one data store | `GET .../dataStores/DATA_STORE_ID:getIamPolicy` |
+| The roles on a third-party connector (for example SharePoint, Jira, or a custom MCP connector) | `GET .../collections/COLLECTION_ID:getIamPolicy`, and the same call on each of its data stores |
+| The roles at project level | `gcloud projects get-iam-policy PROJECT_ID` |
+
+```bash
+H=(-H "Authorization: Bearer $(gcloud auth print-access-token)" -H "x-goog-user-project: PROJECT_ID")
+B="https://discoveryengine.googleapis.com/v1/projects/PROJECT_ID/locations/global/collections"
+
+# The connectors (data stores) of an app
+curl -s "${H[@]}" "$B/default_collection/engines/APP_ID" | jq .dataStoreIds
+
+# The roles on one data store
+curl -s "${H[@]}" "$B/default_collection/dataStores/DATA_STORE_ID:getIamPolicy"
+
+# The roles on a third-party connector collection
+curl -s "${H[@]}" "$B/COLLECTION_ID:getIamPolicy"
+```
+
+The two `getIamPolicy` calls were used in the test. **[Tested]**
+
+### 2.6 Give a role in the console or with the API
+
+You do not need the API. The console is enough.
+
+| Method | How | Status |
+|---|---|---|
+| Console | Gemini Enterprise > **Data stores** > open the connector > **User permissions** > **Add user**. Enter the group email, select the role **User**, and save. The documentation says that a role given in the console on a data store also applies to its parts (entities). | **[Documented]**. The test gave roles with the API. |
+| API | Call `getIamPolicy`, add your binding to the existing bindings, then call `setIamPolicy` with the `etag`. `setIamPolicy` replaces the whole policy. With the API, give the role on the collection and on every entity data store. | **[Tested]** |
+
+The scripts in Part 4 use the API method. `lib.sh` keeps the existing bindings.
+
 ## Part 3. Test results
 
 Test on 17 Nov 2026, classic Gemini Enterprise, location `global`. The test user had no other
