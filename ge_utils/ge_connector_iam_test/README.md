@@ -133,6 +133,13 @@ flowchart TD
 | 8 | Users must refresh the web page to see the new connector list | — |
 | Undo | Give the Restricted User role back. All connectors come back. | Not timed |
 
+> [!IMPORTANT]
+> **Resource access control is set for each location.** If you turn it on with the REST API for
+> one location, the console shows the switch in a **mixed state**. The page warns: "Resource
+> access control is on in global and off in us, eu, ... Save applies the setting shown here to all
+> locations." Do not click **Save** on that page unless you want the same setting in every
+> location. See the screenshot for [step 6](#22-detailed-steps).
+
 ### 1.7 Checklist
 
 - [ ] The all users group and the MCP group are Google groups.
@@ -141,6 +148,7 @@ flowchart TD
 - [ ] Admins know that they still see every connector (see [2.3](#23-roles-that-cancel-the-control)).
 - [ ] Users know to refresh the web page after the change.
 - [ ] You know how to undo the change: give the Restricted User role back.
+- [ ] You know which locations have resource access control on. Do not click **Save** on a page that shows a mixed state.
 
 ## Part 2. For your admin
 
@@ -169,23 +177,48 @@ The base access role in the console, with its 2 permissions:
 | 3 | Create the custom role `customRestrictedEndUser` with the 2 permissions in [2.1](#21-exact-roles-and-permissions). | None |
 | 4 | Give `agentspaceUser` to the all users group on the app and on every existing connector. For a connector with several parts (entities), give the role on the connector collection and on every entity data store. | None |
 | 5 | Give `agentspaceUser` to the MCP group on the MCP connector: on its collection and on its `_mcp_data` data store. | None |
-| 6 | Turn on resource access control. The console setting applies to every multi-region where the project is configured. The REST call applies to one multi-region for each call. **[Documented]** | None, because users still have `agentspaceRestrictedUser`. **[Tested]** |
+| 6 | Turn on resource access control. The console setting applies to every multi-region where the project is configured. The REST call applies to one multi-region for each call. **[Documented]** If you use the REST call, the console then shows the switch in a mixed state. Do not click **Save** there unless you want the same setting in all locations. **[Tested]** | None, because users still have `agentspaceRestrictedUser`. **[Tested]** |
 | 7 | Give `customRestrictedEndUser` to the all users group at project level. Remove `agentspaceRestrictedUser` from every user and group at project level. | Users outside the MCP group no longer see the MCP connector, after about 5 minutes. **[Tested for one user, not for a group]** |
 | 8 | Check with one member and one non-member of the MCP group. Users refresh the web page. | None |
 | Undo | Give `agentspaceRestrictedUser` back at project level. | Expected to restore all connectors. **[Inference, not timed]** |
 
-Step 3: the base access role in **IAM & Admin** > **Roles** > **Custom**.
+The console screens for each step:
+
+| Step | Screen | Screenshot |
+|---|---|---|
+| 3 | **IAM & Admin** > **Roles** > **Custom** | The base access role in the list |
+| 4 | Gemini Enterprise > **Apps** > your app > **User permissions** | The group has the role **User** on the app |
+| 4 | **Apps** > your app > **Connected data stores** > a connector > **User permissions** | The group has the role **User** on an existing connector |
+| 5 | **Data stores** > the MCP connector > **User permissions** | Only the MCP group has the role **User** |
+| 6 | Gemini Enterprise > **Settings** > **Resource access control** | The switch, and the warning about locations |
+| 7 | **IAM & Admin** > **IAM** | The user has only the base access role at project level |
+
+**Step 3:** the base access role in the custom roles list.
 
 ![Base access role in the custom roles list](assets/07_base_access_role_created.png)
 
-Step 7: in **IAM & Admin** > **IAM**, the user has only the base access role at project level. No
-Restricted User role, Owner, Editor, or Viewer is left.
+**Step 4:** the Gemini Enterprise User role (shown as **User**) on the app.
+
+![User role on the app](assets/10_app_user_permissions.png)
+
+**Step 4:** the same role on an existing connector.
+
+![User role on an existing connector](assets/11_connector_b_user_permissions.png)
+
+**Step 5:** the same role on the MCP connector, for the MCP group only. In the test, this was one
+test user.
+
+![User role on the MCP connector](assets/12_mcp_connector_user_permissions.png)
+
+**Step 6:** the setting after a REST call for `global` only. The switch is in a mixed state. The
+warning says that **Save** applies the setting shown on the page to all locations.
+
+![Resource access control in a mixed state](assets/13_resource_access_control_mixed.png)
+
+**Step 7:** the user has only the base access role at project level. No Restricted User role,
+Owner, Editor, or Viewer is left.
 
 ![Test user with only the base access role at project level](assets/08_test_user_project_role.png)
-
-> [!NOTE]
-> The documentation lets you give a role to a user or to a group on the app and on the data store.
-> **[Documented]** The test gave roles to one user directly. It did not test a group.
 
 ### 2.3 Roles that cancel the control
 
@@ -194,10 +227,14 @@ level. This applies to a direct grant and to a grant through a group.
 
 | Role | Why | Status |
 |---|---|---|
-| Any predefined Discovery Engine role, for example `agentspaceRestrictedUser`, `agentspaceUser`, or `agentspaceAdmin` | Project-level predefined roles override resource-level roles | **[Documented]**. Tested for `agentspaceRestrictedUser`. |
+| Any predefined Discovery Engine role, for example `agentspaceRestrictedUser`, `agentspaceUser`, or `agentspaceAdmin` | Project-level predefined roles override resource-level roles | **[Documented, Tested]** for `agentspaceRestrictedUser`, and for an admin with `agentspaceAdmin` and `agentspaceUser` |
 | Owner (`roles/owner`), Editor (`roles/editor`), Viewer (`roles/viewer`) | These basic roles include `discoveryengine.dataStores.get` and `discoveryengine.collections.get` | **[Verified from the role permissions, not tested in the web app]** |
 
-So admins with one of these roles keep access to every connector.
+So admins with one of these roles keep access to every connector. In the test, an admin with
+`agentspaceAdmin` and `agentspaceUser` at project level, and no role on any connector, saw both
+connectors with resource access control on:
+
+![Admin sees both connectors](assets/09_admin_sees_all_connectors.png)
 
 ### 2.4 Reminders
 
@@ -206,7 +243,12 @@ So admins with one of these roles keep access to every connector.
 | After you create an MCP connector, open the data store, click **Actions** > **Reload custom actions**, and enable each tool. Until then, Gemini Enterprise does not use the tool. | **[Tested]** |
 | Refresh the web page after a change. An open page can show an old connector list. The documentation also says to sign out and sign in again, or to use a private window. | **[Tested, Documented]** |
 | Wait about 5 minutes after you turn on resource access control or change a role. | **[Documented, Tested]** |
-| The organization policy constraint `discoveryengine.managed.disableCustomMcpServerConnector` can block MCP connectors. Check it before you start. | **[Tested]** |
+| The organization policy constraint `discoveryengine.managed.disableCustomMcpServerConnector` can block MCP connectors. Check it before you start. To allow MCP connectors in one project, set a project policy that is **Not enforced**. | **[Tested]** |
+| On the **Resource access control** page, **Save** applies the setting shown on the page to all locations. Check the switch before you click **Save**. | **[Tested]** |
+
+The organization policy for MCP connectors, set to **Not enforced** for one project:
+
+![Organization policy for MCP connectors, not enforced](assets/14_org_policy_custom_mcp_not_enforced.png)
 
 ## Part 3. Test results
 
@@ -338,6 +380,9 @@ The last call returns `MCP-MARKER-A`. The server is stateless, so no session hea
   tool.
 - **Create the app with all data stores in one call.** An app that was created with one data
   store cannot get more data stores later. The API returns `FAILED_PRECONDITION`.
+- **The console shows a mixed state after a REST call.** The REST call turns on resource access
+  control for one location. The console then shows the switch in a mixed state and warns that
+  **Save** applies the shown setting to all locations.
 - **Refresh the web page after a change.** An open page can show an old connector list. A new
   chat after a refresh shows the correct list.
 - **Check the organization policy first.** The managed constraint
