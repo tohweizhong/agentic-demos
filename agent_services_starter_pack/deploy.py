@@ -60,6 +60,8 @@ def runtime_config(settings):
   return {
       "display_name": settings.agent_display_name,
       "description": "Agent services starter pack: Sessions, Memory Bank, traces.",
+      "identity_type": "AGENT_IDENTITY",
+      "http_options": {"api_version": "v1beta1"},
       "staging_bucket": settings.staging_bucket_uri,
       "requirements": requirements(),
       # Uploads the agent/ folder, so that Agent Runtime can import it.
@@ -110,7 +112,7 @@ def delete(settings):
   import agentplatform  # pylint: disable=import-outside-toplevel
 
   name = settings.require_runtime_name()
-  client = agentplatform.Client(project=settings.project_id, location=settings.region)
+  client = agentplatform.Client(project=settings.project_id, location=settings.region, http_options={"api_version": "v1beta1"})
   print(f"Deleting {name} with its sessions and memories.")
   # force=True also deletes the child resources (sessions and memories).
   client.runtimes.delete(name=name, force=True)
