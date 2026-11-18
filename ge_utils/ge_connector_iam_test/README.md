@@ -156,6 +156,10 @@ follows from the test and the documentation, but the test did not show it direct
 | Base access role | Custom role `customRestrictedEndUser` | Only `discoveryengine.devToolsConfigs.get` and `discoveryengine.locations.buildAuthorizationUrl`. The documentation says that these let the web app load the authorization endpoint and the developer tools settings, without access to apps or data stores. **[Documented]** |
 | Gemini Enterprise User role | `roles/discoveryengine.agentspaceUser` | Gives use of one app, or one connector, when you give it on that resource. **[Tested]** |
 
+The base access role in the console, with its 2 permissions:
+
+![Base access role with 2 permissions](assets/06_base_access_role_permissions.png)
+
 ### 2.2 Detailed steps
 
 | Step | Action | Effect for users |
@@ -169,6 +173,15 @@ follows from the test and the documentation, but the test did not show it direct
 | 7 | Give `customRestrictedEndUser` to the all users group at project level. Remove `agentspaceRestrictedUser` from every user and group at project level. | Users outside the MCP group no longer see the MCP connector, after about 5 minutes. **[Tested for one user, not for a group]** |
 | 8 | Check with one member and one non-member of the MCP group. Users refresh the web page. | None |
 | Undo | Give `agentspaceRestrictedUser` back at project level. | Expected to restore all connectors. **[Inference, not timed]** |
+
+Step 3: the base access role in **IAM & Admin** > **Roles** > **Custom**.
+
+![Base access role in the custom roles list](assets/07_base_access_role_created.png)
+
+Step 7: in **IAM & Admin** > **IAM**, the user has only the base access role at project level. No
+Restricted User role, Owner, Editor, or Viewer is left.
+
+![Test user with only the base access role at project level](assets/08_test_user_project_role.png)
 
 > [!NOTE]
 > The documentation lets you give a role to a user or to a group on the app and on the data store.
