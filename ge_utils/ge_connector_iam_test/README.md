@@ -127,6 +127,29 @@ Evidence for each round:
 Round 1 was checked 16 minutes after the toggle change. Round 2 changed only the project role, and
 it took effect. So the toggle was active in round 1, and the predefined role caused the result.
 
+### 3.1 Screenshots
+
+Baseline and round 1: the test user sees both connectors.
+
+![Connector menu with both connectors](assets/01_baseline_connector_menu.png)
+
+Round 2: after a page refresh, the connector menu shows only connector B.
+
+![Connector menu with connector B only](assets/02_round2_connector_menu.png)
+
+Round 2: the answer has no connector A marker. Only connector B results come back.
+
+![Answer without the connector A marker](assets/03_round2_answer_connector_a_hidden.png)
+
+Round 3: after the grant on connector A, the action runs and the answer has `MCP-MARKER-A`.
+
+![Answer with the connector A marker](assets/04_round3_answer_connector_a_back.png)
+
+Setup: the manual step. The tool shows as **Enabled** on the **Actions** tab of the Custom MCP
+data store.
+
+![Actions tab with the tool enabled](assets/05_console_actions_enabled.png)
+
 ## 4. Effect on existing connectors
 
 - After the role swap, a user loses every connector that has no grant for that user. Plan the
